@@ -150,8 +150,8 @@
 
         /* Hide number spinner */
         input[type="number"]::-webkit-inner-spin-button, 
-        input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-        input[type="number"] { -moz-appearance: textfield; }
+        input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; appearance: none; margin: 0; }
+        input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 
         /* Counter input */
         .counter-wrap { display: flex; align-items: center; gap: 0; border: 1.5px solid var(--slate-200); border-radius: 12px; overflow: hidden; background: var(--slate-50); }
