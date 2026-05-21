@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Malang Raya - Computational Intelligence</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="assets/css/global.css" />
+    <link rel="stylesheet" href="assets/css/code-1.css" />
+    
+    <!-- JS -->
+    <script src="assets/js/code-1.js" defer></script>
+</head>
+<body>
+    <!-- Top Navigation -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a class="navbar-brand" href="{{DATA:SCREEN:SCREEN_2}}">Malang Raya</a>
+            <div class="navbar-links">
+                <a class="nav-link" href="{{DATA:SCREEN:SCREEN_4}}">Explore</a>
+                <a class="nav-link active" href="#">How It Works</a>
+                <button class="btn-primary">Login</button>
+            </div>
+        </div>
+        <div class="navbar-divider"></div>
+    </nav>
+
+    <main class="main-content">
+        <!-- Hero Section -->
+        <header class="hero-header">
+            <div class="hero-text-content">
+                <span class="hero-subtitle">Computational Intelligence</span>
+                <h1 class="hero-title">
+                    Fuzzy C-Means <span class="highlight">Clustering</span>
+                </h1>
+                <p class="hero-desc">
+                    Experience how our "Smart AI" engine categorizes the diverse tourism landscape of Malang Raya using mathematical precision. Unlike rigid logic, our system understands the nuance of traveler behavior through iterative optimization.
+                </p>
+            </div>
+            <!-- Decorative Background Element -->
+            <div class="decorative-blob"></div>
+        </header>
+
+        <!-- Process Grid -->
+        <div class="process-grid">
+            <!-- Step 1: Data Input -->
+            <section class="glass-panel process-step-1 teal-glow">
+                <div class="panel-header">
+                    <div class="icon-wrapper">
+                        <span class="material-symbols-outlined">database</span>
+                    </div>
+                    <h2 class="panel-title">01. Data Input</h2>
+                </div>
+                <p class="panel-desc">
+                    Multidimensional analysis of tourist spending patterns across Malang Raya districts.
+                </p>
+                <div class="data-bars">
+                    <div class="data-bar-item group">
+                        <div class="data-bar-label">
+                            <span>Transportation</span>
+                            <span class="percent">40%</span>
+                        </div>
+                        <div class="progress-track">
+                            <div class="progress-fill group-hover" style="width: 40%"></div>
+                        </div>
+                    </div>
+                    <div class="data-bar-item group">
+                        <div class="data-bar-label">
+                            <span>Accommodation</span>
+                            <span class="percent">25%</span>
+                        </div>
+                        <div class="progress-track">
+                            <div class="progress-fill group-hover" style="width: 25%"></div>
+                        </div>
+                    </div>
+                    <div class="data-bar-item group">
+                        <div class="data-bar-label">
+                            <span>Culinary & Gifts</span>
+                            <span class="percent">20%</span>
+                        </div>
+                        <div class="progress-track">
+                            <div class="progress-fill group-hover" style="width: 20%"></div>
+                        </div>
+                    </div>
+                    <div class="data-bar-item group">
+                        <div class="data-bar-label">
+                            <span>Attractions</span>
+                            <span class="percent">15%</span>
+                        </div>
+                        <div class="progress-track">
+                            <div class="progress-fill group-hover" style="width: 15%"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Step 2: The Fuzzy Process -->
+            <section class="glass-panel process-step-2 teal-glow flex-column">
+                <div class="panel-header-row">
+                    <div class="panel-header">
+                        <div class="icon-wrapper">
+                            <span class="material-symbols-outlined">hub</span>
+                        </div>
+                        <h2 class="panel-title">02. The Fuzzy Process</h2>
+                    </div>
+                    <div class="badges">
+                        <span class="badge">m = 2.0</span>
+                        <span class="badge">Iteration #42</span>
+                    </div>
+                </div>
+
+                <!-- Abstract Visualization Canvas -->
+                <div class="visualization-canvas">
+                    <div class="grid-lines"></div>
+                    
+                    <!-- Centroids -->
+                    <div class="centroid centroid-hemat group">
+                        <div class="centroid-circle circle-sm teal-glow bg-primary-20 group-hover">
+                            <span class="material-symbols-outlined icon-sm">savings</span>
+                        </div>
+                        <span class="centroid-label">HEMAT</span>
+                    </div>
+                    <div class="centroid centroid-balanced group">
+                        <div class="centroid-circle circle-md teal-glow bg-primary-20 group-hover">
+                            <span class="material-symbols-outlined icon-md">balance</span>
+                        </div>
+                        <span class="centroid-label">BALANCED</span>
+                    </div>
+                    <div class="centroid centroid-premium group">
+                        <div class="centroid-circle circle-lg teal-glow bg-primary-20 group-hover">
+                            <span class="material-symbols-outlined icon-lg">star</span>
+                        </div>
+                        <span class="centroid-label">PREMIUM</span>
+                    </div>
+
+                    <!-- Data Points -->
+                    <div class="data-point point-1"></div>
+                    <div class="data-point point-2"></div>
+                    <div class="data-point point-3"></div>
+                    <div class="data-point point-4"></div>
+                    <div class="data-point point-5"></div>
+                    <div class="data-point point-6"></div>
+
+                    <!-- Connection Lines (SVG) -->
+                    <svg class="connection-lines">
+                        <line x1="20%" y1="20%" x2="50%" y2="60%"></line>
+                        <line x1="50%" y1="60%" x2="80%" y2="30%"></line>
+                    </svg>
+
+                    <div class="objective-function">
+                        Objective Function: J = Σ Σ (μ)^m ||x - c||²
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Step 3: Validation -->
+        <section class="glass-panel validation-section teal-glow">
+            <div class="validation-container">
+                <div class="validation-content">
+                    <div class="panel-header margin-bottom-md">
+                        <div class="icon-wrapper accent">
+                            <span class="material-symbols-outlined icon-accent">verified</span>
+                        </div>
+                        <h2 class="panel-title title-lg">03. Validation Strategy</h2>
+                    </div>
+                    <p class="validation-desc">
+                        Accuracy is non-negotiable. We employ the <span class="highlight-alt">Xie-Beni (XB) Index</span> to measure the compactness and separation of our clusters. The lower the index, the more distinct and reliable our travel categories.
+                    </p>
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <span class="metric-label">Current XB Score</span>
+                            <span class="metric-val">0.142</span>
+                        </div>
+                        <div class="metric-card">
+                            <span class="metric-label">Confidence Interval</span>
+                            <span class="metric-val">98.4%</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="validation-visual">
+                    <div class="optimal-cluster-card group">
+                        <div class="optimal-bg-hover"></div>
+                        <div class="optimal-content">
+                            <div class="cluster-k">K=3</div>
+                            <div class="cluster-label">Optimal Clusters</div>
+                            <div class="cluster-dots">
+                                <div class="dot"></div>
+                                <div class="dot"></div>
+                                <div class="dot"></div>
+                            </div>
+                            <p class="cluster-desc">Minimum deviation achieved across 12,400 data points.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Signature Editorial Section -->
+        <section class="editorial-section">
+            <div class="editorial-image-col">
+                <div class="editorial-image-wrapper">
+                    <img class="editorial-image" alt="Bromo Context" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAOuct4E_Y_Lc73UCXNj9MljDNXX1B9Fn-yJV4r80abQcVfNIgov1f9lKH3AgHvdQ6LJ4cvnG5paxMg1sG0anxm_ydvSKCRqSpg6kK1V74yEoU01pjsK8WufXrHP3LUU_aPQxCqhFN0PSXE53OHpTXe5KsnXIdHc_3u7kutkSK-doedyCuZ0lF0UmYY-GKKzqmdJqkJma5_ws5XXF1ooUMwWsVqA5Qsg6BggFr7MQSx36REzAsziBl9RzEe7FxRrjzv3Soy3suz71U"/>
+                </div>
+            </div>
+            <div class="editorial-text-col">
+                <h3 class="editorial-title">From Math to Memory</h3>
+                <p class="editorial-desc">
+                    Fuzzy C-Means doesn't just crunch numbers; it respects the fluid nature of Malang's tourism. A visitor might belong 60% to "Balanced" and 40% to "Premium." This nuance allows our recommendation engine to suggest experiences that others miss.
+                </p>
+                <ul class="feature-list">
+                    <li>
+                        <span class="material-symbols-outlined icon-highlight">check_circle</span>
+                        <span class="feature-text"><strong>Adaptive Planning:</strong> Real-time updates as tourist flows change.</span>
+                    </li>
+                    <li>
+                        <span class="material-symbols-outlined icon-highlight">check_circle</span>
+                        <span class="feature-text"><strong>Segmented Insights:</strong> Targeted development for specific traveler tiers.</span>
+                    </li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-divider"></div>
+        <div class="footer-container">
+            <div class="footer-brand">Malang Raya</div>
+            <div class="footer-links">
+                <span class="footer-stats">Visitor Stats: 12.4k this month</span>
+                <a class="footer-link" href="{{DATA:SCREEN:SCREEN_4}}">Directory</a>
+                <a class="footer-link" href="#">Privacy Policy</a>
+            </div>
+            <div class="footer-copyright">
+                © 2024 Malang Raya Tourism Authority. Intelligence by FCM Clustering.
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

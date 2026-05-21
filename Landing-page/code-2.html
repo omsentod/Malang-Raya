@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Malang Raya - Explore</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="assets/css/global.css" />
+    <link rel="stylesheet" href="assets/css/code-2.css" />
+    
+    <!-- JS -->
+    <script src="assets/js/code-2.js" defer></script>
+</head>
+<body>
+    <!-- Top Navigation -->
+    <header class="header">
+        <nav class="navbar-container">
+            <div class="nav-brand-area">
+                <a class="navbar-brand" href="#">Malang Raya</a>
+                <div class="navbar-links">
+                    <a class="nav-link active" href="#">Home</a>
+                    <a class="nav-link" href="#explore">Explore</a>
+                    <a class="nav-link" href="#how-it-works">How It Works</a>
+                    <a class="nav-link" href="#">Saved</a>
+                </div>
+            </div>
+            <div class="nav-actions">
+                <div class="nav-search">
+                    <span class="material-symbols-outlined search-icon">search</span>
+                    <input class="search-input" placeholder="Search..." type="text" />
+                </div>
+                <button class="btn-profile">Profile</button>
+                <button class="mobile-menu-btn" id="mobile-menu-btn">
+                    <span class="material-symbols-outlined">menu</span>
+                </button>
+            </div>
+        </nav>
+        
+        <!-- Mobile Menu -->
+        <div class="mobile-menu hidden" id="mobile-menu">
+            <a class="mobile-nav-link active" href="#">Home</a>
+            <a class="mobile-nav-link" href="#explore">Explore</a>
+            <a class="mobile-nav-link" href="#how-it-works">How It Works</a>
+            <a class="mobile-nav-link" href="#">Saved</a>
+        </div>
+        <div class="navbar-divider"></div>
+    </header>
+
+    <main>
+        <!-- Hero Section -->
+        <section class="hero-section" data-alt="Stunning cinematic wide shot of Mount Bromo volcanic caldera at sunrise" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCatih-pNbXXCGm6QuoAcVY0MMf2wGse5wYV5oaYn_-dkzfEVIHzJczBrL-QGHAZSwUPfywYjE2Ufh6KPjxIjHwxiScWdL7oyY_uETC8xg6iv0mn7ao_f7xi4EXKERh4uKMgH_LOm8jCcNxafJRxBq5x4VbH1Mt5uUNQeuGf793xWk5i12huspYpknD8r0jSkMWAad6CA8MDZ5jWJJjQqXPRaXlsvhl3N9IONYqBhbGHMAsn-KTIkweOggAfyLKZJebE1lwErWbyI0');">
+            <div class="hero-overlay"></div>
+            <div class="hero-content">
+                <h1 class="hero-title">
+                    Jelajahi Malang Raya <br />
+                    <span class="hero-highlight text-glow">Secara Personal</span>
+                </h1>
+                <p class="hero-desc">
+                    Intelligence by FCM Clustering. Dapatkan rekomendasi destinasi yang dikurasi khusus berdasarkan kepribadian dan gaya perjalanan Anda.
+                </p>
+                <div class="hero-actions">
+                    <a class="btn-hero" href="#explore">
+                        Mulai Konsultasi AI
+                        <span class="material-symbols-outlined">auto_awesome</span>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Travel Style Section -->
+        <section class="travel-style-section" id="how-it-works">
+            <div class="section-header center">
+                <h2 class="section-title text-primary">Choose Your Travel Style</h2>
+                <div class="section-divider"></div>
+            </div>
+            
+            <div class="style-cards-grid">
+                <!-- Card 1: Budget -->
+                <div class="style-card card-surface group">
+                    <div class="card-icon-wrapper bg-secondary-container icon-primary">
+                        <span class="material-symbols-outlined">account_balance_wallet</span>
+                    </div>
+                    <h3 class="card-title">Punya Budget Pas?</h3>
+                    <p class="card-desc">
+                        Optimalisasi pengeluaran dengan algoritma FCM. Kami temukan titik temu antara kenyamanan dan harga terbaik.
+                    </p>
+                    <div class="card-badge surface-badge">
+                        <span class="material-symbols-outlined badge-icon">memory</span>
+                        <span class="badge-text">FCM Intelligence Powered</span>
+                    </div>
+                    <div class="card-border"></div>
+                </div>
+                
+                <!-- Card 2: Planned -->
+                <div class="style-card card-primary group">
+                    <div class="card-icon-wrapper bg-white-20 icon-white hover-rotate">
+                        <span class="material-symbols-outlined">location_on</span>
+                    </div>
+                    <h3 class="card-title text-white">Sudah Tahu Mau ke Mana?</h3>
+                    <p class="card-desc text-white-80">
+                        Berikan daftar destinasi impian Anda, dan biarkan AI kami merancang rute perjalanan terefisien di Malang Raya.
+                    </p>
+                    <button class="btn-card-action mt-auto">Input Destinasi</button>
+                </div>
+                
+                <!-- Card 3: Discovery -->
+                <div class="style-card card-surface group">
+                    <div class="card-icon-wrapper bg-surface-high icon-primary">
+                        <span class="material-symbols-outlined">explore</span>
+                    </div>
+                    <h3 class="card-title">Cuma Mau Lihat-Lihat?</h3>
+                    <p class="card-desc">
+                        Jelajahi galeri editorial kami yang dikurasi oleh pakar lokal. Temukan permata tersembunyi yang jarang diketahui.
+                    </p>
+                    <div class="card-badge surface-badge mt-auto">
+                        <span class="material-symbols-outlined badge-icon">auto_stories</span>
+                        <span class="badge-text">Editorial Curated</span>
+                    </div>
+                    <div class="card-border"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Stats Section -->
+        <section class="stats-section">
+            <div class="stats-blur-bg"></div>
+            <div class="stats-container">
+                <div class="stats-split">
+                    <div class="stats-text-area">
+                        <span class="stats-subtitle">Official Data Insight</span>
+                        <h2 class="stats-title">Why Malang?</h2>
+                        <p class="stats-desc">
+                            Berdasarkan data statistik BPS terbaru, Malang Raya terus menjadi magnet utama pariwisata di Jawa Timur. Pertumbuhan kunjungan mencerminkan keragaman daya tarik dari alam hingga kuliner modern.
+                        </p>
+                        <ul class="stats-list">
+                            <li class="stats-list-item group">
+                                <span class="material-symbols-outlined list-icon">check_circle</span>
+                                <span>12.4k+ Pengunjung bulan ini</span>
+                            </li>
+                            <li class="stats-list-item group">
+                                <span class="material-symbols-outlined list-icon">check_circle</span>
+                                <span>98% Tingkat Kepuasan Wisatawan</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="stats-chart-area">
+                        <h4 class="chart-title">Volume Pengunjung (BPS 2023)</h4>
+                        <div class="chart-bars">
+                            <div class="bar-item group">
+                                <div class="bar-label-row">
+                                    <span>Kota Malang</span>
+                                    <span class="bar-value">4.2M</span>
+                                </div>
+                                <div class="bar-track">
+                                    <div class="bar-fill fill-dim" style="width: 75%"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="bar-item group">
+                                <div class="bar-label-row">
+                                    <span>Kota Batu</span>
+                                    <span class="bar-value">8.5M</span>
+                                </div>
+                                <div class="bar-track">
+                                    <div class="bar-fill fill-glow" style="width: 95%"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="bar-item group">
+                                <div class="bar-label-row">
+                                    <span>Kab. Malang</span>
+                                    <span class="bar-value">3.1M</span>
+                                </div>
+                                <div class="bar-track">
+                                    <div class="bar-fill fill-dim" style="width: 60%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="chart-footer-note">
+                            *Data agregat per tahun. Intelligence system membantu mendistribusikan trafik secara merata.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bento Grid Destinations Showcase -->
+        <section class="bento-gallery-section" id="explore">
+            <h2 class="section-title text-left mb-12">Curated Highlights</h2>
+            <div class="bento-grid">
+                
+                <!-- Bromo large -->
+                <div class="bento-item item-large group">
+                    <img class="bento-img" alt="Bromo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAe7CCISLd5OVWY6D9-IbfnzCXF1LNiRBNLycO_VP_o6941Hlg0rI5g7elYR6vBs8VI8JQsKH1130K9wsi8YBV1jQMhL5r_5qO2tZZ8n6e1RDeTgVkL5q-7HQyUb2ivEgetliS9-g1sUwfxnCbfkV5w-e5xhAGl3wLXdl97ifdWLR0m5t32dZcmOgsZDtm3MPT7fG0gQcAIBcV58MWqB_SzjaS2RhElHJwhexJwcOFsJJAVLVOK_KUaeVxQXecV-SoaVi9dtcGQfDw" />
+                    <div class="bento-overlay"></div>
+                    <div class="bento-content padding-large">
+                        <span class="bento-badge">MUST VISIT</span>
+                        <h4 class="bento-title text-3xl">Gunung Bromo</h4>
+                        <p class="bento-desc">The iconic sea of sand.</p>
+                    </div>
+                </div>
+                
+                <!-- Batu Wide -->
+                <div class="bento-item item-wide group">
+                    <img class="bento-img" alt="Batu" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCBW4539av5uBFkoFDoszku6F4jQ1Uknx_yXV6SM31Qcmln97Wp0kCjCs3b-ZMw30tUeGl8Z8CtY6CS0D6Hc9YQAtFeV-sPEMCna27PXJenqIeZ07B1ISDacB7srrII1uXc0ycGUrMjHyCTUEu2PUjeqsp6wjDarK7yWb3aWDra0SQiqCwHNu-_tTqmbjYLjfWhVUoWW24AbpR2MqoHXL2-JsbbdRgxhyOdLIuKfjXNKWTyyuy6kmvqCl4yx2E1_W62arYcB_7lSwQ" />
+                    <div class="bento-overlay"></div>
+                    <div class="bento-content padding-md">
+                        <h4 class="bento-title text-xl">Wisata Kota Batu</h4>
+                        <p class="bento-desc">Family &amp; Theme Parks</p>
+                    </div>
+                </div>
+                
+                <!-- Cafe Standard -->
+                <div class="bento-item item-standard group">
+                    <img class="bento-img" alt="Cafe" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBRJKZ5SbTqXKF8ptBCy0kd08LGWHsxlkPq2dppPKZ9C_8gk7YImKARXL7qQA5LtQlRDKHAPndLJUs5SWvYRtVPNyzAidqeZsIFeqWcqenjCodJtsYHdOserdZSfPUGNxxLusAUA9b_hGYx2iO66gPt3pB0ZufyuFKIvLLBhA2LQw2oLcsbfn0J_b1Jo0rDEKbQHXs0rcraueIdUbBMVf5VgxWxdsxY2SG9B9HJJ7vTmLHV2t5uSKCUdSAT3bpxs3YQ9pC3BNSAhMo" />
+                    <div class="bento-overlay"></div>
+                    <div class="bento-content padding-md align-center">
+                        <h4 class="bento-title text-lg center-text">Malang Coffee Culture</h4>
+                    </div>
+                </div>
+                
+                <!-- Nature Standard -->
+                <div class="bento-item item-standard group">
+                    <img class="bento-img" alt="Nature" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCKNnEl7VBJlrneHcg6gZLGGhMHBXLbhmJIyDaeFWPbO-9DTt6g7BtDFkIOQPnENz5D-wHRhQAgP9Bghuzs9p_NooXEgtwtIel9nPjaFCV58ro4an8hzYyCHOXQ4WsBIjZ-Tr4X-V_h1AkZHP49XXr6QmBNoQD5OdpwP7g47HcDuGxUP8PnuWr4iBGcFujRhoZ-UlIaW5QnNdgLl5ueTSG1tA0r4ciI-HdCcjLIlBQv8H1WOkSLZIglbPEbrdFmNbnklFi7-ARUJ64" />
+                    <div class="bento-overlay"></div>
+                    <div class="bento-content padding-md align-center">
+                        <h4 class="bento-title text-lg center-text">Hidden Tea Garden</h4>
+                    </div>
+                </div>
+                
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer-light">
+        <div class="footer-divider"></div>
+        <div class="footer-container">
+            <div class="footer-brand-area">
+                <a class="footer-brand" href="#">Malang Raya</a>
+                <p class="footer-copyright">
+                    © 2024 Malang Raya Tourism Authority. Intelligence by FCM Clustering.
+                </p>
+            </div>
+            <div class="footer-links">
+                <span class="footer-stat">Visitor Stats: 12.4k this month</span>
+                <a class="footer-link" href="#explore">Directory</a>
+                <a class="footer-link" href="#">Privacy Policy</a>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
