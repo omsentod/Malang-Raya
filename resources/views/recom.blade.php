@@ -107,6 +107,7 @@
                                 <input type="text" class="form-input" id="b-budget" placeholder="Contoh: 3.000.000" autocomplete="off" required />
                             </div>
                             <span class="form-hint">Budget total untuk seluruh perjalanan (akomodasi + wisata + kuliner + transport)</span>
+                            <div id="b-warning-box" class="budget-warning-box" style="display:none;"></div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
@@ -131,6 +132,22 @@
                                     <button type="button" class="counter-btn" id="b-duration-plus">+</button>
                                 </div>
                             </div>
+                        </div>
+
+                        <!-- Moda Transportasi (Hybrid Selection) -->
+                        <div class="form-group" style="margin-top: 4px;">
+                            <label class="form-label">
+                                <span class="material-symbols-outlined">directions_car</span>
+                                Moda Transportasi
+                            </label>
+                            <select class="form-input form-input-select no-prefix" id="b-transport">
+                                <option value="">Otomatis (Rekomendasi Sesuai Peserta)</option>
+                                <option value="motor">Motor (GoRide — Maks. 1 orang)</option>
+                                <option value="mobil">Mobil Standard (GoCar — Maks. 4 orang)</option>
+                                <option value="mobil_xl">Mobil XL (GoCar XL — Maks. 6 orang)</option>
+                            </select>
+                            <span class="form-hint">Pilih kustomisasi moda transportasi atau biarkan otomatis dioptimalkan AI</span>
+                            <div id="b-capacity-warning" class="budget-warning-box" style="display:none;"></div>
                         </div>
 
                         <!-- Auto Calc Panel -->
@@ -255,6 +272,22 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Moda Transportasi (Hybrid Selection) -->
+                        <div class="form-group" style="margin-top: 4px;">
+                            <label class="form-label">
+                                <span class="material-symbols-outlined">directions_car</span>
+                                Moda Transportasi
+                            </label>
+                            <select class="form-input form-input-select no-prefix" id="d-transport">
+                                <option value="">Otomatis (Rekomendasi Sesuai Peserta)</option>
+                                <option value="motor">Motor (GoRide — Maks. 1 orang)</option>
+                                <option value="mobil">Mobil Standard (GoCar — Maks. 4 orang)</option>
+                                <option value="mobil_xl">Mobil XL (GoCar XL — Maks. 6 orang)</option>
+                            </select>
+                            <span class="form-hint">Pilih kustomisasi moda transportasi atau biarkan otomatis dioptimalkan AI</span>
+                            <div id="d-capacity-warning" class="budget-warning-box" style="display:none;"></div>
+                        </div>
                         <div class="form-group">
                             <label class="form-label">
                                 <span class="material-symbols-outlined">payments</span>
@@ -268,6 +301,7 @@
                                 <input type="text" class="form-input" id="d-budget" placeholder="Kosongkan untuk Kondisi A (tanpa budget)" autocomplete="off" />
                             </div>
                             <span class="form-hint">Jika diisi → validasi budget real-time (Kondisi B). Jika kosong → eksplorasi harga (Kondisi A).</span>
+                            <div id="d-warning-box" class="budget-warning-box" style="display:none;"></div>
                         </div>
                         <button type="submit" class="submit-btn" id="d-submit" style="background:linear-gradient(135deg,#f59e0b,#d97706);box-shadow:0 4px 16px rgba(245,158,11,.3)">
                             <span class="material-symbols-outlined">search</span>
@@ -321,6 +355,16 @@
                             <span class="material-symbols-outlined" style="font-size:18px">refresh</span>
                             Coba Lagi
                         </button>
+                    </div>
+                    <!-- Dynamic Multi-Option Tabs (Centroid Proximity Projections) -->
+                    <div class="options-tabs-container" id="options-tabs-container" style="display: none;">
+                        <div class="options-tabs-label">
+                            <span class="material-symbols-outlined" style="font-size:16px;color:var(--teal-500);">auto_awesome</span>
+                            Pilihan Alternatif Paket Wisata:
+                        </div>
+                        <div class="options-tabs" id="options-tabs">
+                            <!-- Injected dynamically via recom.js -->
+                        </div>
                     </div>
                     <div class="packages-grid" id="packages-grid"></div>
                 </div>

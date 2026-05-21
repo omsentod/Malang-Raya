@@ -79,15 +79,119 @@ function getRawBudget(elId) {
     return parseFloat(raw) || 0;
 }
 
+function checkMinBudget(personsId, durationId, budgetId, warningBoxId) {
+    const persons  = +document.getElementById(personsId)?.value || 1;
+    const duration = +document.getElementById(durationId)?.value || 1;
+    const budget   = getRawBudget(budgetId);
+    const box      = document.getElementById(warningBoxId);
+    
+    if (!box) return;
+    
+    if (budget === 0) {
+        box.style.display = 'none';
+        return;
+    }
+
+    // Min Hotel: Rp 100.000 / malam / kamar
+    const minHotel = duration > 1 ? 100000 * (duration - 1) * Math.ceil(persons / 2) : 0;
+    // Min Wisata: Rp 5.000 / orang
+    const minWisata = 5000 * persons;
+    // Min Kuliner: Rp 15.000 / orang / porsi (3x sehari)
+    const minKuliner = 15000 * persons * 3 * duration;
+    // Min Transportasi: Rp 20.000 flat minimum
+    const minTransport = 20000;
+    
+    const minBudget = minHotel + minWisata + minKuliner + minTransport;
+
+    if (budget < minBudget) {
+        box.innerHTML = `
+            <span class="material-symbols-outlined" style="font-size:18px;flex-shrink:0;">warning</span>
+            <span>Budget minimal yang disarankan untuk <strong>${persons} orang</strong>, <strong>${duration} hari</strong> adalah <strong>${fmtRp(minBudget)}</strong>.</span>
+        `;
+        box.style.display = 'flex';
+    } else {
+        box.style.display = 'none';
+    }
+}
+
+function checkCapacity(personsId, transportId, warningBoxId) {
+    const persons = +document.getElementById(personsId)?.value || 1;
+    const transport = document.getElementById(transportId)?.value || '';
+    const box = document.getElementById(warningBoxId);
+
+    if (!box) return true;
+
+    let warningMsg = '';
+    let maxCap = 999;
+    let vehicleName = '';
+
+    if (transport === 'motor') {
+        maxCap = 1;
+        vehicleName = 'Motor (GoRide)';
+    } else if (transport === 'mobil') {
+        maxCap = 4;
+        vehicleName = 'Mobil Standard (GoCar)';
+    } else if (transport === 'mobil_xl') {
+        maxCap = 6;
+        vehicleName = 'Mobil XL (GoCar XL)';
+    }
+
+    if (persons > maxCap) {
+        warningMsg = `Kapasitas ${vehicleName} maksimal adalah ${maxCap} orang. Kurangi jumlah peserta atau ganti moda transportasi.`;
+    }
+
+    if (warningMsg) {
+        box.innerHTML = `
+            <span class="material-symbols-outlined" style="font-size:18px;flex-shrink:0;">warning</span>
+            <span>${warningMsg}</span>
+        `;
+        box.style.display = 'flex';
+        return false;
+    } else {
+        box.style.display = 'none';
+        return true;
+    }
+}
+
 function onBudgetChange() {
+    // Tab Budget-First
     const budget   = getRawBudget('b-budget');
     const persons  = +document.getElementById('b-persons')?.value || 1;
     const duration = +document.getElementById('b-duration')?.value || 1;
-    document.getElementById('b-per-person').textContent = fmtRp(budget / persons);
-    document.getElementById('b-rooms').textContent = Math.ceil(persons / 2) + ' kamar';
-    document.getElementById('b-meals').textContent = (persons * duration * 3) + ' kali';
+    
+    const perPersonEl = document.getElementById('b-per-person');
+    if (perPersonEl) {
+        perPersonEl.textContent = fmtRp(persons > 0 ? budget / persons : 0);
+    }
+    const roomsEl = document.getElementById('b-rooms');
+    if (roomsEl) {
+        roomsEl.textContent = Math.ceil(persons / 2) + ' kamar';
+    }
+    const mealsEl = document.getElementById('b-meals');
+    if (mealsEl) {
+        mealsEl.textContent = (persons * duration * 3) + ' kali';
+    }
+    
+    checkMinBudget('b-persons', 'b-duration', 'b-budget', 'b-warning-box');
+    
+    // Tab Destination-First
+    checkMinBudget('d-persons', 'd-duration', 'd-budget', 'd-warning-box');
+
+    // Run capacity checks
+    const isBudgetCapValid = checkCapacity('b-persons', 'b-transport', 'b-capacity-warning');
+    const isDestCapValid = checkCapacity('d-persons', 'd-transport', 'd-capacity-warning');
+
+    // Enable/disable submit buttons based on capacity checks
+    const bSubmit = document.getElementById('b-submit');
+    if (bSubmit) bSubmit.disabled = !isBudgetCapValid;
+
+    const dSubmit = document.getElementById('d-submit');
+    if (dSubmit) dSubmit.disabled = !isDestCapValid;
 }
 onBudgetChange();
+
+document.getElementById('b-transport')?.addEventListener('change', onBudgetChange);
+document.getElementById('d-transport')?.addEventListener('change', onBudgetChange);
 
 // ─────────────────────────────────────────────────
 // UI State Helpers
@@ -124,9 +228,51 @@ function hideError() { document.getElementById('error-box').classList.remove('vi
 
 function hideResults() { document.getElementById('results-section').classList.remove('visible'); }
 
-function showResults(packages, workflowLabel) {
+let allOptions = [];
+
+function showResults(options, workflowLabel) {
     const sec = document.getElementById('results-section');
-    const grid= document.getElementById('packages-grid');
+    const tabsContainer = document.getElementById('options-tabs-container');
+    const tabsEl = document.getElementById('options-tabs');
+    grid = document.getElementById('packages-grid');
+    
+    allOptions = options;
+
+    // Render dynamic option tabs if more than 1 option is returned
+    if (options && options.length > 1) {
+        tabsEl.innerHTML = options.map((opt, i) => `
+            <button class="opt-tab ${i === 0 ? 'active' : ''}" data-idx="${i}">
+                <span class="material-symbols-outlined">auto_awesome</span>
+                Opsi Alternatif ${opt.option_index}
+            </button>
+        `).join('');
+        tabsContainer.style.display = 'flex';
+
+        // Attach click events
+        document.querySelectorAll('.opt-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.opt-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                const idx = parseInt(tab.dataset.idx);
+                renderPackages(allOptions[idx].packages);
+            });
+        });
+    } else {
+        tabsContainer.style.display = 'none';
+    }
+
+    // Render the first option's packages initially
+    const initialPackages = options && options[0] ? options[0].packages : [];
+    renderPackages(initialPackages);
+
+    document.getElementById('results-title').textContent = workflowLabel;
+    document.getElementById('results-sub').textContent = `${options.length} pilihan alternatif paket ditemukan`;
+    sec.classList.add('visible');
+    sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function renderPackages(packages) {
+    const grid = document.getElementById('packages-grid');
     grid.innerHTML = '';
 
     if (!packages || packages.length === 0) {
@@ -139,11 +285,6 @@ function showResults(packages, workflowLabel) {
     } else {
         packages.forEach(pkg => grid.appendChild(buildPkgCard(pkg)));
     }
-
-    document.getElementById('results-title').textContent = workflowLabel;
-    document.getElementById('results-sub').textContent = `${packages.length} paket ditemukan`;
-    sec.classList.add('visible');
-    sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 // ─────────────────────────────────────────────────
@@ -166,14 +307,9 @@ function buildPkgCard(pkg) {
     const remainHTML = remaining !== null
         ? `<div class="pkg-sisa ${isOver ? 'over' : 'ok'}">${isOver ? '⚠ Melebihi budget ' + fmtRp(Math.abs(remaining)) : '✓ Sisa ' + fmtRp(remaining)}</div>` : '';
 
-    const card = document.createElement('div');
-    card.className = 'pkg-card';
-    card.innerHTML = `
-        <div class="pkg-banner ${cls}">
-            <span class="pkg-badge ${cls}">${pkg.kategori || 'HEMAT'}</span>
-            <span class="pkg-xbi">XBI Optimal</span>
-        </div>
-        <div class="pkg-body">
+    const isOneDay = pkg.nights === 0 || pkg.cost_akomodasi === 0 || pkg.duration === 1;
+
+    const hotelItemHTML = !isOneDay ? `
             <div class="pkg-item">
                 <div class="pkg-item-icon hotel"><span class="material-symbols-outlined">hotel</span></div>
                 <div class="pkg-item-info">
@@ -182,6 +318,24 @@ function buildPkgCard(pkg) {
                     <div class="pkg-item-price">${fmtRp(pkg.hotel_harga)} <span style="font-size:11px;font-weight:500;color:var(--slate-400)">/malam</span></div>
                 </div>
             </div>
+    ` : '';
+
+    const akomodasiRowHTML = !isOneDay ? `
+                <div class="pkg-breakdown-row">
+                    <span>🏨 Akomodasi (${pkg.nights !== undefined ? pkg.nights : pkg.duration - 1} malam × ${pkg.num_rooms} kamar)</span>
+                    <span>${fmtRp(pkg.cost_akomodasi)}</span>
+                </div>
+    ` : '';
+
+    const card = document.createElement('div');
+    card.className = 'pkg-card';
+    card.innerHTML = `
+        <div class="pkg-banner ${cls}">
+            <span class="pkg-badge ${cls}">${pkg.kategori || 'HEMAT'}</span>
+            <span class="pkg-xbi">XBI Optimal</span>
+        </div>
+        <div class="pkg-body">
+            ${hotelItemHTML}
             <div class="pkg-item">
                 <div class="pkg-item-icon wisata"><span class="material-symbols-outlined">landscape</span></div>
                 <div class="pkg-item-info">
@@ -202,10 +356,7 @@ function buildPkgCard(pkg) {
             <div class="pkg-divider"></div>
 
             <div class="pkg-breakdown">
-                <div class="pkg-breakdown-row">
-                    <span>🏨 Akomodasi (${pkg.duration}×${pkg.num_rooms} kamar)</span>
-                    <span>${fmtRp(pkg.cost_akomodasi)}</span>
-                </div>
+                ${akomodasiRowHTML}
                 <div class="pkg-breakdown-row">
                     <span>🎯 Tiket Wisata (${pkg.num_persons} orang)</span>
                     <span>${fmtRp(pkg.cost_wisata)}</span>
@@ -215,7 +366,7 @@ function buildPkgCard(pkg) {
                     <span>${fmtRp(pkg.cost_kuliner)}</span>
                 </div>
                 <div class="pkg-breakdown-row transport-row">
-                    <span>🚗 Transportasi</span>
+                    <span>🚗 Transportasi (${legs[0]?.vehicle || 'Otomatis'})</span>
                     <span>${fmtRp(pkg.cost_transport)}</span>
                 </div>
                 ${legHTML}
@@ -259,11 +410,18 @@ function openDetailModal(pkg) {
         body.innerHTML = `<div style="text-align:center;padding:40px;color:var(--slate-500)">Data rute tidak tersedia untuk paket ini.</div>`;
     } else {
         let html = '<div class="timeline">';
-        const places = [
-            { name: pkg.hotel_nama, cat: '🏨 Hotel (Mulai)' },
+        const isOneDay = pkg.nights === 0 || pkg.cost_akomodasi === 0 || pkg.duration === 1;
+        const hotelNameReal = pkg.hotel_nama_real || pkg.hotel_nama;
+        
+        const places = isOneDay ? [
+            { name: pkg.kuliner_nama, cat: '📍 Titik Mulai (Basecamp / Kuliner)' },
+            { name: pkg.wisata_nama, cat: '🎯 Destinasi Wisata' },
+            { name: pkg.kuliner_nama, cat: '📍 Titik Selesai (Basecamp / Kuliner)' }
+        ] : [
+            { name: hotelNameReal, cat: '🏨 Hotel (Mulai)' },
             { name: pkg.wisata_nama, cat: '🎯 Destinasi Wisata' },
             { name: pkg.kuliner_nama, cat: '🍜 Tempat Makan' },
-            { name: pkg.hotel_nama, cat: '🏨 Hotel (Selesai)' }
+            { name: hotelNameReal, cat: '🏨 Hotel (Selesai)' }
         ];
 
         for (let i = 0; i < places.length; i++) {
@@ -287,9 +445,9 @@ function openDetailModal(pkg) {
         html += '</div>';
 
         // Google Maps URL (waypoints delimited by |)
-        const wp = encodeURIComponent(`${pkg.wisata_nama}|${pkg.kuliner_nama}`);
-        const origin = encodeURIComponent(pkg.hotel_nama);
-        const mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${origin}&waypoints=${wp}&destination=${origin}&travelmode=driving`;
+        const mapsUrl = isOneDay
+            ? `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(pkg.kuliner_nama)}&destination=${encodeURIComponent(pkg.kuliner_nama)}&waypoints=${encodeURIComponent(pkg.wisata_nama)}&travelmode=driving`
+            : `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(hotelNameReal)}&destination=${encodeURIComponent(hotelNameReal)}&waypoints=${encodeURIComponent(`${pkg.wisata_nama}|${pkg.kuliner_nama}`)}&travelmode=driving`;
         
         html += `
         <a href="${mapsUrl}" target="_blank" class="gmaps-btn">
@@ -348,9 +506,10 @@ document.getElementById('form-budget').addEventListener('submit', e => {
     const budget   = getRawBudget('b-budget');
     const persons  = +document.getElementById('b-persons').value;
     const duration = +document.getElementById('b-duration').value;
+    const transport = document.getElementById('b-transport')?.value || '';
 
     if (!budget || budget < 100000) { showError('Masukkan total anggaran minimal Rp 100.000'); return; }
-    callRecommend({ workflow: 'budget', budget, persons, duration },
+    callRecommend({ workflow: 'budget', budget, persons, duration, transport },
         `Budget Rp ${budget.toLocaleString('id-ID')} — ${persons} orang, ${duration} hari`);
 });
 
@@ -368,9 +527,10 @@ document.getElementById('form-destination').addEventListener('submit', e => {
     const persons  = +document.getElementById('d-persons').value;
     const duration = +document.getElementById('d-duration').value;
     const budget   = getRawBudget('d-budget');
+    const transport = document.getElementById('d-transport')?.value || '';
 
     if (!destId) { showError('Pilih destinasi wisata terlebih dahulu.'); return; }
-    callRecommend({ workflow: 'destination', dest_id: destId, persons, duration, budget: budget || null },
+    callRecommend({ workflow: 'destination', dest_id: destId, persons, duration, budget: budget || null, transport },
         `Destination-First — ${document.getElementById('d-dest-id').selectedOptions[0]?.text}`);
 });
 

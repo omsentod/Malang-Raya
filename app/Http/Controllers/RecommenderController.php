@@ -35,11 +35,12 @@ class RecommenderController extends Controller
     public function calculate(Request $request)
     {
         $validated = $request->validate([
-            'workflow' => 'required|in:budget,flexible,destination',
-            'persons'  => 'required|integer|min:1|max:20',
-            'duration' => 'required|integer|min:1|max:30',
-            'budget'   => 'nullable|numeric|min:0',
-            'dest_id'  => 'nullable|string',
+            'workflow'  => 'required|in:budget,flexible,destination',
+            'persons'   => 'required|integer|min:1|max:20',
+            'duration'  => 'required|integer|min:1|max:30',
+            'budget'    => 'nullable|numeric|min:0',
+            'dest_id'   => 'nullable|string',
+            'transport' => 'nullable|string',
         ]);
 
         $args = [
@@ -60,6 +61,11 @@ class RecommenderController extends Controller
             $args[] = $validated['dest_id'];
         }
 
+        if (!empty($validated['transport'])) {
+            $args[] = '--transport';
+            $args[] = $validated['transport'];
+        }
+
         $process = new Process($args);
         $process->setWorkingDirectory($this->workingDir());
         $process->setTimeout(90);
@@ -74,6 +80,9 @@ class RecommenderController extends Controller
             }
 
             if (($result['status'] ?? '') === 'success') {
+                if (!empty($result['verbose'])) {
+                    file_put_contents('php://stdout', "\n" . $result['verbose'] . "\n");
+                }
                 return response()->json(['status' => 'success', 'data' => $result['data']]);
             } else {
                 return response()->json(['error' => $result['message'] ?? 'Unknown error'], 500);
