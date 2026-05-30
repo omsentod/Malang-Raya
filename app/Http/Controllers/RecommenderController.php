@@ -35,12 +35,13 @@ class RecommenderController extends Controller
     public function calculate(Request $request)
     {
         $validated = $request->validate([
-            'workflow'  => 'required|in:budget,flexible,destination',
-            'persons'   => 'required|integer|min:1|max:20',
-            'duration'  => 'required|integer|min:1|max:30',
-            'budget'    => 'nullable|numeric|min:0',
-            'dest_id'   => 'nullable|string',
-            'transport' => 'nullable|string',
+            'workflow'   => 'required|in:budget,flexible,destination',
+            'persons'    => 'required|integer|min:1|max:20',
+            'duration'   => 'required|integer|min:1|max:30',
+            'budget'     => 'nullable|numeric|min:0',
+            'dest_id'    => 'nullable|string',
+            'transport'  => 'nullable|string',
+            'hotel_mode' => 'nullable|string|in:same,split',
         ]);
 
         $args = [
@@ -64,6 +65,11 @@ class RecommenderController extends Controller
         if (!empty($validated['transport'])) {
             $args[] = '--transport';
             $args[] = $validated['transport'];
+        }
+
+        if (!empty($validated['hotel_mode'])) {
+            $args[] = '--hotel_mode';
+            $args[] = $validated['hotel_mode'];
         }
 
         $process = new Process($args);
@@ -143,7 +149,7 @@ class RecommenderController extends Controller
         $args = [
             $this->pythonBinary(),
             '-c',
-            'import pandas as pd, json; df=pd.read_excel("wisata.xlsx"); print(json.dumps(df[["Id_Tempat","Nama_Tempat"]].to_dict("records"), ensure_ascii=False))'
+            'import pandas as pd, json; df=pd.read_excel("wisata_clean.xlsx"); print(json.dumps(df[["Id_Tempat","Nama_Tempat"]].to_dict("records"), ensure_ascii=False))'
         ];
         $process = new Process($args);
         $process->setWorkingDirectory($this->workingDir());

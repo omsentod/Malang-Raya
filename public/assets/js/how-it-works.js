@@ -1,4 +1,7 @@
-const fmtRp = n => 'Rp ' + Math.round(n).toLocaleString('id-ID');
+const fmtRp = n => {
+    if (n === null || n === undefined || isNaN(n)) return 'Rp 0';
+    return 'Rp ' + Math.round(n).toLocaleString('id-ID');
+};
 const csrfToken = () => document.querySelector('meta[name="csrf-token"]')?.content || '';
 
 // Navbar

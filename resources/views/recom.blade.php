@@ -9,6 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="{{ asset('assets/css/global.css') }}" />
+    <link rel="stylesheet" href="{{ asset('assets/css/code-2.css') }}" />
 
     <meta name="csrf-token" content="{{ csrf_token() }}" />
 
@@ -28,6 +29,11 @@
                     <a class="g-nav-link" href="/directory">Directory</a>
                 </div>
                 <div class="g-nav-right">
+                    <button class="g-nav-bookmark-btn" id="nav-bookmark-btn" title="Rencana Perjalanan Saya">
+                        <span class="material-symbols-outlined">bookmarks</span>
+                        <span class="bookmark-label">Rencana Saya</span>
+                        <span class="bookmark-badge" id="bookmark-badge-count">0</span>
+                    </button>
                     <a href="/how-it-works" class="g-nav-btn">Cara Kerja AI</a>
                     <button class="g-nav-hamburger" id="hamburger-btn">
                         <span class="material-symbols-outlined">menu</span>
@@ -40,6 +46,11 @@
             <a class="g-mobile-link active" href="/recommender">Explore</a>
             <a class="g-mobile-link" href="/how-it-works">How It Works</a>
             <a class="g-mobile-link" href="/directory">Directory</a>
+            <button class="g-mobile-bookmark-btn" id="mobile-nav-bookmark-btn">
+                <span class="material-symbols-outlined">bookmarks</span>
+                <span>Rencana Perjalanan Saya</span>
+                <span class="bookmark-badge-count" id="mobile-bookmark-badge-count">0</span>
+            </button>
         </div>
     </div>
 
@@ -99,14 +110,21 @@
                                 <span class="material-symbols-outlined">payments</span>
                                 Total Anggaran <span class="req">*</span>
                             </label>
-                            <div class="input-wrap">
-                                <span class="input-prefix">
-                                    <span class="material-symbols-outlined">payments</span>
-                                    <span class="input-prefix-text">Rp</span>
-                                </span>
-                                <input type="text" class="form-input" id="b-budget" placeholder="Contoh: 3.000.000" autocomplete="off" required />
+                            <div class="ota-slider-container">
+                                <div class="ota-slider-header" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px;">
+                                    <span class="ota-slider-val" id="b-budget-val">Rp 1.000.000</span>
+                                    <div class="manual-input-wrapper">
+                                        <span class="manual-currency">Rp</span>
+                                        <input type="number" id="b-budget-manual" class="budget-manual-input" placeholder="Input manual" />
+                                    </div>
+                                </div>
+                                <input type="range" class="ota-slider-input" id="b-budget" min="100000" max="10000000" step="50000" value="1000000" />
+                                <div class="ota-slider-labels">
+                                    <span id="b-budget-min-label">Min: Rp 100.000</span>
+                                    <span id="b-budget-max-label">Max: Rp 10.000.000</span>
+                                </div>
                             </div>
-                            <span class="form-hint">Budget total untuk seluruh perjalanan (akomodasi + wisata + kuliner + transport)</span>
+                            <span class="form-hint">Geser untuk mengatur budget total perjalanan (akomodasi + wisata + kuliner + transport)</span>
                             <div id="b-warning-box" class="budget-warning-box" style="display:none;"></div>
                         </div>
                         <div class="form-row">
@@ -148,6 +166,19 @@
                             </select>
                             <span class="form-hint">Pilih kustomisasi moda transportasi atau biarkan otomatis dioptimalkan AI</span>
                             <div id="b-capacity-warning" class="budget-warning-box" style="display:none;"></div>
+                        </div>
+
+                        <!-- Kebijakan Akomodasi (Stay Policy) -->
+                        <div class="form-group" id="b-hotel-mode-group" style="margin-top: 4px; display: none;">
+                            <label class="form-label">
+                                <span class="material-symbols-outlined">hotel_class</span>
+                                Kebijakan Akomodasi
+                            </label>
+                            <select class="form-input form-input-select no-prefix" id="b-hotel-mode">
+                                <option value="same">Tetap di Hotel yang Sama (Rekomendasi Utama)</option>
+                                <option value="split">Pindah Hotel Setiap Malam (Eksplorasi Variatif)</option>
+                            </select>
+                            <span class="form-hint">Pilih apakah ingin menginap di satu hotel saja atau mencoba hotel berbeda setiap malam</span>
                         </div>
 
                         <!-- Auto Calc Panel -->
@@ -236,17 +267,26 @@
                         <span>Sistem mengunci destinasi pilihanmu, lalu menjalankan FCM untuk hotel dan kuliner. Jika budget diisi, sistem memvalidasi apakah paket sesuai anggaran (Kondisi B). Tanpa budget → eksplorasi 3 tingkat harga (Kondisi A).</span>
                     </div>
                     <form class="form-body" id="form-destination" novalidate>
-                        <div class="form-group">
+                        <div class="form-group" style="position: relative;">
                             <label class="form-label">
                                 <span class="material-symbols-outlined">location_on</span>
-                                Pilih Destinasi Wisata <span class="req">*</span>
+                                Cari Destinasi Wisata <span class="req">*</span>
                             </label>
-                            <select class="form-input form-input-select no-prefix" id="d-dest-id" required>
-                                <option value="">— Pilih destinasi wisata —</option>
-                                @foreach($wisataList as $w)
-                                    <option value="{{ $w['Id_Tempat'] }}">{{ $w['Nama_Tempat'] }}</option>
-                                @endforeach
-                            </select>
+                            <input type="text" class="form-input" id="d-dest-search-input" placeholder="Ketik nama wisata (contoh: Jatim Park)..." autocomplete="off" required style="width: 100%; box-sizing: border-box;" />
+                            <input type="hidden" id="d-dest-id" name="dest_id" required />
+                            <div class="search-autocomplete-dropdown" id="d-dest-autocomplete-dropdown" style="
+                                position: absolute;
+                                top: 100%; left: 0; right: 0;
+                                background: #fff;
+                                border: 1.5px solid var(--slate-200);
+                                border-radius: 12px;
+                                box-shadow: 0 10px 25px rgba(15, 23, 42, 0.15);
+                                z-index: 1000;
+                                max-height: 280px;
+                                overflow-y: auto;
+                                display: none;
+                                margin-top: 4px;
+                            "></div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
@@ -288,19 +328,39 @@
                             <span class="form-hint">Pilih kustomisasi moda transportasi atau biarkan otomatis dioptimalkan AI</span>
                             <div id="d-capacity-warning" class="budget-warning-box" style="display:none;"></div>
                         </div>
+
+                        <!-- Kebijakan Akomodasi (Stay Policy) -->
+                        <div class="form-group" id="d-hotel-mode-group" style="margin-top: 4px; display: none;">
+                            <label class="form-label">
+                                <span class="material-symbols-outlined">hotel_class</span>
+                                Kebijakan Akomodasi
+                            </label>
+                            <select class="form-input form-input-select no-prefix" id="d-hotel-mode">
+                                <option value="same">Tetap di Hotel yang Sama (Rekomendasi Utama)</option>
+                                <option value="split">Pindah Hotel Setiap Malam (Eksplorasi Variatif)</option>
+                            </select>
+                            <span class="form-hint">Pilih apakah ingin menginap di satu hotel saja atau mencoba hotel berbeda setiap malam</span>
+                        </div>
                         <div class="form-group">
                             <label class="form-label">
                                 <span class="material-symbols-outlined">payments</span>
                                 Budget Total <span style="color:var(--slate-400);font-weight:500">(Opsional)</span>
                             </label>
-                            <div class="input-wrap">
-                                <span class="input-prefix">
-                                    <span class="material-symbols-outlined">payments</span>
-                                    <span class="input-prefix-text">Rp</span>
-                                </span>
-                                <input type="text" class="form-input" id="d-budget" placeholder="Kosongkan untuk Kondisi A (tanpa budget)" autocomplete="off" />
+                            <div class="ota-slider-container">
+                                <div class="ota-slider-header" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px;">
+                                    <span class="ota-slider-val" id="d-budget-val">Tanpa Batasan Anggaran (Kondisi A)</span>
+                                    <div class="manual-input-wrapper">
+                                        <span class="manual-currency">Rp</span>
+                                        <input type="number" id="d-budget-manual" class="budget-manual-input" placeholder="Input manual" />
+                                    </div>
+                                </div>
+                                <input type="range" class="ota-slider-input" id="d-budget" min="100000" max="10000000" step="50000" value="0" />
+                                <div class="ota-slider-labels">
+                                    <span id="d-budget-min-label">Tanpa Budget / Min: Rp 100.000</span>
+                                    <span id="d-budget-max-label">Max: Rp 10.000.000</span>
+                                </div>
                             </div>
-                            <span class="form-hint">Jika diisi → validasi budget real-time (Kondisi B). Jika kosong → eksplorasi harga (Kondisi A).</span>
+                            <span class="form-hint">Geser untuk memvalidasi budget (Kondisi B), atau geser mentok kiri untuk eksplorasi bebas (Kondisi A)</span>
                             <div id="d-warning-box" class="budget-warning-box" style="display:none;"></div>
                         </div>
                         <button type="submit" class="submit-btn" id="d-submit" style="background:linear-gradient(135deg,#f59e0b,#d97706);box-shadow:0 4px 16px rgba(245,158,11,.3)">
@@ -356,6 +416,19 @@
                             Coba Lagi
                         </button>
                     </div>
+                    
+                    <!-- Dual-Mode Selector (Otomatis vs Kustom) -->
+                    <div class="mode-toggle-container" id="mode-toggle-container" style="display: none;">
+                        <button class="mode-btn active" id="mode-btn-auto">
+                            <span class="material-symbols-outlined">auto_awesome</span>
+                            <span>Mode Otomatis (Paket AI)</span>
+                        </button>
+                        <button class="mode-btn" id="mode-btn-custom">
+                            <span class="material-symbols-outlined">architecture</span>
+                            <span>Mode Kustom (Rancang Sendiri)</span>
+                        </button>
+                    </div>
+
                     <!-- Dynamic Multi-Option Tabs (Centroid Proximity Projections) -->
                     <div class="options-tabs-container" id="options-tabs-container" style="display: none;">
                         <div class="options-tabs-label">
@@ -366,6 +439,8 @@
                             <!-- Injected dynamically via recom.js -->
                         </div>
                     </div>
+                    <!-- Interactive Day-by-Day Selection Board (Wizard) -->
+                    <div class="planner-wizard-container" id="planner-wizard-container" style="display: none;"></div>
                     <div class="packages-grid" id="packages-grid"></div>
                 </div>
 
@@ -400,6 +475,31 @@
         </div>
     </div>
 
+    <!-- BOOKMARK DRAWER (CART) -->
+    <div class="bookmark-drawer-overlay" id="bookmark-drawer-overlay"></div>
+    <div class="bookmark-drawer" id="bookmark-drawer">
+        <div class="drawer-header">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <span class="material-symbols-outlined" style="color:var(--teal-600); font-size:24px;">bookmarks</span>
+                <h3 style="margin:0; font-size:18px; font-weight:800; color:var(--slate-800);">Rencana Perjalanan Saya</h3>
+            </div>
+            <button class="drawer-close-btn" id="drawer-close-btn">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        <div class="drawer-body" id="bookmark-drawer-body">
+            <!-- Dynamically populated via JS from localStorage -->
+            <div class="empty-drawer-state">
+                <span class="material-symbols-outlined" style="font-size:48px; color:var(--slate-300); margin-bottom:12px;">shopping_bag</span>
+                <p style="margin:0; color:var(--slate-400); font-size:14px; font-weight:500;">Belum ada rencana perjalanan yang disimpan.</p>
+                <p style="margin:4px 0 0; color:var(--slate-400); font-size:12px;">Gunakan alur kerja pencarian untuk merancang rute perjalanan kustom Anda.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.wisataCatalog = {!! json_encode($wisataList) !!};
+    </script>
 <script src="{{ asset('assets/js/recom.js') }}"></script>
 </body>
 </html>

@@ -4,7 +4,25 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\RecommenderController;
 
 Route::get('/', function () {
-    return view('landing');
+    $featuredPath = storage_path('app/python/catalog_featured.json');
+    if (!file_exists($featuredPath)) {
+        try {
+            $venv = storage_path('app/python/venv/bin/python');
+            $python = file_exists($venv) ? $venv : 'python3';
+            $process = new \Symfony\Component\Process\Process([$python, storage_path('app/python/get_catalog.py')]);
+            $process->setWorkingDirectory(storage_path('app/python'));
+            $process->run();
+        } catch (\Exception $e) {
+            // Silently fallback if python execution fails
+        }
+    }
+
+    $catalog = [];
+    if (file_exists($featuredPath)) {
+        $catalog = json_decode(file_get_contents($featuredPath), true) ?? [];
+    }
+
+    return view('landing', compact('catalog'));
 });
 
 Route::get('/how-it-works', function () {

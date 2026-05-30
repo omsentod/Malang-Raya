@@ -1,438 +1,883 @@
-<!doctype html>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Eksplorasi seluruh direktori pariwisata Malang Raya — wisata, hotel, dan kuliner terkurasi AI." />
+    <title>Direktori Destinasi — Malang Raya Tourism</title>
 
-<html class="light" lang="en">
-    <head>
-        <meta charset="utf-8" />
-        <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-        <title>User Profile | Malang Raya Tourism</title>
-        <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-        <link
-            href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap"
-            rel="stylesheet"
-        />
-        <link
-            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
-            rel="stylesheet"
-        />
-        <script src="{{ asset('assets/tailwind-config.js') }}"></script>
-        <link rel="stylesheet" href="{{ asset('assets/style.css') }}" />
-        <script src="{{ asset('assets/script.js') }}" defer></script>
-    </head>
-    <body
-        class="bg-background text-on-background font-body selection:bg-primary-fixed-dim selection:text-on-primary-fixed"
-    >
-        <!-- TopNavBar -->
-        <nav
-            class="w-full sticky top-0 z-50 bg-[#f8fafb] dark:bg-[#2e3132] shadow-sm dark:shadow-none"
-        >
-            <div
-                class="flex justify-between items-center px-8 py-4 max-w-7xl mx-auto"
-            >
-                <div
-                    class="text-2xl font-black text-[#006565] dark:text-[#93f2f2] tracking-tight font-headline"
-                >
-                    Malang Raya
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ asset('assets/css/global.css') }}" />
+    <link rel="stylesheet" href="{{ asset('assets/css/code-2.css') }}" />
+
+    <!-- JS -->
+    <script src="{{ asset('assets/js/code-2.js') }}" defer></script>
+
+    <style>
+        .directory-layout {
+            max-width: 80rem;
+            margin: 0 auto;
+            padding: 3rem 2rem 6rem;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2.5rem;
+        }
+
+        @media (min-width: 1024px) {
+            .directory-layout {
+                grid-template-columns: 280px 1fr;
+            }
+        }
+
+        /* Filter Sidebar Card */
+        .filter-sidebar {
+            position: sticky;
+            top: calc(var(--nav-height) + 1.5rem);
+            height: fit-content;
+            background: #ffffff;
+            border: 1px solid var(--color-surface-container-high);
+            border-radius: var(--radius-xl);
+            padding: 1.75rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .filter-section {
+            margin-bottom: 2rem;
+        }
+
+        .filter-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .filter-title {
+            font-family: var(--font-headline);
+            font-size: 0.875rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--color-slate-700);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .filter-title .material-symbols-outlined {
+            font-size: 1.125rem;
+            color: var(--color-primary);
+        }
+
+        /* Search input inside sidebar */
+        .sidebar-search-wrap {
+            position: relative;
+            width: 100%;
+        }
+
+        .sidebar-search-wrap input {
+            width: 100%;
+            padding: 0.65rem 1rem 0.65rem 2.25rem;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--color-surface-container-high);
+            background: var(--color-surface);
+            font-family: var(--font-body);
+            font-size: 0.875rem;
+            outline: none;
+            transition: var(--transition-normal);
+        }
+
+        .sidebar-search-wrap input:focus {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(0, 101, 101, 0.15);
+            background: #ffffff;
+        }
+
+        .sidebar-search-icon {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1rem;
+            color: var(--color-slate-400);
+        }
+
+        /* Sidebar Option Buttons */
+        .filter-btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .filter-opt-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            width: 100%;
+            padding: 0.625rem 0.875rem;
+            border-radius: var(--radius-md);
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--color-slate-600);
+            transition: var(--transition-fast);
+            text-align: left;
+        }
+
+        .filter-opt-btn:hover {
+            background: var(--color-surface-container-low);
+            color: var(--color-primary);
+        }
+
+        .filter-opt-btn.active {
+            background: rgba(0, 101, 101, 0.08);
+            color: var(--color-primary);
+            font-weight: 700;
+        }
+
+        .filter-opt-btn .material-symbols-outlined {
+            font-size: 1.125rem;
+        }
+
+        /* Grid results & count */
+        .results-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .results-count {
+            font-size: 0.9375rem;
+            color: var(--color-slate-500);
+            font-weight: 500;
+        }
+
+        .directory-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+
+        /* Pagination styles */
+        .pagination-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 4rem;
+            flex-wrap: wrap;
+        }
+
+        .pagination-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 2.5rem;
+            height: 2.5rem;
+            padding: 0 0.5rem;
+            border-radius: var(--radius-md);
+            background: #ffffff;
+            border: 1px solid var(--color-surface-container-high);
+            color: var(--color-slate-600);
+            font-size: 0.875rem;
+            font-weight: 700;
+            transition: var(--transition-fast);
+            cursor: pointer;
+        }
+
+        .pagination-btn:hover {
+            border-color: var(--color-primary);
+            color: var(--color-primary);
+            background: rgba(0, 101, 101, 0.04);
+        }
+
+        .pagination-btn.active {
+            background: var(--color-primary);
+            border-color: var(--color-primary);
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(0, 101, 101, 0.25);
+        }
+
+        .pagination-btn.disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .empty-results {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 6rem 2rem;
+            background: #ffffff;
+            border: 1px solid var(--color-surface-container-high);
+            border-radius: var(--radius-xl);
+            color: var(--color-slate-400);
+        }
+
+        .empty-results-icon {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            color: var(--color-slate-300);
+        }
+
+        .empty-results h4 {
+            font-family: var(--font-headline);
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--color-slate-700);
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===================== NAVBAR ===================== -->
+    <div class="g-nav-wrapper" id="main-nav-wrapper">
+        <nav class="g-navbar light" id="main-navbar">
+            <div class="g-navbar-inner">
+                <!-- Brand -->
+                <a class="g-nav-brand" href="/">Malang Raya</a>
+
+                <!-- Center Links -->
+                <div class="g-nav-center">
+                    <a class="g-nav-link" href="/">Home</a>
+                    <a class="g-nav-link" href="/recommender">Explore</a>
+                    <a class="g-nav-link" href="/how-it-works">How It Works</a>
+                    <a class="g-nav-link active" href="/directory">Directory</a>
                 </div>
-                <div
-                    class="hidden md:flex items-center gap-8 font-manrope font-bold text-lg leading-relaxed"
-                >
-                    <a
-                        class="text-slate-600 dark:text-slate-300 hover:text-[#008080] dark:hover:text-[#93f2f2] transition-colors duration-200"
-                        href="/"
-                        >Home</a
-                    >
-                    <a
-                        class="text-slate-600 dark:text-slate-300 hover:text-[#008080] dark:hover:text-[#93f2f2] transition-colors duration-200"
-                        href="/recommender"
-                        >Explore</a
-                    >
-                    <a
-                        class="text-slate-600 dark:text-slate-300 hover:text-[#008080] dark:hover:text-[#93f2f2] transition-colors duration-200"
-                        href="/how-it-works"
-                        >How It Works</a
-                    >
-                    <a
-                        class="text-slate-600 dark:text-slate-300 hover:text-[#008080] dark:hover:text-[#93f2f2] transition-colors duration-200"
-                        href="/dashboard"
-                        >Saved</a
-                    >
-                </div>
-                <div class="flex items-center gap-4">
-                    <button
-                        class="text-[#006565] dark:text-[#93f2f2] border-b-2 border-[#006565] pb-1 font-headline font-bold text-lg active:opacity-80 duration-200"
-                    >
-                        Profile
+
+                <!-- Right Actions -->
+                <div class="g-nav-right">
+                    <a href="/recommender" class="g-nav-btn">Mulai Eksplorasi</a>
+                    <button class="g-nav-hamburger" id="hamburger-btn" aria-label="Menu">
+                        <span class="material-symbols-outlined">menu</span>
                     </button>
                 </div>
             </div>
-            <div class="bg-[#e6e8e9] dark:bg-white/10 h-[1px]"></div>
         </nav>
-        <main
-            class="max-w-7xl mx-auto px-8 py-12 flex flex-col lg:flex-row gap-12"
-        >
-            <!-- Sidebar Shell (SideNavBar Mapping) -->
-            <aside
-                class="h-auto w-full lg:w-64 flex flex-col gap-6 font-inter text-sm font-medium"
-            >
-                <div class="flex flex-col gap-1 mb-4">
-                    <div
-                        class="w-12 h-12 rounded-full overflow-hidden bg-surface-container-high border-2 border-primary/10"
-                    >
-                        <img
-                            alt="User Profile"
-                            data-alt="close-up portrait of a friendly smiling man in a high-end studio setting with soft warm rim lighting"
-                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuA2oYWf2DDQHMpXskAzcUoCKtaa0yVZVVfkYRX5KzwGvbDeEdIrjqxfl64BE895k4iBvJm6K_O_DzcePAkvGQ7HMhgulBCx31sAyrNM1wM13gP92aYMyD21GDnxy6S_Yn9MkHhW9cAJaB__mDIxKK2hO5FqFGp1APF5q7rZoKcY9xUeGO2Za3ZbQgxK4fjqo7Y0dK8vPZxCPA04gxzqX1pZYv6wwLqlW2bfS8jMnQOpgPALn8f_trcVztTCRYANCHK3SDL0KlaMTb4"
-                        />
+        <!-- Mobile Menu -->
+        <div class="g-mobile-menu" id="mobile-menu">
+            <a class="g-mobile-link" href="/">Home</a>
+            <a class="g-mobile-link" href="/recommender">Explore</a>
+            <a class="g-mobile-link" href="/how-it-works">How It Works</a>
+            <a class="g-mobile-link active" href="/directory">Directory</a>
+        </div>
+    </div>
+
+    <main>
+        <!-- ===================== EXPLORER BANNER ===================== -->
+        <section class="ota-catalog-section" style="padding-bottom: 0; padding-top: 4rem;">
+            <div class="gallery-header reveal">
+                <h1 class="section-title" style="font-size: clamp(2rem, 4vw, 3rem); font-weight: 900; margin-bottom: 0.5rem;">
+                    Direktori <span class="section-title-accent">Eksplorasi</span>
+                </h1>
+                <p class="section-subtitle" style="margin: 0; text-align: left;">Jelajahi seluruh daftar tempat wisata, hotel, dan kuliner terkurasi di wilayah Malang Raya.</p>
+            </div>
+        </section>
+
+        <!-- ===================== MAIN GRID LAYOUT ===================== -->
+        <div class="directory-layout">
+            
+            <!-- SIDEBAR FILTERS -->
+            <aside class="filter-sidebar reveal">
+                
+                <!-- Filter Section: Search -->
+                <div class="filter-section">
+                    <div class="filter-title">
+                        <span class="material-symbols-outlined">search</span>
+                        Cari Nama
                     </div>
-                    <h3
-                        class="font-headline font-bold text-lg text-primary mt-2"
-                    >
-                        Dian Wijaya
-                    </h3>
-                    <p class="text-slate-500 text-xs">Member since Jan 2024</p>
-                </div>
-                <div class="flex flex-col gap-2">
-                    <p
-                        class="text-xs uppercase tracking-widest text-outline font-bold mb-2"
-                    >
-                        Location Filters
-                    </p>
-                    <div
-                        class="bg-[#006565] text-white rounded-lg px-4 py-2 cursor-pointer active:scale-95 transition-all flex items-center gap-3"
-                    >
-                        <span
-                            class="material-symbols-outlined text-sm"
-                            data-icon="location_city"
-                            >location_city</span
-                        >
-                        Kota Malang
-                    </div>
-                    <div
-                        class="text-slate-500 dark:text-slate-400 px-4 py-2 hover:bg-[#e6e8e9] dark:hover:bg-white/10 rounded-lg transition-all cursor-pointer active:scale-95 flex items-center gap-3"
-                    >
-                        <span
-                            class="material-symbols-outlined text-sm"
-                            data-icon="terrain"
-                            >terrain</span
-                        >
-                        Kabupaten Malang
-                    </div>
-                    <div
-                        class="text-slate-500 dark:text-slate-400 px-4 py-2 hover:bg-[#e6e8e9] dark:hover:bg-white/10 rounded-lg transition-all cursor-pointer active:scale-95 flex items-center gap-3"
-                    >
-                        <span
-                            class="material-symbols-outlined text-sm"
-                            data-icon="landscape"
-                            >landscape</span
-                        >
-                        Kota Batu
+                    <div class="sidebar-search-wrap">
+                        <span class="material-symbols-outlined sidebar-search-icon">search</span>
+                        <input type="text" placeholder="Ketik nama tempat..." id="dir-search-input" autocomplete="off" />
                     </div>
                 </div>
-                <div class="flex flex-col gap-2 mt-4">
-                    <p
-                        class="text-xs uppercase tracking-widest text-outline font-bold mb-2"
-                    >
-                        Categories
-                    </p>
-                    <div
-                        class="text-slate-500 dark:text-slate-400 px-4 py-2 hover:bg-[#e6e8e9] dark:hover:bg-white/10 rounded-lg transition-all cursor-pointer flex items-center gap-3"
-                    >
-                        <span
-                            class="material-symbols-outlined text-sm"
-                            data-icon="forest"
-                            >forest</span
-                        >
-                        Nature
+
+                <!-- Filter Section: Category -->
+                <div class="filter-section">
+                    <div class="filter-title">
+                        <span class="material-symbols-outlined">category</span>
+                        Kategori
                     </div>
-                    <div
-                        class="text-slate-500 dark:text-slate-400 px-4 py-2 hover:bg-[#e6e8e9] dark:hover:bg-white/10 rounded-lg transition-all cursor-pointer flex items-center gap-3"
-                    >
-                        <span
-                            class="material-symbols-outlined text-sm"
-                            data-icon="museum"
-                            >museum</span
-                        >
-                        Culture
+                    <div class="filter-btn-group">
+                        <button class="filter-opt-btn active" data-cat="Semua">
+                            <span class="material-symbols-outlined">explore</span>
+                            Semua Kategori
+                        </button>
+                        <button class="filter-opt-btn" data-cat="Wisata">
+                            <span class="material-symbols-outlined">landscape</span>
+                            Wisata 🌲
+                        </button>
+                        <button class="filter-opt-btn" data-cat="Hotel">
+                            <span class="material-symbols-outlined">hotel</span>
+                            Hotel 🏨
+                        </button>
+                        <button class="filter-opt-btn" data-cat="Kuliner">
+                            <span class="material-symbols-outlined">restaurant</span>
+                            Kuliner 🍜
+                        </button>
                     </div>
-                    <div
-                        class="text-slate-500 dark:text-slate-400 px-4 py-2 hover:bg-[#e6e8e9] dark:hover:bg-white/10 rounded-lg transition-all cursor-pointer flex items-center gap-3"
-                    >
-                        <span
-                            class="material-symbols-outlined text-sm"
-                            data-icon="restaurant"
-                            >restaurant</span
-                        >
-                        Culinary
+                </div>
+
+                <!-- Filter Section: Location -->
+                <div class="filter-section">
+                    <div class="filter-title">
+                        <span class="material-symbols-outlined">location_on</span>
+                        Wilayah
+                    </div>
+                    <div class="filter-btn-group">
+                        <button class="filter-opt-btn active" data-loc="Semua">
+                            <span class="material-symbols-outlined">map</span>
+                            Semua Wilayah
+                        </button>
+                        <button class="filter-opt-btn" data-loc="Batu">
+                            <span class="material-symbols-outlined">terrain</span>
+                            Kota Batu
+                        </button>
+                        <button class="filter-opt-btn" data-loc="Kota Malang">
+                            <span class="material-symbols-outlined">location_city</span>
+                            Kota Malang
+                        </button>
+                        <button class="filter-opt-btn" data-loc="Kab. Malang">
+                            <span class="material-symbols-outlined">nature_people</span>
+                            Kab. Malang
+                        </button>
                     </div>
                 </div>
             </aside>
-            <!-- Main Content Canvas -->
-            <div class="flex-1 space-y-12">
-                <!-- Bento Hero Section: Travel Persona & Stats -->
-                <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <!-- Travel Persona (The AI Pivot) -->
-                    <div
-                        class="md:col-span-2 persona-gradient rounded-full p-8 text-white relative overflow-hidden flex flex-col justify-between min-h-[280px]"
-                    >
-                        <div class="relative z-10">
-                            <span
-                                class="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider"
-                                >FCM Clustering Intelligence</span
-                            >
-                            <h2
-                                class="text-4xl font-headline font-extrabold mt-4 mb-2"
-                            >
-                                The Balanced Traveler
-                            </h2>
-                            <p
-                                class="text-primary-fixed leading-relaxed max-w-md"
-                            >
-                                Your profile suggests a perfect equilibrium
-                                between urban exploration and nature retreats.
-                                You value cultural authenticity as much as
-                                modern comfort.
-                            </p>
-                        </div>
-                        <div class="relative z-10 flex gap-4 mt-6">
-                            <div class="flex flex-col">
-                                <span class="text-xs opacity-70"
-                                    >Travel Score</span
-                                >
-                                <span class="text-2xl font-black">94/100</span>
-                            </div>
-                            <div class="w-[1px] bg-white/20 mx-2"></div>
-                            <div class="flex flex-col">
-                                <span class="text-xs opacity-70"
-                                    >Compatibility</span
-                                >
-                                <span class="text-2xl font-black">88%</span>
-                            </div>
-                        </div>
-                        <!-- Decorative Glass Element -->
-                        <div
-                            class="absolute -right-12 -bottom-12 w-64 h-64 bg-white/10 rounded-full blur-3xl"
-                        ></div>
-                    </div>
-                    <!-- Budget Breakdown Card -->
-                    <div
-                        class="bg-surface-container-lowest rounded-xl p-8 flex flex-col justify-between shadow-sm"
-                    >
-                        <div>
-                            <h3
-                                class="font-headline font-bold text-lg text-primary mb-6"
-                            >
-                                Smart Budgeting
-                            </h3>
-                            <div class="space-y-4">
-                                <!-- Chart Item -->
-                                <div class="space-y-1">
-                                    <div
-                                        class="flex justify-between text-xs font-medium"
-                                    >
-                                        <span>Transportation</span>
-                                        <span>40%</span>
-                                    </div>
-                                    <div
-                                        class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden"
-                                    >
-                                        <div
-                                            class="bg-primary h-full w-[40%]"
-                                        ></div>
-                                    </div>
-                                </div>
-                                <!-- Chart Item -->
-                                <div class="space-y-1">
-                                    <div
-                                        class="flex justify-between text-xs font-medium"
-                                    >
-                                        <span>Accommodation</span>
-                                        <span>25%</span>
-                                    </div>
-                                    <div
-                                        class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden"
-                                    >
-                                        <div
-                                            class="bg-primary/70 h-full w-[25%]"
-                                        ></div>
-                                    </div>
-                                </div>
-                                <!-- Chart Item -->
-                                <div class="space-y-1">
-                                    <div
-                                        class="flex justify-between text-xs font-medium"
-                                    >
-                                        <span>Culinary</span>
-                                        <span>20%</span>
-                                    </div>
-                                    <div
-                                        class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden"
-                                    >
-                                        <div
-                                            class="bg-tertiary-container h-full w-[20%]"
-                                        ></div>
-                                    </div>
-                                </div>
-                                <!-- Chart Item -->
-                                <div class="space-y-1">
-                                    <div
-                                        class="flex justify-between text-xs font-medium"
-                                    >
-                                        <span>Attractions</span>
-                                        <span>15%</span>
-                                    </div>
-                                    <div
-                                        class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden"
-                                    >
-                                        <div
-                                            class="bg-outline-variant h-full w-[15%]"
-                                        ></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <button
-                            class="w-full mt-6 py-3 bg-primary text-on-primary rounded-xl font-bold text-sm hover:opacity-90 transition-opacity"
-                        >
-                            Adjust Goals
-                        </button>
-                    </div>
-                </section>
-                <!-- Saved Destinations Grid (Editorial Mosaic) -->
-                <section>
-                    <div class="flex justify-between items-end mb-8">
-                        <h2
-                            class="text-3xl font-headline font-extrabold text-on-surface tracking-tight"
-                        >
-                            Saved Destinations
-                        </h2>
-                        <a
-                            class="text-primary font-bold text-sm hover:underline decoration-2 underline-offset-4"
-                            href="#"
-                            >View All</a
-                        >
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                        <!-- Mosaic Item 1: Large -->
-                        <div
-                            class="md:col-span-2 md:row-span-2 group relative overflow-hidden rounded-xl bg-surface-container-lowest transition-all hover:-translate-y-1"
-                        >
-                            <img
-                                alt="Mount Bromo"
-                                class="w-full h-full object-cover aspect-[4/5]"
-                                data-alt="dramatic wide angle shot of Mount Bromo volcanic crater at sunrise with orange and purple atmospheric light and morning mist"
-                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDUeynTRD73eq84EWC30FqlKyPknP_NIuOxFwpQjxi8QwR6ioNDUzWWGGS5Av66pSzB8hL3V-xXYCOhyJ9udcjWq6kfH1GbjnGTH1XfFO1xHvMe1uObOgVCMemWzc76-RuWHwg4zJtlMjfNp597xjIBqsRtDqc1K5aWQr-bXwsUGWA1tX4yoX7T9ptEcKwR-R4zY-oEWqVoeutS1zFgKFOJoztG-ZZcyjJboCY0cqCST3pvTivL9CKwUSixDIFLwzMjtypOb9MqN10"
-                            />
-                            <div
-                                class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent p-6 flex flex-col justify-end text-white"
-                            >
-                                <span
-                                    class="text-xs font-bold bg-tertiary-container text-on-tertiary-fixed px-2 py-1 rounded w-fit mb-2"
-                                    >Must Visit</span
-                                >
-                                <h4 class="text-2xl font-headline font-bold">
-                                    Mount Bromo
-                                </h4>
-                                <p class="text-sm opacity-80">
-                                    Kabupaten Malang • 4.9 Rating
-                                </p>
-                            </div>
-                        </div>
-                        <!-- Mosaic Item 2: Vertical -->
-                        <div
-                            class="group relative overflow-hidden rounded-xl bg-surface-container-lowest transition-all hover:-translate-y-1"
-                        >
-                            <img
-                                alt="Jodipan"
-                                class="w-full h-full object-cover aspect-[3/4]"
-                                data-alt="vibrant colorful houses of Kampung Warna Warni Jodipan in Malang, bright primary colors under a clear blue sky"
-                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCJad0wGatBj9RKf88dRoDd8GWqPxq44g2Zk0jQNxnxfWTAzdrwNkN0WeTmuxg9Dm7zrTEz-bco6DBf0ZHOguY_a2YEdhBNq-MYwoIQq1Q1zOZVQa-_a2ztO2VB-3cJg9XsRG4B7vwHeZqyX1Z2PLpciowc0w5QnZhNqY0TJn2W3E23owBe0rjvu1UxLZqaoBPODkvJaDuHl60X3o-W9G8mKwGxDZ674HAfmKYFtplrB3Fe7I5q60B8cL4qHOJ20efXxTTxbzOcxxM"
-                            />
-                            <div
-                                class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent p-4 flex flex-col justify-end text-white"
-                            >
-                                <h4 class="text-lg font-headline font-bold">
-                                    Kampung Warna Warni
-                                </h4>
-                                <p class="text-xs opacity-80">Kota Malang</p>
-                            </div>
-                        </div>
-                        <!-- Mosaic Item 3: Square -->
-                        <div
-                            class="group relative overflow-hidden rounded-xl bg-surface-container-lowest transition-all hover:-translate-y-1"
-                        >
-                            <img
-                                alt="Culinary"
-                                class="w-full h-full object-cover aspect-square"
-                                data-alt="traditional Indonesian satay grilling over hot coals with smoke rising and rich dark peanut sauce in an outdoor setting"
-                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBU6_miItmFfGSsTY19U4kIDNlKaPwMlUwFESyxo2ZK0ULUV_zbUyvHI8bOyS7Pg6WK31NociapZxm7WZFWB12JWw3mpmBl6WDzKbW-FASwF9sU3hvk-PXU8nlAnEEuVCf02bWLISEsgUNH-q1ZCS8gtI9xgq79nopI3D4xSBAA3eZOvGIIfOucyay-3dPEOW8J05Qg7j5_gd9V_1Euee9f1Cr0sQ1LT_6eZWL-koqieW9M3AUcbR8nlrZFlVxNMaykMzMxnzisRJk"
-                            />
-                            <div
-                                class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent p-4 flex flex-col justify-end text-white"
-                            >
-                                <h4 class="text-lg font-headline font-bold">
-                                    Sate Bunul H. Paino
-                                </h4>
-                                <p class="text-xs opacity-80">
-                                    Culinary • Kota Malang
-                                </p>
-                            </div>
-                        </div>
-                        <!-- Mosaic Item 4: Horizontal -->
-                        <div
-                            class="md:col-span-2 group relative overflow-hidden rounded-xl bg-surface-container-lowest transition-all hover:-translate-y-1"
-                        >
-                            <img
-                                alt="Coban Rondo"
-                                class="w-full h-48 object-cover"
-                                data-alt="majestic high waterfall in a lush green tropical forest with water spray and sunlight filtering through the canopy"
-                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuAH04JQIzOPT03dAGP8i1YiEr8mIblpoi6KL9eMl5Ol5eJoSPW2PeYX2hQVIh1YaytNyhdAX4XPuoHxg_vSGQnw94sTYRnOToSa4PMy_GZKJRI6Qa5lnGhyFjb8qSQaKsr6rVJ6ZqcC7K5tAfQAHqe1fRQYsakt1jHJBnugHIq3BHPzJccbTXc-UOKeK0VjEGOWiqiTzbG6Q-oGqvwcAw-KFDIqfq0xXrJkCD6ZLMKaiYlbaOd0izNTMJh5Rw0aCrgm82x9ApAhBS0"
-                            />
-                            <div
-                                class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent p-4 flex flex-col justify-end text-white"
-                            >
-                                <h4 class="text-lg font-headline font-bold">
-                                    Coban Rondo Falls
-                                </h4>
-                                <p class="text-xs opacity-80">Kota Batu</p>
-                            </div>
-                        </div>
-                    </div>
-                </section>
+
+            <!-- EXPLORER GRID CONTENT -->
+            <section class="reveal reveal-delay-1">
+                <div class="results-header-row">
+                    <div class="results-count" id="results-count-label">Menghubungkan data...</div>
+                </div>
+
+                <!-- CARDS GRID -->
+                <div class="directory-grid" id="directory-grid">
+                    <!-- Dynamic rendering by JS -->
+                </div>
+
+                <!-- PAGINATION CONTROLS -->
+                <div class="pagination-container" id="pagination-controls">
+                    <!-- Dynamic rendering by JS -->
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- ===================== FOOTER ===================== -->
+    <footer class="g-footer light">
+        <div class="g-footer-inner">
+            <div>
+                <span class="g-footer-brand">Malang Raya</span>
+                <p class="g-footer-copy">© 2024 Malang Raya Tourism Authority. Intelligence by FCM Clustering.</p>
             </div>
-        </main>
-        <!-- Footer -->
-        <footer class="w-full bg-[#f8fafb] dark:bg-[#2e3132]">
-            <div class="bg-[#e6e8e9] dark:bg-[#191c1d] h-[1px]"></div>
-            <div
-                class="flex flex-col md:flex-row justify-between items-center px-8 py-12 max-w-7xl mx-auto gap-4 font-inter text-sm leading-6"
-            >
-                <div class="flex flex-col gap-2">
-                    <div class="font-manrope font-bold text-[#006565]">
-                        Malang Raya Tourism Authority
+            <div class="g-footer-links">
+                <span style="color:var(--color-slate-400); font-size:0.875rem;">12.4k pengunjung bulan ini</span>
+                <a class="g-footer-link" href="/">Home</a>
+                <a class="g-footer-link" href="/recommender">Explore</a>
+                <a class="g-footer-link" href="/how-it-works">How It Works</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ===================== PREMIUM DETAIL MODAL (SAME AS HOMEPAGE) ===================== -->
+    <div class="ota-modal-overlay" id="ota-detail-modal">
+        <div class="ota-modal-content">
+            <div class="ota-modal-gallery">
+                <button class="ota-modal-close-btn" onclick="closeOtaDetail()" aria-label="Close">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+                
+                <button class="ota-modal-gallery-nav prev" id="modal-gallery-prev" aria-label="Previous image">
+                    <span class="material-symbols-outlined">chevron_left</span>
+                </button>
+                
+                <div class="ota-modal-gallery-track" id="modal-gallery-track">
+                    <!-- Injected dynamically -->
+                </div>
+                
+                <button class="ota-modal-gallery-nav next" id="modal-gallery-next" aria-label="Next image">
+                    <span class="material-symbols-outlined">chevron_right</span>
+                </button>
+                
+                <div class="ota-modal-gallery-indicators" id="modal-gallery-indicators">
+                    <!-- Injected dynamically -->
+                </div>
+            </div>
+            
+            <div class="ota-modal-body">
+                <div class="ota-modal-header-row">
+                    <div>
+                        <h3 class="ota-modal-title" id="modal-place-title">Nama Tempat</h3>
+                        <div class="ota-modal-badges">
+                            <span class="ota-modal-badge" id="modal-place-cat">Wisata</span>
+                            <span class="ota-modal-badge hotel-badge" id="modal-place-subcat">Nature</span>
+                        </div>
                     </div>
-                    <p class="text-slate-500 dark:text-slate-400">
-                        © 2024 Malang Raya Tourism Authority. Intelligence by
-                        FCM Clustering.
+                    <div class="ota-modal-rating-badge">
+                        <span class="material-symbols-outlined">star</span>
+                        <span id="modal-place-rating">4.8</span>
+                    </div>
+                </div>
+                
+                <div class="ota-modal-info-grid">
+                    <div class="ota-modal-info-item">
+                        <span class="ota-modal-info-label" id="modal-price-label">Tiket Masuk</span>
+                        <span class="ota-modal-info-val" id="modal-place-price">Rp 15.000</span>
+                    </div>
+                    <div class="ota-modal-info-item">
+                        <span class="ota-modal-info-label">Jumlah Ulasan</span>
+                        <span class="ota-modal-info-val" id="modal-place-reviews">1.250 ulasan</span>
+                    </div>
+                </div>
+                
+                <div class="ota-modal-desc-box">
+                    <p id="modal-place-desc">
+                        Nikmati pesona alam Malang Raya yang memikat dengan fasilitas premium. Tempat ini dikurasi secara cerdas menggunakan Fuzzy C-Means Clustering untuk menjamin kepuasan kunjungan Anda.
                     </p>
                 </div>
-                <div class="flex gap-8">
-                    <a
-                        class="text-slate-500 dark:text-slate-400 hover:text-[#006565] underline decoration-2 transition-all"
-                        href="#"
-                        >Visitor Stats: 12.4k this month</a
-                    >
-                    <a
-                        class="text-slate-500 dark:text-slate-400 hover:text-[#006565] underline decoration-2 transition-all"
-                        href="/directory"
-                        >Directory</a
-                    >
-                    <a
-                        class="text-slate-500 dark:text-slate-400 hover:text-[#006565] underline decoration-2 transition-all"
-                        href="#"
-                        >Privacy Policy</a
-                    >
+                
+                <div class="ota-modal-actions">
+                    <a href="#" target="_blank" class="ota-modal-btn-primary" id="modal-gmaps-link">
+                        <span class="material-symbols-outlined">map</span>
+                        Buka Rute di Google Maps
+                    </a>
+                    <button class="ota-modal-btn-secondary" id="modal-save-btn" onclick="savePlaceToggle()" aria-label="Save place">
+                        <span class="material-symbols-outlined" id="modal-save-icon">bookmark</span>
+                    </button>
                 </div>
             </div>
-        </footer>
-    </body>
+        </div>
+    </div>
+
+    <!-- ===================== JAVASCRIPT DIRECTORY ENGINE ===================== -->
+    <script>
+        // 1. MOBILE NAVBAR HAMBURGER TOGGLE
+        const hamburger = document.getElementById('hamburger-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        if (hamburger && mobileMenu) {
+            hamburger.addEventListener('click', () => {
+                mobileMenu.classList.toggle('open');
+                const icon = hamburger.querySelector('.material-symbols-outlined');
+                icon.textContent = mobileMenu.classList.contains('open') ? 'close' : 'menu';
+            });
+        }
+
+        // Scroll shadow navbar
+        const navbar = document.querySelector('.g-navbar');
+        if (navbar) {
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 60) navbar.style.boxShadow = '0 4px 24px rgba(0,0,0,0.1)';
+                else navbar.style.boxShadow = '';
+            }, { passive: true });
+        }
+
+        // 2. IMAGE FALLBACK ERROR HANDLER
+        window.handleImgError = function(el) {
+            if (el.dataset.fallbackTriggered) return;
+            el.dataset.fallbackTriggered = "true";
+            const parent = el.parentNode;
+            if (parent) {
+                parent.innerHTML = `
+                    <div class="ota-shimmer-placeholder">
+                        <span class="material-symbols-outlined ota-shimmer-icon">image_not_supported</span>
+                        <span class="ota-shimmer-text">Gambar Tidak Tersedia</span>
+                    </div>
+                `;
+            }
+        };
+
+        // 3. EXPLORER SYSTEM MAIN ENGINE
+        let searchIndex = [];
+        let filteredIndex = [];
+        let currentPage = 1;
+        const itemsPerPage = 12;
+
+        let activeCatFilter = 'Semua';
+        let activeLocFilter = 'Semua';
+        let searchQuery = '';
+
+        const gridElement = document.getElementById('directory-grid');
+        const countLabel = document.getElementById('results-count-label');
+        const paginationControls = document.getElementById('pagination-controls');
+        const searchInput = document.getElementById('dir-search-input');
+
+        // Fetch dataset index dynamically
+        fetch('/assets/search_index.json')
+            .then(res => res.json())
+            .then(data => {
+                searchIndex = data;
+                applyFilters();
+            })
+            .catch(err => {
+                console.error("Error loading directory index:", err);
+                countLabel.textContent = "Gagal memuat data direktori.";
+            });
+
+        // Search Input listener
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                searchQuery = e.target.value.toLowerCase().trim();
+                applyFilters();
+            });
+        }
+
+        // Category buttons listeners
+        const catButtons = document.querySelectorAll('[data-cat]');
+        catButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                catButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                activeCatFilter = btn.dataset.cat;
+                applyFilters();
+            });
+        });
+
+        // Location buttons listeners
+        const locButtons = document.querySelectorAll('[data-loc]');
+        locButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                locButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                activeLocFilter = btn.dataset.loc;
+                applyFilters();
+            });
+        });
+
+        function applyFilters() {
+            currentPage = 1;
+
+            filteredIndex = searchIndex.filter(item => {
+                // Category filter
+                const matchesCat = (activeCatFilter === 'Semua' || item.Kategori === activeCatFilter);
+
+                // Location filter
+                let matchesLoc = true;
+                if (activeLocFilter !== 'Semua') {
+                    // Match link or tags or coordinates inside search_index
+                    const link = (item.Link || "").toLowerCase();
+                    const subcat = (item.Sub_Kategori || "").toLowerCase();
+                    const name = (item.Nama_Tempat || "").toLowerCase();
+                    
+                    if (activeLocFilter === 'Batu') {
+                        matchesLoc = link.includes('batu') || subcat.includes('batu') || name.includes('batu');
+                    } else if (activeLocFilter === 'Kota Malang') {
+                        matchesLoc = (link.includes('kota+malang') || link.includes('kec.') || subcat.includes('kota malang') || name.includes('kota malang')) && !name.includes('kabupaten') && !link.includes('kabupaten');
+                    } else if (activeLocFilter === 'Kab. Malang') {
+                        matchesLoc = link.includes('kabupaten') || link.includes('kab.') || subcat.includes('kabupaten') || name.includes('kabupaten') || name.includes('kab. malang');
+                    }
+                }
+
+                // Search query filter
+                const matchesSearch = (searchQuery === '' || 
+                    item.Nama_Tempat.toLowerCase().includes(searchQuery) || 
+                    item.Sub_Kategori.toLowerCase().includes(searchQuery) ||
+                    item.Kategori.toLowerCase().includes(searchQuery)
+                );
+
+                return matchesCat && matchesLoc && matchesSearch;
+            });
+
+            // Update header count
+            countLabel.textContent = `Menampilkan ${filteredIndex.length} dari ${searchIndex.length} objek terkurasi`;
+
+            renderGrid();
+        }
+
+        function fmtRupiah(num) {
+            return 'Rp ' + Math.round(num).toLocaleString('id-ID');
+        }
+
+        function renderGrid() {
+            if (!gridElement) return;
+            gridElement.innerHTML = '';
+
+            if (filteredIndex.length === 0) {
+                gridElement.innerHTML = `
+                    <div class="empty-results">
+                        <span class="material-symbols-outlined empty-results-icon">sentiment_dissatisfied</span>
+                        <h4>Destinasi Tidak Ditemukan</h4>
+                        <p>Cobalah menyaring dengan kata kunci lain atau ubah filter kategori/wilayah Anda.</p>
+                    </div>
+                `;
+                paginationControls.innerHTML = '';
+                return;
+            }
+
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = Math.min(startIndex + itemsPerPage, filteredIndex.length);
+            const paginatedItems = filteredIndex.slice(startIndex, endIndex);
+
+            paginatedItems.forEach(item => {
+                const hasImg = item.Gambar && item.Gambar.length > 0;
+                const imgHTML = hasImg
+                    ? `<img class="ota-card-img" src="${item.Gambar[0]}" alt="${item.Nama_Tempat}" onerror="handleImgError(this)" />`
+                    : `<div class="ota-shimmer-placeholder">
+                           <span class="material-symbols-outlined ota-shimmer-icon">image_not_supported</span>
+                           <span class="ota-shimmer-text">Gambar Tidak Tersedia</span>
+                       </div>`;
+
+                const priceLabel = item.Kategori === 'Wisata' ? 'Tiket Masuk' : (item.Kategori === 'Hotel' ? 'Per Malam' : 'Menu Porsi');
+                const priceFormatted = item.Estimasi_Harga > 0 ? fmtRupiah(item.Estimasi_Harga) : 'Gratis';
+
+                gridElement.innerHTML += `
+                    <div class="ota-carousel-card" style="width:100%; min-width:unset" onclick="openOtaDetail(${JSON.stringify(item).replace(/"/g, '&quot;')})">
+                        <div class="ota-card-img-wrapper">
+                            ${imgHTML}
+                            <span class="ota-card-badge">${item.Kategori}</span>
+                            <span class="ota-card-rating">
+                                <span class="material-symbols-outlined star-icon">star</span>
+                                ${Number(item.Rating).toFixed(1)}
+                            </span>
+                        </div>
+                        <div class="ota-card-body">
+                            <div class="ota-card-subcat">${item.Sub_Kategori}</div>
+                            <h4 class="ota-card-title">${item.Nama_Tempat}</h4>
+                            <div class="ota-card-footer">
+                                <div>
+                                    <div class="ota-card-price-label">${priceLabel}</div>
+                                    <div class="ota-card-price-value">${priceFormatted}</div>
+                                </div>
+                                <button class="ota-card-btn">
+                                    Detail
+                                    <span class="material-symbols-outlined" style="font-size:14px;">arrow_forward</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            renderPaginationControls();
+        }
+
+        function renderPaginationControls() {
+            if (!paginationControls) return;
+            paginationControls.innerHTML = '';
+
+            const totalPages = Math.ceil(filteredIndex.length / itemsPerPage);
+            if (totalPages <= 1) return;
+
+            // Previous Button
+            paginationControls.innerHTML += `
+                <button class="pagination-btn ${currentPage === 1 ? 'disabled' : ''}" onclick="changePage(${currentPage - 1})">
+                    <span class="material-symbols-outlined">chevron_left</span>
+                </button>
+            `;
+
+            // Max visible page numbers = 5
+            const maxVisible = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+            let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+
+            if (endPage - startPage + 1 < maxVisible) {
+                startPage = Math.max(1, endPage - maxVisible + 1);
+            }
+
+            if (startPage > 1) {
+                paginationControls.innerHTML += `
+                    <button class="pagination-btn" onclick="changePage(1)">1</button>
+                    ${startPage > 2 ? '<span style="color:var(--color-slate-400);padding:0 4px">...</span>' : ''}
+                `;
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                paginationControls.innerHTML += `
+                    <button class="pagination-btn ${currentPage === i ? 'active' : ''}" onclick="changePage(${i})">${i}</button>
+                `;
+            }
+
+            if (endPage < totalPages) {
+                paginationControls.innerHTML += `
+                    ${endPage < totalPages - 1 ? '<span style="color:var(--color-slate-400);padding:0 4px">...</span>' : ''}
+                    <button class="pagination-btn" onclick="changePage(${totalPages})">${totalPages}</button>
+                `;
+            }
+
+            // Next Button
+            paginationControls.innerHTML += `
+                <button class="pagination-btn ${currentPage === totalPages ? 'disabled' : ''}" onclick="changePage(${currentPage + 1})">
+                    <span class="material-symbols-outlined">chevron_right</span>
+                </button>
+            `;
+        }
+
+        window.changePage = function(page) {
+            currentPage = page;
+            renderGrid();
+            
+            // Smooth scroll grid to top
+            window.scrollTo({
+                top: document.querySelector('.directory-layout').offsetTop - 100,
+                behavior: 'smooth'
+            });
+        };
+
+
+        // 4. DETAILED MODAL ENGINE (COPY-PASTE COMPATIBILITY FROM HOMEPAGE)
+        const detailModal = document.getElementById('ota-detail-modal');
+        const modalTrack = document.getElementById('modal-gallery-track');
+        const modalIndicators = document.getElementById('modal-gallery-indicators');
+        const modalPrev = document.getElementById('modal-gallery-prev');
+        const modalNext = document.getElementById('modal-gallery-next');
+
+        let activePlace = null;
+        let modalImgIndex = 0;
+        let modalSlideInterval = null;
+
+        window.openOtaDetail = function(item) {
+            activePlace = item;
+            modalImgIndex = 0;
+
+            document.getElementById('modal-place-title').textContent = item.Nama_Tempat;
+            document.getElementById('modal-place-cat').textContent = item.Kategori;
+            document.getElementById('modal-place-subcat').textContent = item.Sub_Kategori;
+            document.getElementById('modal-place-rating').textContent = Number(item.Rating).toFixed(1);
+            document.getElementById('modal-place-reviews').textContent = item.Jumlah_Ulasan.toLocaleString('id-ID') + ' ulasan';
+            
+            const priceLabel = document.getElementById('modal-price-label');
+            if (item.Kategori === 'Wisata') {
+                priceLabel.textContent = 'Tiket Masuk';
+            } else if (item.Kategori === 'Hotel') {
+                priceLabel.textContent = 'Per Malam';
+            } else {
+                priceLabel.textContent = 'Menu Porsi';
+            }
+
+            document.getElementById('modal-place-price').textContent = item.Estimasi_Harga > 0 ? fmtRupiah(item.Estimasi_Harga) : 'Gratis';
+
+            let desc = `Jelajahi keindahan ${item.Nama_Tempat} di Malang Raya. Destinasi spektakuler dengan kategori ${item.Kategori} (${item.Sub_Kategori}) ini dikurasi secara cerdas menggunakan algoritma Fuzzy C-Means Clustering untuk memastikan keharmonisan perjalanan Anda sesuai anggaran.`;
+            if (item.Kategori === 'Hotel') {
+                desc = `Temukan kenyamanan menginap premium di ${item.Nama_Tempat}. Akomodasi ideal di Malang Raya ini terpilih secara cerdas oleh kecerdasan FCM untuk menghadirkan kenyamanan beristirahat dengan harga yang paling proporsional untuk Anda.`;
+            } else if (item.Kategori === 'Kuliner') {
+                desc = `Nikmati cita rasa kuliner terbaik di ${item.Nama_Tempat}. Tempat makan favorit ini menyajikan menu lezat khas ${item.Sub_Kategori} yang melengkapi kepuasan perjalanan kuliner Anda selama menjelajahi wilayah Malang Raya.`;
+            }
+            document.getElementById('modal-place-desc').textContent = desc;
+
+            const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.Nama_Tempat + " Malang")}`;
+            document.getElementById('modal-gmaps-link').href = mapsUrl;
+
+            // Check bookmark
+            const saved = JSON.parse(localStorage.getItem('saved_places') || '[]');
+            const isSaved = saved.some(id => id === item.Id_Tempat);
+            const saveIcon = document.getElementById('modal-save-icon');
+            if (saveIcon) {
+                saveIcon.textContent = isSaved ? 'bookmark_added' : 'bookmark';
+                saveIcon.style.color = isSaved ? 'var(--color-primary)' : 'inherit';
+            }
+
+            renderModalSlideshow();
+            detailModal.classList.add('show');
+        };
+
+        window.closeOtaDetail = function() {
+            detailModal.classList.remove('show');
+            clearInterval(modalSlideInterval);
+        };
+
+        function renderModalSlideshow() {
+            modalTrack.innerHTML = '';
+            modalIndicators.innerHTML = '';
+            
+            const imgs = activePlace.Gambar || [];
+            
+            if (imgs.length === 0) {
+                modalTrack.innerHTML = `
+                    <div class="ota-modal-gallery-slide">
+                        <div class="ota-shimmer-placeholder">
+                            <span class="material-symbols-outlined ota-shimmer-icon">image_not_supported</span>
+                            <span class="ota-shimmer-text">Gambar Tidak Tersedia</span>
+                        </div>
+                    </div>
+                `;
+                modalPrev.style.display = 'none';
+                modalNext.style.display = 'none';
+                return;
+            }
+
+            modalPrev.style.display = imgs.length > 1 ? 'flex' : 'none';
+            modalNext.style.display = imgs.length > 1 ? 'flex' : 'none';
+
+            imgs.forEach((img, i) => {
+                modalTrack.innerHTML += `
+                    <div class="ota-modal-gallery-slide">
+                        <img src="${img}" alt="${activePlace.Nama_Tempat}" onerror="handleImgError(this)" />
+                    </div>
+                `;
+                modalIndicators.innerHTML += `
+                    <div class="ota-modal-gallery-indicator ${i === 0 ? 'active' : ''}" onclick="slideModalTo(${i})"></div>
+                `;
+            });
+
+            slideModalTo(0);
+            
+            clearInterval(modalSlideInterval);
+            if (imgs.length > 1) {
+                modalSlideInterval = setInterval(() => {
+                    slideModalNext();
+                }, 3500);
+            }
+        }
+
+        function slideModalTo(index) {
+            const count = activePlace.Gambar ? activePlace.Gambar.length : 0;
+            if (count <= 1) return;
+
+            modalImgIndex = index;
+            modalTrack.style.transform = `translateX(-${index * 100}%)`;
+
+            const indicators = modalIndicators.querySelectorAll('.ota-modal-gallery-indicator');
+            indicators.forEach((ind, i) => {
+                if (i === index) ind.classList.add('active');
+                else ind.classList.remove('active');
+            });
+        }
+
+        function slideModalNext() {
+            const count = activePlace.Gambar ? activePlace.Gambar.length : 0;
+            if (count <= 1) return;
+            const nextIdx = (modalImgIndex + 1) % count;
+            slideModalTo(nextIdx);
+        }
+
+        function slideModalPrev() {
+            const count = activePlace.Gambar ? activePlace.Gambar.length : 0;
+            if (count <= 1) return;
+            const prevIdx = (modalImgIndex - 1 + count) % count;
+            slideModalTo(prevIdx);
+        }
+
+        if (modalPrev) modalPrev.addEventListener('click', () => { slideModalPrev(); clearInterval(modalSlideInterval); });
+        if (modalNext) modalNext.addEventListener('click', () => { slideModalNext(); clearInterval(modalSlideInterval); });
+
+        window.savePlaceToggle = function() {
+            if (!activePlace) return;
+            const saved = JSON.parse(localStorage.getItem('saved_places') || '[]');
+            const index = saved.indexOf(activePlace.Id_Tempat);
+            const saveIcon = document.getElementById('modal-save-icon');
+
+            if (index > -1) {
+                saved.splice(index, 1);
+                saveIcon.textContent = 'bookmark';
+                saveIcon.style.color = 'inherit';
+            } else {
+                saved.push(activePlace.Id_Tempat);
+                saveIcon.textContent = 'bookmark_added';
+                saveIcon.style.color = 'var(--color-primary)';
+            }
+            localStorage.setItem('saved_places', JSON.stringify(saved));
+        };
+
+        if (detailModal) {
+            detailModal.addEventListener('click', (e) => {
+                if (e.target === detailModal) closeOtaDetail();
+            });
+        }
+    </script>
+</body>
 </html>

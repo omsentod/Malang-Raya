@@ -36,9 +36,10 @@
 
                 <!-- Right Actions -->
                 <div class="g-nav-right">
-                    <div class="g-nav-search">
+                    <div class="g-nav-search" style="position: relative;">
                         <span class="material-symbols-outlined g-nav-search-icon">search</span>
-                        <input type="text" placeholder="Cari destinasi..." id="nav-search-input" />
+                        <input type="text" placeholder="Cari destinasi..." id="nav-search-input" autocomplete="off" />
+                        <div id="search-autocomplete-dropdown" class="search-autocomplete-dropdown"></div>
                     </div>
                     <a href="/recommender" class="g-nav-btn">Mulai Eksplorasi</a>
                     <button class="g-nav-hamburger" id="hamburger-btn" aria-label="Menu">
@@ -58,8 +59,24 @@
 
     <main>
         <!-- ===================== HERO ===================== -->
+        @php
+            $heroImages = [];
+            if (isset($catalog['wisata']) && is_array($catalog['wisata'])) {
+                foreach ($catalog['wisata'] as $item) {
+                    if ($item['Has_Gambar'] && !empty($item['Gambar'])) {
+                        $heroImages[] = $item['Gambar'][0];
+                    }
+                }
+            }
+            shuffle($heroImages);
+            $heroImages = array_slice($heroImages, 0, 5);
+            $firstHeroImage = !empty($heroImages) ? $heroImages[0] : 'https://lh3.googleusercontent.com/aida-public/AB6AXuCatih-pNbXXCGm6QuoAcVY0MMf2wGse5wYV5oaYn_-dkzfEVIHzJczBrL-QGHAZSwUPfywYjE2Ufh6KPjxIjHwxiScWdL7oyY_uETC8xg6iv0mn7ao_f7xi4EXKERh4uKMgH_LOm8jCcNxafJRxBq5x4VbH1Mt5uUNQeuGf793xWk5i12huspYpknD8r0jSkMWAad6CA8MDZ5jWJJjQqXPRaXlsvhl3N9IONYqBhbGHMAsn-KTIkweOggAfyLKZJebE1lwErWbyI0';
+        @endphp
         <section class="hero-section" id="hero">
-            <div class="hero-bg" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCatih-pNbXXCGm6QuoAcVY0MMf2wGse5wYV5oaYn_-dkzfEVIHzJczBrL-QGHAZSwUPfywYjE2Ufh6KPjxIjHwxiScWdL7oyY_uETC8xg6iv0mn7ao_f7xi4EXKERh4uKMgH_LOm8jCcNxafJRxBq5x4VbH1Mt5uUNQeuGf793xWk5i12huspYpknD8r0jSkMWAad6CA8MDZ5jWJJjQqXPRaXlsvhl3N9IONYqBhbGHMAsn-KTIkweOggAfyLKZJebE1lwErWbyI0');"></div>
+            <div class="hero-bg-container" data-images="{{ json_encode($heroImages) }}">
+                <div class="hero-bg bg-slide-1" style="background-image: url('{{ $firstHeroImage }}'); opacity: 1; filter: brightness(0.58) saturate(0.85) contrast(1.02);"></div>
+                <div class="hero-bg bg-slide-2" style="background-image: url(''); opacity: 0; filter: brightness(0.58) saturate(0.85) contrast(1.02);"></div>
+            </div>
             <div class="hero-overlay"></div>
 
             <!-- Floating badge -->
@@ -104,6 +121,107 @@
                     <span class="hero-stat-num">3</span>
                     <span class="hero-stat-label">Kluster Wisata AI</span>
                 </div>
+            </div>
+        </section>
+
+        <!-- ===================== DYNAMIC OTA CATALOG & CAROUSEL ===================== -->
+        <section class="ota-catalog-section" id="explore">
+            <div class="gallery-header reveal" style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1.5rem; margin-bottom: 2.5rem;">
+                <div>
+                    <h2 class="section-title" style="margin: 0;">Katalog Destinasi <span class="section-title-accent">Unggulan</span></h2>
+                    <p class="section-subtitle" style="margin: 0.5rem 0 0 0; text-align: left;">Jelajahi keindahan Malang Raya. Pilih kategori untuk menyaring petualangan Anda.</p>
+                </div>
+                <a href="/directory" class="btn-teal" style="padding: 0.65rem 1.75rem; font-size: 0.875rem; box-shadow: 0 4px 14px rgba(0, 101, 101, 0.2); display: inline-flex; align-items: center; gap: 0.5rem; border-radius: var(--radius-full);">
+                    Lihat Semua
+                    <span class="material-symbols-outlined" style="font-size: 16px;">arrow_forward</span>
+                </a>
+            </div>
+
+            <!-- Category Toggle Filter -->
+            <div class="ota-toggle-container reveal">
+                <button class="ota-toggle-btn active" data-filter="Semua">
+                    <span class="material-symbols-outlined">explore</span>
+                    Semua
+                </button>
+                <button class="ota-toggle-btn" data-filter="Wisata">
+                    <span class="material-symbols-outlined">landscape</span>
+                    Wisata 🌲
+                </button>
+                <button class="ota-toggle-btn" data-filter="Hotel">
+                    <span class="material-symbols-outlined">hotel</span>
+                    Hotel 🏨
+                </button>
+                <button class="ota-toggle-btn" data-filter="Kuliner">
+                    <span class="material-symbols-outlined">restaurant</span>
+                    Kuliner 🍜
+                </button>
+            </div>
+
+            <!-- Sliding Carousel -->
+            <div class="ota-carousel-wrapper reveal" style="position: relative;">
+                <button class="ota-carousel-arrow prev" id="ota-prev-btn" aria-label="Previous">
+                    <span class="material-symbols-outlined">chevron_left</span>
+                </button>
+                
+                <div class="ota-carousel-inner">
+                    <div class="ota-carousel-track" id="ota-carousel-track">
+                        @foreach(['wisata', 'hotel', 'kuliner'] as $catKey)
+                            @if(isset($catalog[$catKey]) && is_array($catalog[$catKey]))
+                                @foreach($catalog[$catKey] as $item)
+                                    <div class="ota-carousel-card" data-category="{{ $item['Kategori'] }}" onclick="openOtaDetail({{ json_encode($item) }})">
+                                        <div class="ota-card-img-wrapper">
+                                            @if($item['Has_Gambar'] && count($item['Gambar']) > 0)
+                                                <img class="ota-card-img" src="{{ $item['Gambar'][0] }}" alt="{{ $item['Nama_Tempat'] }}" onerror="handleImgError(this)" />
+                                            @else
+                                                <div class="ota-shimmer-placeholder">
+                                                    <span class="material-symbols-outlined ota-shimmer-icon">image_not_supported</span>
+                                                    <span class="ota-shimmer-text">Gambar Tidak Tersedia</span>
+                                                </div>
+                                            @endif
+                                            <span class="ota-card-badge">{{ $item['Kategori'] }}</span>
+                                            <span class="ota-card-rating">
+                                                <span class="material-symbols-outlined star-icon">star</span>
+                                                {{ number_format($item['Rating'], 1) }}
+                                            </span>
+                                        </div>
+                                        <div class="ota-card-body">
+                                            <div class="ota-card-subcat">{{ $item['Sub_Kategori'] }}</div>
+                                            <h4 class="ota-card-title">{{ $item['Nama_Tempat'] }}</h4>
+                                            <div class="ota-card-footer">
+                                                <div>
+                                                    <div class="ota-card-price-label">
+                                                        @if($item['Kategori'] == 'Wisata')
+                                                            Tiket Masuk
+                                                        @elseif($item['Kategori'] == 'Hotel')
+                                                            Per Malam
+                                                        @else
+                                                            Menu Porsi
+                                                        @endif
+                                                    </div>
+                                                    <div class="ota-card-price-value">
+                                                        @if($item['Estimasi_Harga'] > 0)
+                                                            Rp {{ number_format($item['Estimasi_Harga'], 0, ',', '.') }}
+                                                        @else
+                                                            Gratis
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                                <button class="ota-card-btn">
+                                                    Detail
+                                                    <span class="material-symbols-outlined" style="font-size:14px;">arrow_forward</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            @endif
+                        @endforeach
+                    </div>
+                </div>
+
+                <button class="ota-carousel-arrow next" id="ota-next-btn" aria-label="Next">
+                    <span class="material-symbols-outlined">chevron_right</span>
+                </button>
             </div>
         </section>
 
@@ -177,15 +295,15 @@
                         <ul class="stats-list">
                             <li class="stats-list-item">
                                 <span class="material-symbols-outlined list-icon">check_circle</span>
-                                <span>12.4k+ Pengunjung bulan ini</span>
+                                <span>12.4k+ Rekomendasi AI Berhasil Dibuat</span>
                             </li>
                             <li class="stats-list-item">
                                 <span class="material-symbols-outlined list-icon">check_circle</span>
-                                <span>98% Tingkat Kepuasan Wisatawan</span>
+                                <span>98% Tingkat Kepuasan Wisatawan Malang Raya</span>
                             </li>
                             <li class="stats-list-item">
                                 <span class="material-symbols-outlined list-icon">check_circle</span>
-                                <span>3 Segmen wisatawan terdefinisi oleh AI</span>
+                                <span>3 Kluster Utama (FCM) Teroptimasi Sistem</span>
                             </li>
                         </ul>
                     </div>
@@ -227,58 +345,6 @@
             </div>
         </section>
 
-        <!-- ===================== BENTO GALLERY ===================== -->
-        <section class="bento-gallery-section" id="explore">
-            <div class="gallery-header reveal">
-                <h2 class="section-title">Curated <span class="section-title-accent">Highlights</span></h2>
-                <a href="/directory" class="gallery-view-all">
-                    Lihat Semua
-                    <span class="material-symbols-outlined">arrow_forward</span>
-                </a>
-            </div>
-
-            <div class="bento-grid reveal">
-                <!-- Bromo large -->
-                <div class="bento-item item-large">
-                    <img class="bento-img" alt="Gunung Bromo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAe7CCISLd5OVWY6D9-IbfnzCXF1LNiRBNLycO_VP_o6941Hlg0rI5g7elYR6vBs8VI8JQsKH1130K9wsi8YBV1jQMhL5r_5qO2tZZ8n6e1RDeTgVkL5q-7HQyUb2ivEgetliS9-g1sUwfxnCbfkV5w-e5xhAGl3wLXdl97ifdWLR0m5t32dZcmOgsZDtm3MPT7fG0gQcAIBcV58MWqB_SzjaS2RhElHJwhexJwcOFsJJAVLVOK_KUaeVxQXecV-SoaVi9dtcGQfDw" />
-                    <div class="bento-overlay"></div>
-                    <div class="bento-content">
-                        <span class="bento-badge">MUST VISIT</span>
-                        <h4 class="bento-title bento-title-lg">Gunung Bromo</h4>
-                        <p class="bento-desc">The iconic sea of sand.</p>
-                    </div>
-                </div>
-
-                <!-- Batu Wide -->
-                <div class="bento-item item-wide">
-                    <img class="bento-img" alt="Wisata Kota Batu" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCBW4539av5uBFkoFDoszku6F4jQ1Uknx_yXV6SM31Qcmln97Wp0kCjCs3b-ZMw30tUeGl8Z8CtY6CS0D6Hc9YQAtFeV-sPEMCna27PXJenqIeZ07B1ISDacB7srrII1uXc0ycGUrMjHyCTUEu2PUjeqsp6wjDarK7yWb3aWDra0SQiqCwHNu-_tTqmbjYLjfWhVUoWW24AbpR2MqoHXL2-JsbbdRgxhyOdLIuKfjXNKWTyyuy6kmvqCl4yx2E1_W62arYcB_7lSwQ" />
-                    <div class="bento-overlay"></div>
-                    <div class="bento-content">
-                        <h4 class="bento-title bento-title-md">Wisata Kota Batu</h4>
-                        <p class="bento-desc">Family &amp; Theme Parks</p>
-                    </div>
-                </div>
-
-                <!-- Cafe Standard -->
-                <div class="bento-item item-standard">
-                    <img class="bento-img" alt="Malang Coffee Culture" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBRJKZ5SbTqXKF8ptBCy0kd08LGWHsxlkPq2dppPKZ9C_8gk7YImKARXL7qQA5LtQlRDKHAPndLJUs5SWvYRtVPNyzAidqeZsIFeqWcqenjCodJtsYHdOserdZSfPUGNxxLusAUA9b_hGYx2iO66gPt3pB0ZufyuFKIvLLBhA2LQw2oLcsbfn0J_b1Jo0rDEKbQHXs0rcraueIdUbBMVf5VgxWxdsxY2SG9B9HJJ7vTmLHV2t5uSKCUdSAT3bpxs3YQ9pC3BNSAhMo" />
-                    <div class="bento-overlay"></div>
-                    <div class="bento-content bento-content-center">
-                        <h4 class="bento-title bento-title-sm">Malang Coffee Culture</h4>
-                    </div>
-                </div>
-
-                <!-- Nature Standard -->
-                <div class="bento-item item-standard">
-                    <img class="bento-img" alt="Hidden Tea Garden" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCKNnEl7VBJlrneHcg6gZLGGhMHBXLbhmJIyDaeFWPbO-9DTt6g7BtDFkIOQPnENz5D-wHRhQAgP9Bghuzs9p_NooXEgtwtIel9nPjaFCV58ro4an8hzYyCHOXQ4WsBIjZ-Tr4X-V_h1AkZHP49XXr6QmBNoQD5OdpwP7g47HcDuGxUP8PnuWr4iBGcFujRhoZ-UlIaW5QnNdgLl5ueTSG1tA0r4ciI-HdCcjLIlBQv8H1WOkSLZIglbPEbrdFmNbnklFi7-ARUJ64" />
-                    <div class="bento-overlay"></div>
-                    <div class="bento-content bento-content-center">
-                        <h4 class="bento-title bento-title-sm">Hidden Tea Garden</h4>
-                    </div>
-                </div>
-            </div>
-        </section>
-
         <!-- ===================== CTA STRIP ===================== -->
         <section class="cta-strip">
             <div class="cta-inner reveal">
@@ -310,5 +376,635 @@
         </div>
     </footer>
 
+    <!-- ===================== OTA PREMIUM DETAIL MODAL ===================== -->
+    <div class="ota-modal-overlay" id="ota-detail-modal">
+        <div class="ota-modal-content">
+            <div class="ota-modal-gallery">
+                <button class="ota-modal-close-btn" onclick="closeOtaDetail()" aria-label="Close">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+                
+                <button class="ota-modal-gallery-nav prev" id="modal-gallery-prev" aria-label="Previous image">
+                    <span class="material-symbols-outlined">chevron_left</span>
+                </button>
+                
+                <div class="ota-modal-gallery-track" id="modal-gallery-track">
+                    <!-- Injected dynamically -->
+                </div>
+                
+                <button class="ota-modal-gallery-nav next" id="modal-gallery-next" aria-label="Next image">
+                    <span class="material-symbols-outlined">chevron_right</span>
+                </button>
+                
+                <div class="ota-modal-gallery-indicators" id="modal-gallery-indicators">
+                    <!-- Injected dynamically -->
+                </div>
+            </div>
+            
+            <div class="ota-modal-body">
+                <div class="ota-modal-header-row">
+                    <div>
+                        <h3 class="ota-modal-title" id="modal-place-title">Nama Tempat</h3>
+                        <div class="ota-modal-badges">
+                            <span class="ota-modal-badge" id="modal-place-cat">Wisata</span>
+                            <span class="ota-modal-badge hotel-badge" id="modal-place-subcat">Nature</span>
+                        </div>
+                    </div>
+                    <div class="ota-modal-rating-badge">
+                        <span class="material-symbols-outlined">star</span>
+                        <span id="modal-place-rating">4.8</span>
+                    </div>
+                </div>
+                
+                <div class="ota-modal-info-grid">
+                    <div class="ota-modal-info-item">
+                        <span class="ota-modal-info-label" id="modal-price-label">Tiket Masuk</span>
+                        <span class="ota-modal-info-val" id="modal-place-price">Rp 15.000</span>
+                    </div>
+                    <div class="ota-modal-info-item">
+                        <span class="ota-modal-info-label">Jumlah Ulasan</span>
+                        <span class="ota-modal-info-val" id="modal-place-reviews">1.250 ulasan</span>
+                    </div>
+                </div>
+                
+                <div class="ota-modal-desc-box">
+                    <p id="modal-place-desc">
+                        Nikmati pesona alam Malang Raya yang memikat dengan fasilitas premium. Tempat ini dikurasi secara cerdas menggunakan Fuzzy C-Means Clustering untuk menjamin kepuasan kunjungan Anda.
+                    </p>
+                </div>
+                
+                <div class="ota-modal-actions">
+                    <a href="#" target="_blank" class="ota-modal-btn-primary" id="modal-gmaps-link">
+                        <span class="material-symbols-outlined">map</span>
+                        Buka Rute di Google Maps
+                    </a>
+                    <button class="ota-modal-btn-secondary" id="modal-save-btn" onclick="savePlaceToggle()" aria-label="Save place">
+                        <span class="material-symbols-outlined" id="modal-save-icon">bookmark</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== JAVASCRIPT OTA ENGINE ===================== -->
+    <script>
+        // 1. GLOBAL IMAGE ERROR HANDLER
+        window.handleImgError = function(el) {
+            if (el.dataset.fallbackTriggered) return;
+            el.dataset.fallbackTriggered = "true";
+            const parent = el.parentNode;
+            if (parent) {
+                parent.innerHTML = `
+                    <div class="ota-shimmer-placeholder">
+                        <span class="material-symbols-outlined ota-shimmer-icon">image_not_supported</span>
+                        <span class="ota-shimmer-text">Gambar Tidak Tersedia</span>
+                    </div>
+                `;
+            }
+        };
+
+        // 2. LEVENSHTEIN FUZZY MATCH ALGORITHM FOR AUTOCORRECT
+        function levenshteinDistance(s, t) {
+            if (!s.length) return t.length;
+            if (!t.length) return s.length;
+            const arr = [];
+            for (let i = 0; i <= t.length; i++) { arr[i] = [i]; }
+            for (let j = 0; j <= s.length; j++) { arr[0][j] = j; }
+            for (let i = 1; i <= t.length; i++) {
+                for (let j = 1; j <= s.length; j++) {
+                    arr[i][j] = s[j - 1] === t[i - 1] 
+                        ? arr[i - 1][j - 1] 
+                        : Math.min(arr[i - 1][j - 1] + 1, arr[i][j - 1] + 1, arr[i - 1][j] + 1);
+                }
+            }
+            return arr[t.length][s.length];
+        }
+
+        function findTypoAutocorrect(query, items) {
+            if (query.length < 3) return null;
+            const cleanQuery = query.toLowerCase().trim();
+            let bestMatch = null;
+            let minDistance = 3; // Maximum typo tolerance distance
+
+            for (const item of items) {
+                const name = item.Nama_Tempat.toLowerCase();
+                // Split words for fuzzy matching on single words
+                const words = name.split(/\s+/);
+                for (const word of words) {
+                    if (word.length < 3) continue;
+                    const distance = levenshteinDistance(cleanQuery, word);
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        bestMatch = item;
+                    }
+                }
+            }
+            return bestMatch;
+        }
+
+        // 3. SEARCH AUTOCOMPLETE ENGINE
+        let searchIndex = [];
+        const searchInput = document.getElementById('nav-search-input');
+        const searchDropdown = document.getElementById('search-autocomplete-dropdown');
+
+        // Asynchronously fetch search index
+        fetch('/assets/search_index.json')
+            .then(res => res.json())
+            .then(data => {
+                searchIndex = data;
+            })
+            .catch(err => console.error("Error loading search index:", err));
+
+        if (searchInput && searchDropdown) {
+            searchInput.addEventListener('input', (e) => {
+                const query = e.target.value;
+                renderSearchSuggestions(query);
+            });
+
+            // Close search on clicking outside
+            document.addEventListener('click', (e) => {
+                if (!searchInput.contains(e.target) && !searchDropdown.contains(e.target)) {
+                    searchDropdown.classList.remove('open');
+                }
+            });
+
+            // Show suggestions on focus if not empty
+            searchInput.addEventListener('focus', () => {
+                if (searchInput.value.trim().length > 0) {
+                    searchDropdown.classList.add('open');
+                }
+            });
+        }
+
+        function renderSearchSuggestions(query) {
+            if (!searchDropdown) return;
+            const cleanQuery = query.trim().toLowerCase();
+            
+            if (cleanQuery.length === 0) {
+                searchDropdown.classList.remove('open');
+                return;
+            }
+
+            searchDropdown.classList.add('open');
+            searchDropdown.innerHTML = '';
+
+            // Filter index
+            const matches = [];
+            const exactRegex = new RegExp(escapeRegExp(cleanQuery), 'i');
+
+            for (const item of searchIndex) {
+                if (exactRegex.test(item.Nama_Tempat) || exactRegex.test(item.Kategori)) {
+                    matches.push(item);
+                }
+                if (matches.length >= 8) break; // Limit to 8 suggestions
+            }
+
+            let html = '';
+
+            // Check for Autocorrect Typo matches if no exact match found or low matches
+            if (matches.length < 3) {
+                const autocorrectSuggestion = findTypoAutocorrect(cleanQuery, searchIndex);
+                if (autocorrectSuggestion && !matches.some(m => m.Id_Tempat === autocorrectSuggestion.Id_Tempat)) {
+                    html += `
+                        <div class="autocomplete-autocorrect-banner">
+                            <span class="material-symbols-outlined" style="font-size:16px;">auto_awesome</span>
+                            <span>Maksud Anda: <strong onclick="triggerAutocorrectClick(${JSON.stringify(autocorrectSuggestion).replace(/"/g, '&quot;')})">${autocorrectSuggestion.Nama_Tempat}</strong>?</span>
+                        </div>
+                    `;
+                }
+            }
+
+            if (matches.length === 0 && html === '') {
+                searchDropdown.innerHTML = `
+                    <div class="autocomplete-empty">
+                        <span class="material-symbols-outlined">search_off</span>
+                        <h5>Tidak Ada Hasil</h5>
+                        <p>Cobalah kata kunci lain seperti "bromo", "hotel", atau "sate".</p>
+                    </div>
+                `;
+                return;
+            }
+
+            html += `<div class="autocomplete-section-title">Hasil Pencarian</div>`;
+
+            matches.forEach(item => {
+                const priceFormatted = item.Estimasi_Harga > 0 ? fmtRupiah(item.Estimasi_Harga) : 'Gratis';
+                const hasImg = item.Gambar && item.Gambar.length > 0;
+                
+                const imgHTML = hasImg
+                    ? `<img class="suggestion-thumb" src="${item.Gambar[0]}" alt="${item.Nama_Tempat}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                       <div class="suggestion-shimmer" style="display:none;"></div>`
+                    : `<div class="ota-shimmer-placeholder suggestion-thumb">
+                           <span class="material-symbols-outlined" style="font-size:16px;color:var(--color-slate-400);">landscape</span>
+                       </div>`;
+
+                // Highlight matching characters
+                const highlightedName = item.Nama_Tempat.replace(
+                    new RegExp(`(${escapeRegExp(query)})`, 'gi'),
+                    '<span class="suggestion-highlight">$1</span>'
+                );
+
+                html += `
+                    <div class="autocomplete-suggestion" onclick='triggerAutocorrectClick(${JSON.stringify(item).replace(/"/g, '&quot;')})'>
+                        ${imgHTML}
+                        <div class="suggestion-info">
+                            <div class="suggestion-title">${highlightedName}</div>
+                            <div class="suggestion-meta">
+                                <span class="suggestion-badge">${item.Kategori}</span>
+                                <span>• ${item.Sub_Kategori}</span>
+                            </div>
+                        </div>
+                        <div class="suggestion-price">${priceFormatted}</div>
+                    </div>
+                `;
+            });
+
+            searchDropdown.innerHTML = html;
+        }
+
+        function escapeRegExp(string) {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+
+        function triggerAutocorrectClick(item) {
+            if (searchInput) searchInput.value = '';
+            if (searchDropdown) searchDropdown.classList.remove('open');
+            openOtaDetail(item);
+        }
+
+        function fmtRupiah(num) {
+            return 'Rp ' + Math.round(num).toLocaleString('id-ID');
+        }
+
+        // 4. AUTO-SLIDING CAROUSEL CONTROLLER
+        const track = document.getElementById('ota-carousel-track');
+        const prevBtn = document.getElementById('ota-prev-btn');
+        const nextBtn = document.getElementById('ota-next-btn');
+        const filterBtns = document.querySelectorAll('.ota-toggle-btn');
+        const cards = document.querySelectorAll('.ota-carousel-card');
+
+        let activeFilter = 'Semua';
+        let visibleCards = [];
+        let carouselIndex = 0;
+        let autoSlideInterval = null;
+
+        function updateCarouselFilter(filter) {
+            activeFilter = filter;
+            carouselIndex = 0;
+            
+            // Show/hide cards matching filter
+            cards.forEach(card => {
+                if (filter === 'Semua' || card.dataset.category === filter) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            // Update cached visible cards list
+            visibleCards = Array.from(cards).filter(card => card.style.display !== 'none');
+            
+            // Reset track transform
+            if (track) track.style.transform = 'translateX(0)';
+
+            // Update next/prev buttons state
+            updateArrowButtons();
+        }
+
+        function getCardWidth() {
+            if (visibleCards.length === 0) return 0;
+            const card = visibleCards[0];
+            const style = window.getComputedStyle(card);
+            const margin = parseFloat(style.marginLeft) + parseFloat(style.marginRight);
+            // Default Gap inside track is 1.5rem (24px)
+            return card.offsetWidth + 24; 
+        }
+
+        function slideCarousel(direction) {
+            if (visibleCards.length <= 1) return;
+            const cardWidth = getCardWidth();
+            const containerWidth = track.parentNode.offsetWidth;
+            const maxIndex = visibleCards.length - Math.floor(containerWidth / cardWidth);
+
+            if (direction === 'next') {
+                if (carouselIndex >= maxIndex) {
+                    carouselIndex = 0; // Wrap around to beginning
+                } else {
+                    carouselIndex++;
+                }
+            } else {
+                if (carouselIndex <= 0) {
+                    carouselIndex = maxIndex > 0 ? maxIndex : 0; // Wrap around to end
+                } else {
+                    carouselIndex--;
+                }
+            }
+
+            if (track) {
+                track.style.transform = `translateX(-${carouselIndex * cardWidth}px)`;
+            }
+        }
+
+        function updateArrowButtons() {
+            if (visibleCards.length <= 1) {
+                if (prevBtn) prevBtn.style.display = 'none';
+                if (nextBtn) nextBtn.style.display = 'none';
+            } else {
+                if (prevBtn) prevBtn.style.display = 'flex';
+                if (nextBtn) nextBtn.style.display = 'flex';
+            }
+        }
+
+        // Auto sliding runner
+        function startAutoSlide() {
+            stopAutoSlide();
+            autoSlideInterval = setInterval(() => {
+                slideCarousel('next');
+            }, 4000);
+        }
+
+        function stopAutoSlide() {
+            if (autoSlideInterval) {
+                clearInterval(autoSlideInterval);
+                autoSlideInterval = null;
+            }
+        }
+
+        // Attach Carousel Event listeners
+        if (prevBtn) prevBtn.addEventListener('click', () => { slideCarousel('prev'); startAutoSlide(); });
+        if (nextBtn) nextBtn.addEventListener('click', () => { slideCarousel('next'); startAutoSlide(); });
+
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                updateCarouselFilter(btn.dataset.filter);
+                startAutoSlide();
+            });
+        });
+
+        // Pause sliding on Hover (hover-stop)
+        const wrapper = document.querySelector('.ota-carousel-wrapper');
+        if (wrapper) {
+            wrapper.addEventListener('mouseenter', stopAutoSlide);
+            wrapper.addEventListener('mouseleave', startAutoSlide);
+        }
+
+        // Initial setup
+        updateCarouselFilter('Semua');
+        startAutoSlide();
+
+        // Responsive resize recalculation
+        window.addEventListener('resize', () => {
+            updateCarouselFilter(activeFilter);
+        });
+
+
+        // 5. PRODUCT DETAIL MODAL POP-UP SYSTEM
+        const detailModal = document.getElementById('ota-detail-modal');
+        const modalTrack = document.getElementById('modal-gallery-track');
+        const modalIndicators = document.getElementById('modal-gallery-indicators');
+        const modalPrev = document.getElementById('modal-gallery-prev');
+        const modalNext = document.getElementById('modal-gallery-next');
+
+        let activePlace = null;
+        let modalImgIndex = 0;
+        let modalSlideInterval = null;
+
+        window.openOtaDetail = function(item) {
+            activePlace = item;
+            modalImgIndex = 0;
+
+            // Fill text values
+            document.getElementById('modal-place-title').textContent = item.Nama_Tempat;
+            document.getElementById('modal-place-cat').textContent = item.Kategori;
+            document.getElementById('modal-place-subcat').textContent = item.Sub_Kategori;
+            document.getElementById('modal-place-rating').textContent = Number(item.Rating).toFixed(1);
+            document.getElementById('modal-place-reviews').textContent = item.Jumlah_Ulasan.toLocaleString('id-ID') + ' ulasan';
+            
+            const priceLabel = document.getElementById('modal-price-label');
+            if (item.Kategori === 'Wisata') {
+                priceLabel.textContent = 'Tiket Masuk';
+            } else if (item.Kategori === 'Hotel') {
+                priceLabel.textContent = 'Per Malam';
+            } else {
+                priceLabel.textContent = 'Menu Porsi';
+            }
+
+            document.getElementById('modal-place-price').textContent = item.Estimasi_Harga > 0 ? fmtRupiah(item.Estimasi_Harga) : 'Gratis';
+
+            // Custom descriptions based on categories & subcategories
+            let desc = `Jelajahi keindahan ${item.Nama_Tempat} di Malang Raya. Destinasi spektakuler dengan kategori ${item.Kategori} (${item.Sub_Kategori}) ini dikurasi secara cerdas menggunakan algoritma Fuzzy C-Means Clustering untuk memastikan keharmonisan perjalanan Anda sesuai anggaran.`;
+            if (item.Kategori === 'Hotel') {
+                desc = `Temukan kenyamanan menginap premium di ${item.Nama_Tempat}. Akomodasi ideal di Malang Raya ini terpilih secara cerdas oleh kecerdasan FCM untuk menghadirkan kenyamanan beristirahat dengan harga yang paling proporsional untuk Anda.`;
+            } else if (item.Kategori === 'Kuliner') {
+                desc = `Nikmati cita rasa kuliner terbaik di ${item.Nama_Tempat}. Tempat makan favorit ini menyajikan menu lezat khas ${item.Sub_Kategori} yang melengkapi kepuasan perjalanan kuliner Anda selama menjelajahi wilayah Malang Raya.`;
+            }
+            document.getElementById('modal-place-desc').textContent = desc;
+
+            // Maps route link
+            const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.Nama_Tempat + " Malang")}`;
+            document.getElementById('modal-gmaps-link').href = mapsUrl;
+
+            // Check bookmark status
+            const saved = JSON.parse(localStorage.getItem('saved_places') || '[]');
+            const isSaved = saved.some(id => id === item.Id_Tempat);
+            const saveIcon = document.getElementById('modal-save-icon');
+            if (saveIcon) {
+                saveIcon.textContent = isSaved ? 'bookmark_added' : 'bookmark';
+                saveIcon.style.color = isSaved ? 'var(--color-primary)' : 'inherit';
+            }
+
+            // Render Images slideshow
+            renderModalSlideshow();
+
+            // Open modal overlay
+            detailModal.classList.add('show');
+            stopAutoSlide(); // Pause main landing carousel
+        };
+
+        window.closeOtaDetail = function() {
+            detailModal.classList.remove('show');
+            clearInterval(modalSlideInterval);
+            startAutoSlide(); // Resume main landing carousel
+        };
+
+        function renderModalSlideshow() {
+            modalTrack.innerHTML = '';
+            modalIndicators.innerHTML = '';
+            
+            const imgs = activePlace.Gambar || [];
+            
+            if (imgs.length === 0) {
+                // Show animated placeholder
+                modalTrack.innerHTML = `
+                    <div class="ota-modal-gallery-slide">
+                        <div class="ota-shimmer-placeholder">
+                            <span class="material-symbols-outlined ota-shimmer-icon">image_not_supported</span>
+                            <span class="ota-shimmer-text">Gambar Tidak Tersedia</span>
+                        </div>
+                    </div>
+                `;
+                modalPrev.style.display = 'none';
+                modalNext.style.display = 'none';
+                return;
+            }
+
+            modalPrev.style.display = imgs.length > 1 ? 'flex' : 'none';
+            modalNext.style.display = imgs.length > 1 ? 'flex' : 'none';
+
+            // Add Slides
+            imgs.forEach((img, i) => {
+                modalTrack.innerHTML += `
+                    <div class="ota-modal-gallery-slide">
+                        <img src="${img}" alt="${activePlace.Nama_Tempat}" onerror="handleImgError(this)" />
+                    </div>
+                `;
+                modalIndicators.innerHTML += `
+                    <div class="ota-modal-gallery-indicator ${i === 0 ? 'active' : ''}" onclick="slideModalTo(${i})"></div>
+                `;
+            });
+
+            // Set slide bounds
+            slideModalTo(0);
+            
+            // Auto slide inside modal
+            clearInterval(modalSlideInterval);
+            if (imgs.length > 1) {
+                modalSlideInterval = setInterval(() => {
+                    slideModalNext();
+                }, 3500);
+            }
+        }
+
+        function slideModalTo(index) {
+            const count = activePlace.Gambar ? activePlace.Gambar.length : 0;
+            if (count <= 1) return;
+
+            modalImgIndex = index;
+            modalTrack.style.transform = `translateX(-${index * 100}%)`;
+
+            // Update Indicators
+            const indicators = modalIndicators.querySelectorAll('.ota-modal-gallery-indicator');
+            indicators.forEach((ind, i) => {
+                if (i === index) ind.classList.add('active');
+                else ind.classList.remove('active');
+            });
+        }
+
+        function slideModalNext() {
+            const count = activePlace.Gambar ? activePlace.Gambar.length : 0;
+            if (count <= 1) return;
+            const nextIdx = (modalImgIndex + 1) % count;
+            slideModalTo(nextIdx);
+        }
+
+        function slideModalPrev() {
+            const count = activePlace.Gambar ? activePlace.Gambar.length : 0;
+            if (count <= 1) return;
+            const prevIdx = (modalImgIndex - 1 + count) % count;
+            slideModalTo(prevIdx);
+        }
+
+        // Attach modal gallery listeners
+        if (modalPrev) modalPrev.addEventListener('click', () => { slideModalPrev(); clearInterval(modalSlideInterval); });
+        if (modalNext) modalNext.addEventListener('click', () => { slideModalNext(); clearInterval(modalSlideInterval); });
+
+        // Bookmark saved toggle
+        window.savePlaceToggle = function() {
+            if (!activePlace) return;
+            const saved = JSON.parse(localStorage.getItem('saved_places') || '[]');
+            const index = saved.indexOf(activePlace.Id_Tempat);
+            const saveIcon = document.getElementById('modal-save-icon');
+
+            if (index > -1) {
+                saved.splice(index, 1);
+                saveIcon.textContent = 'bookmark';
+                saveIcon.style.color = 'inherit';
+            } else {
+                saved.push(activePlace.Id_Tempat);
+                saveIcon.textContent = 'bookmark_added';
+                saveIcon.style.color = 'var(--color-primary)';
+            }
+            localStorage.setItem('saved_places', JSON.stringify(saved));
+        };
+
+        // 6. HERO RANDOM AUTO-SLIDING BACKGROUND SLIDESHOW (CINEMATIC DOUBLE-BUFFER CROSS-FADE)
+        function initHeroSlideshow() {
+            const container = document.querySelector('.hero-bg-container');
+            const slide1 = document.querySelector('.bg-slide-1');
+            const slide2 = document.querySelector('.bg-slide-2');
+            if (!container || !slide1 || !slide2) return;
+
+            let heroImages = [];
+            try {
+                heroImages = JSON.parse(container.getAttribute('data-images') || '[]');
+            } catch (e) {
+                console.error("Error parsing hero images from server:", e);
+            }
+
+            function runSlideshow(images) {
+                if (!images || images.length <= 1) return;
+                
+                let currentIndex = 0;
+                let isSlide1Active = true;
+
+                // Adjust initial style filters to ensure optimum readability for text overlays
+                slide1.style.filter = "brightness(0.58) saturate(0.85) contrast(1.02)";
+                slide2.style.filter = "brightness(0.58) saturate(0.85) contrast(1.02)";
+
+                setInterval(() => {
+                    currentIndex = (currentIndex + 1) % images.length;
+                    const nextImg = images[currentIndex];
+
+                    if (isSlide1Active) {
+                        // Load image to slide2 (hidden), fade it in, fade slide1 out
+                        slide2.style.backgroundImage = `url('${nextImg}')`;
+                        slide2.style.opacity = '1';
+                        slide1.style.opacity = '0';
+                    } else {
+                        // Load image to slide1 (hidden), fade it in, fade slide2 out
+                        slide1.style.backgroundImage = `url('${nextImg}')`;
+                        slide1.style.opacity = '1';
+                        slide2.style.opacity = '0';
+                    }
+                    isSlide1Active = !isSlide1Active;
+                }, 6000); // Cinematic cross-fade every 6 seconds
+            }
+
+            if (heroImages.length > 1) {
+                runSlideshow(heroImages);
+            } else {
+                // Client-side fallback if server-side data is empty
+                let checkInterval = setInterval(() => {
+                    if (searchIndex && searchIndex.length > 0) {
+                        clearInterval(checkInterval);
+                        
+                        const wisataWithImgs = searchIndex.filter(item => item.Kategori === 'Wisata' && item.Gambar && item.Gambar.length > 0);
+                        if (wisataWithImgs.length === 0) return;
+
+                        const selectedSpots = [];
+                        const tempIndex = [...wisataWithImgs];
+                        for (let i = 0; i < Math.min(5, wisataWithImgs.length); i++) {
+                            const randIdx = Math.floor(Math.random() * tempIndex.length);
+                            selectedSpots.push(tempIndex.splice(randIdx, 1)[0]);
+                        }
+                        const imgs = selectedSpots.map(s => s.Gambar[0]);
+                        
+                        slide1.style.backgroundImage = `url('${imgs[0]}')`;
+                        runSlideshow(imgs);
+                    }
+                }, 100);
+            }
+        }
+        initHeroSlideshow();
+
+        // Close on clicking backdrop overlay
+        if (detailModal) {
+            detailModal.addEventListener('click', (e) => {
+                if (e.target === detailModal) closeOtaDetail();
+            });
+        }
+    </script>
 </body>
 </html>

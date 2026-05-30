@@ -49,6 +49,23 @@
         <p>Simulasikan pipeline lengkap Fuzzy C-Means secara real-time. Lihat setiap langkah — dari dataset, XBI validation, hingga paket rekomendasi akhir.</p>
     </div>
 
+    <!-- ── CACHING EXPLANATION TIP ── -->
+    <div class="sim-panel" style="margin-top: 32px; margin-bottom: 8px;">
+        <div class="tech-tip-card">
+            <div class="tech-tip-header">
+                <span class="material-symbols-outlined tech-tip-icon">lightbulb</span>
+                <span class="tech-tip-badge">TIP AKSES KILAT</span>
+                <h3>Apa itu Caching Dataset JSON?</h3>
+            </div>
+            <p class="tech-tip-text">
+                File Excel (<code>.xlsx</code>) data pariwisata Malang Raya berukuran cukup besar, dan membutuhkan waktu 2 hingga 3 detik bagi server untuk membukanya menggunakan Python setiap kali ada pengunjung baru. Jika 10 orang membuka web secara bersamaan, server akan mengalami kelebihan beban (overhead).
+            </p>
+            <p class="tech-tip-text" style="margin-top: 12px;">
+                <strong>Solusinya:</strong> Kami merancang sistem <strong>caching otomatis satu-kali</strong> untuk menghasilkan file ringkas <code class="code-highlight">catalog_featured.json</code> dan <code class="code-highlight">search_index.json</code>. Ini adalah potret data ringkas berformat JSON yang sangat ringan. Laravel dapat membaca data ini secara instan dalam waktu <strong>kurang dari 10 milidetik</strong>. Menjadikan website meluncur secepat kilat (<em>instant load</em>) layaknya aplikasi pariwisata modern seperti Traveloka atau Agoda!
+            </p>
+        </div>
+    </div>
+
     <!-- ── INPUT PANEL ── -->
     <div class="sim-panel">
         <div class="input-card">
