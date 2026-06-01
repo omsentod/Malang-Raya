@@ -8,7 +8,13 @@ yang berisi semua informasi untuk divisualisasikan di halaman web:
 - Validasi 5 skema ratio
 - Hasil clustering: centroid, distribusi klaster
 - Hasil rekomendasi paket
-"""
+
+import os
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["NUMEXPR_NUM_THREADS"] = "1"
+os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
 
 import argparse
 import json
