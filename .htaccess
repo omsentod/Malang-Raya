@@ -1,7 +1,23 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # Redirect all traffic to the public/ folder with leading slash (required by Hostinger/shared hosting)
+    # ======================================================================
+    # 1. SECURITY: Block direct access to sensitive files and folders
+    # ======================================================================
+    # Deny access to sensitive files (.env, .git, etc.)
+    RewriteRule ^\.(env|git) - [F,L]
+    
+    # Deny access to core Laravel code directories
+    RewriteRule ^(app|bootstrap|config|database|resources|routes|tests|vendor) - [F,L]
+    
+    # Deny access to sensitive storage areas (like python scripts, logs, framework cache)
+    # This keeps your Python algorithms and virtual environments completely private!
+    RewriteRule ^storage/(framework|logs|app/python) - [F,L]
+
+    # ======================================================================
+    # 2. ROUTING: Redirect all traffic to the public/ folder
+    # ======================================================================
+    # Avoid infinite loop: only rewrite if not already starting with /public/
     RewriteCond %{REQUEST_URI} !^/public/
     RewriteRule ^(.*)$ /public/$1 [L]
 </IfModule>
