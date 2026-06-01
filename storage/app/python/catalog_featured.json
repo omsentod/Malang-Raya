@@ -1,0 +1,455 @@
+{
+  "wisata": [
+    {
+      "Id_Tempat": "507",
+      "Nama_Tempat": "Rest Area 84B Malang Strudel Playland",
+      "Kategori": "Wisata",
+      "Sub_Kategori": "Tujuan Wisata · 4M3W+6HW",
+      "Estimasi_Harga": 0,
+      "Rating": 5.0,
+      "Jumlah_Ulasan": 102,
+      "Latitude": -7.897184,
+      "Longitude": 112.6965623,
+      "Link": "https://www.google.com/maps/place/Rest+Area+84B+Malang+Strudel+Playland/data=!4m7!3m6!1s0x2dd62b001742429d:0x84beee5003f64a4e!8m2!3d-7.897184!4d112.6965623!16s%2Fg%2F11yz7q2hyh!19sChIJnUJCFwAr1i0RTkr2A1DuvoQ?authuser=0&hl=id&rclk=1",
+      "Gambar": [
+        "/assets/GAMBAR/wisata/Rest_Area_84B_Malang_Strudel_Playland/Rest_Area_84B_Malang_Strudel_Playland-1.jpg",
+        "/assets/GAMBAR/wisata/Rest_Area_84B_Malang_Strudel_Playland/Rest_Area_84B_Malang_Strudel_Playland-2.jpg",
+        "/assets/GAMBAR/wisata/Rest_Area_84B_Malang_Strudel_Playland/Rest_Area_84B_Malang_Strudel_Playland-3.jpg"
+      ],
+      "Has_Gambar": true
+    },
+    {
+      "Id_Tempat": "335",
+      "Nama_Tempat": "EXTREME SPORTS CENTER INDONESIA",
+      "Kategori": "Wisata",
+      "Sub_Kategori": "Wisata Umum",
+      "Estimasi_Harga": 35000,
+      "Rating": 5.0,
+      "Jumlah_Ulasan": 72,
+      "Latitude": -7.9411286,
+      "Longitude": 112.5976053,
+      "Link": "https://www.google.com/maps/place/EXTREME+SPORTS+CENTER+INDONESIA/data=!4m7!3m6!1s0x2e78830008edc3d1:0x13222a58387f0901!8m2!3d-7.9411286!4d112.5976053!16s%2Fg%2F11xgq65k2q!19sChIJ0cPtCACDeC4RAQl_OFgqIhM?authuser=0&hl=id&rclk=1",
+      "Gambar": [
+        "/assets/GAMBAR/wisata/EXTREME_SPORTS_CENTER_INDONESIA/EXTREME_SPORTS_CENTER_INDONESIA-1.jpg",
+        "/assets/GAMBAR/wisata/EXTREME_SPORTS_CENTER_INDONESIA/EXTREME_SPORTS_CENTER_INDONESIA-2.jpg",
+        "/assets/GAMBAR/wisata/EXTREME_SPORTS_CENTER_INDONESIA/EXTREME_SPORTS_CENTER_INDONESIA-3.jpg"
+      ],
+      "Has_Gambar": true
+    },
+    {
+      "Id_Tempat": "336",
+      "Nama_Tempat": "Kebun Botol",
+      "Kategori": "Wisata",
+      "Sub_Kategori": "Wisata Umum",
+      "Estimasi_Harga": 20000,
+      "Rating": 5.0,
+      "Jumlah_Ulasan": 52,
+      "Latitude": -7.9272369,
+      "Longitude": 112.6034267,
+      "Link": "https://www.google.com/maps/place/Kebun+Botol/data=!4m7!3m6!1s0x2e7883f9a533e4d7:0xbf4bf2297a22aeaa!8m2!3d-7.9272369!4d112.6034267!16s%2Fg%2F11sc29rpl1!19sChIJ1-QzpfmDeC4Rqq4ieinyS78?authuser=0&hl=id&rclk=1",
+      "Gambar": [
+        "/assets/GAMBAR/wisata/Kebun_Botol/Kebun_Botol-1.jpg",
+        "/assets/GAMBAR/wisata/Kebun_Botol/Kebun_Botol-2.jpg",
+        "/assets/GAMBAR/wisata/Kebun_Botol/Kebun_Botol-3.jpg",
+        "/assets/GAMBAR/wisata/Kebun_Botol/Kebun_Botol-4.jpg"
+      ],
+      "Has_Gambar": true
+    },
+    {
+      "Id_Tempat": "617",
+      "Nama_Tempat": "RUMAH POHON SALAK",
+      "Kategori": "Wisata",
+      "Sub_Kategori": "Wisata Umum",
+      "Estimasi_Harga": 10000,
+      "Rating": 5.0,
+      "Jumlah_Ulasan": 50,
+      "Latitude": -8.2689341,
+      "Longitude": 112.869054,
+      "Link": "https://www.google.com/maps/place/RUMAH+POHON+SALAK/data=!4m7!3m6!1s0x2dd61130bfd147d1:0xefcfe1a18654c9ae!8m2!3d-8.2689341!4d112.869054!16s%2Fg%2F11s930prhp!19sChIJ0UfRvzAR1i0RrslUhqHhz-8?authuser=0&hl=id&rclk=1",
+      "Gambar": [
+        "/assets/GAMBAR/wisata/RUMAH_POHON_SALAK/RUMAH_POHON_SALAK-1.jpg",
+        "/assets/GAMBAR/wisata/RUMAH_POHON_SALAK/RUMAH_POHON_SALAK-2.jpg",
+        "/assets/GAMBAR/wisata/RUMAH_POHON_SALAK/RUMAH_POHON_SALAK-3.jpg",
+        "/assets/GAMBAR/wisata/RUMAH_POHON_SALAK/RUMAH_POHON_SALAK-4.jpg",
+        "/assets/GAMBAR/wisata/RUMAH_POHON_SALAK/RUMAH_POHON_SALAK-5.jpg"
+      ],
+      "Has_Gambar": true
+    },
+    {
+      "Id_Tempat": "366",
+      "Nama_Tempat": "Pantai Mahadewi",
+      "Kategori": "Wisata",
+      "Sub_Kategori": "Pantai Mahadewi",
+      "Estimasi_Harga": 10000,
+      "Rating": 5.0,
+      "Jumlah_Ulasan": 35,
+      "Latitude": -8.432359,
+      "Longitude": 112.638237,
+      "Link": "https://www.google.com/maps/place/Pantai+Mahadewi/data=!4m7!3m6!1s0x2dd60100230a580f:0x362c6d0790cee4da!8m2!3d-8.432359!4d112.638237!16s%2Fg%2F11yzv0h88j!19sChIJD1gKIwAB1i0R2uTOkAdtLDY?authuser=0&hl=id&rclk=1",
+      "Gambar": [
+        "/assets/GAMBAR/wisata/Pantai_Mahadewi/Pantai_Mahadewi-1.jpg",
+        "/assets/GAMBAR/wisata/Pantai_Mahadewi/Pantai_Mahadewi-2.jpg",
+        "/assets/GAMBAR/wisata/Pantai_Mahadewi/Pantai_Mahadewi-3.jpg"
+      ],
+      "Has_Gambar": true
+    },
+    {
+      "Id_Tempat": "493",
+      "Nama_Tempat": "Kebun Murbei",
+      "Kategori": "Wisata",
+      "Sub_Kategori": "Wisata Umum",
+      "Estimasi_Harga": 20000,
+      "Rating": 5.0,
+      "Jumlah_Ulasan": 34,
+      "Latitude": -7.9306506,
+      "Longitude": 112.6608826,
+      "Link": "https://www.google.com/maps/place/Kebun+Murbei/data=!4m7!3m6!1s0x2dd629b2b3433015:0x424742adf4ac410d!8m2!3d-7.9306506!4d112.6608826!16s%2Fg%2F11qfxh8vdz!19sChIJFTBDs7Ip1i0RDUGs9K1CR0I?authuser=0&hl=id&rclk=1",
+      "Gambar": [
+        "/assets/GAMBAR/wisata/Kebun_Murbei/Kebun_Murbei-1.jpg",
+        "/assets/GAMBAR/wisata/Kebun_Murbei/Kebun_Murbei-2.jpg",
+        "/assets/GAMBAR/wisata/Kebun_Murbei/Kebun_Murbei-3.jpg",
+        "/assets/GAMBAR/wisata/Kebun_Murbei/Kebun_Murbei-4.jpg"
+      ],
+      "Has_Gambar": true
+    },
+    {
+      "Id_Tempat": "247",
+      "Nama_Tempat": "wisata petik jeruk super agro kota batu",
+      "Kategori": "Wisata",
+      "Sub_Kategori": "Tujuan Wisata · Jl. Semeru",
+      "Estimasi_Harga": 25000,
+      "Rating": 5.0,
+      "Jumlah_Ulasan": 26,
+      "Latitude": -7.8333467,
+      "Longitude": 112.5216271,
+      "Link": "https://www.google.com/maps/place/wisata+petik+jeruk+super+agro+kota+batu/data=!4m7!3m6!1s0x2e787d2e401f67ff:0xdbf9f5c455bf2980!8m2!3d-7.8333467!4d112.5216271!16s%2Fg%2F11vxg7qyjb!19sChIJ_2cfQC59eC4RgCm_VcT1-ds?authuser=0&hl=id&rclk=1",
+      "Gambar": [
+        "/assets/GAMBAR/wisata/wisata_petik_jeruk_super_agro_kota_batu/wisata_petik_jeruk_super_agro_kota_batu-1.jpg",
+        "/assets/GAMBAR/wisata/wisata_petik_jeruk_super_agro_kota_batu/wisata_petik_jeruk_super_agro_kota_batu-2.jpg",
+        "/assets/GAMBAR/wisata/wisata_petik_jeruk_super_agro_kota_batu/wisata_petik_jeruk_super_agro_kota_batu-3.jpg"
+      ],
+      "Has_Gambar": true
+    },
+    {
+      "Id_Tempat": "256",
+      "Nama_Tempat": "Muara Paradise",
+      "Kategori": "Wisata",
+      "Sub_Kategori": "Wisata Umum",
+      "Estimasi_Harga": 75000,
+      "Rating": 5.0,
+      "Jumlah_Ulasan": 22,
+      "Latitude": -8.4030643,
+      "Longitude": 112.5453749,
+      "Link": "https://www.google.com/maps/place/Muara+Paradise/data=!4m7!3m6!1s0x2e78a900270771e1:0x49add6cb82ffeed3!8m2!3d-8.4030643!4d112.5453749!16s%2Fg%2F11myd05jrb!19sChIJ4XEHJwCpeC4R0-7_gsvWrUk?authuser=0&hl=id&rclk=1",
+      "Gambar": [
+        "/assets/GAMBAR/wisata/Muara_Paradise/Muara_Paradise-1.jpg",
+        "/assets/GAMBAR/wisata/Muara_Paradise/Muara_Paradise-2.jpg",
+        "/assets/GAMBAR/wisata/Muara_Paradise/Muara_Paradise-3.jpg"
+      ],
+      "Has_Gambar": true
+    }
+  ],
+  "hotel": [
+    {
+      "Id_Tempat": "455",
+      "Nama_Tempat": "Villa Girli Lawang",
+      "Kategori": "Hotel",
+      "Sub_Kategori": "Akomodasi",
+      "Estimasi_Harga": 35000,
+      "Rating": 4.5,
+      "Jumlah_Ulasan": 120,
+      "Latitude": -7.8223646,
+      "Longitude": 112.7308804,
+      "Link": "",
+      "Gambar": [
+        "/assets/GAMBAR/hotel/Villa_Girli_Lawang/Villa_Girli_Lawang-1.jpg",
+        "/assets/GAMBAR/hotel/Villa_Girli_Lawang/Villa_Girli_Lawang-2.jpg",
+        "/assets/GAMBAR/hotel/Villa_Girli_Lawang/Villa_Girli_Lawang-3.jpg",
+        "/assets/GAMBAR/hotel/Villa_Girli_Lawang/Villa_Girli_Lawang-4.jpg",
+        "/assets/GAMBAR/hotel/Villa_Girli_Lawang/Villa_Girli_Lawang-5.jpg"
+      ],
+      "Has_Gambar": true
+    },
+    {
+      "Id_Tempat": "117",
+      "Nama_Tempat": "Penginapan Kenkei",
+      "Kategori": "Hotel",
+      "Sub_Kategori": "Akomodasi",
+      "Estimasi_Harga": 50000,
+      "Rating": 4.5,
+      "Jumlah_Ulasan": 120,
+      "Latitude": -7.8941804,
+      "Longitude": 112.5328322,
+      "Link": "",
+      "Gambar": [
+        "/assets/GAMBAR/hotel/Penginapan_Kenkei/Penginapan_Kenkei-1.jpg",
+        "/assets/GAMBAR/hotel/Penginapan_Kenkei/Penginapan_Kenkei-2.jpg",
+        "/assets/GAMBAR/hotel/Penginapan_Kenkei/Penginapan_Kenkei-3.jpg",
+        "/assets/GAMBAR/hotel/Penginapan_Kenkei/Penginapan_Kenkei-4.jpg"
+      ],
+      "Has_Gambar": true
+    },
+    {
+      "Id_Tempat": "120",
+      "Nama_Tempat": "Penginapan Farel",
+      "Kategori": "Hotel",
+      "Sub_Kategori": "Akomodasi",
+      "Estimasi_Harga": 50000,
+      "Rating": 4.5,
+      "Jumlah_Ulasan": 120,
+      "Latitude": -7.9075157,
+      "Longitude": 112.5404111,
+      "Link": "",
+      "Gambar": [
+        "/assets/GAMBAR/hotel/Penginapan_Farel/Penginapan_Farel-1.jpg",
+        "/assets/GAMBAR/hotel/Penginapan_Farel/Penginapan_Farel-2.jpg",
+        "/assets/GAMBAR/hotel/Penginapan_Farel/Penginapan_Farel-3.jpg",
+        "/assets/GAMBAR/hotel/Penginapan_Farel/Penginapan_Farel-4.jpg"
+      ],
+      "Has_Gambar": true
+    },
+    {
+      "Id_Tempat": "203",
+      "Nama_Tempat": "De'Vita Family Homestay",
+      "Kategori": "Hotel",
+      "Sub_Kategori": "Akomodasi",
+      "Estimasi_Harga": 50000,
+      "Rating": 4.5,
+      "Jumlah_Ulasan": 120,
+      "Latitude": -7.9424252,
+      "Longitude": 112.5826408,
+      "Link": "",
+      "Gambar": [
+        "/assets/GAMBAR/hotel/De'Vita_Family_Homestay/De'Vita_Family_Homestay-1.jpg",
+        "/assets/GAMBAR/hotel/De'Vita_Family_Homestay/De'Vita_Family_Homestay-2.jpg",
+        "/assets/GAMBAR/hotel/De'Vita_Family_Homestay/De'Vita_Family_Homestay-3.jpg",
+        "/assets/GAMBAR/hotel/De'Vita_Family_Homestay/De'Vita_Family_Homestay-4.jpg",
+        "/assets/GAMBAR/hotel/De'Vita_Family_Homestay/De'Vita_Family_Homestay-5.jpg"
+      ],
+      "Has_Gambar": true
+    },
+    {
+      "Id_Tempat": "209",
+      "Nama_Tempat": "Edotel tebe syariah",
+      "Kategori": "Hotel",
+      "Sub_Kategori": "Akomodasi",
+      "Estimasi_Harga": 50000,
+      "Rating": 4.5,
+      "Jumlah_Ulasan": 120,
+      "Latitude": -7.9607908,
+      "Longitude": 112.648075,
+      "Link": "",
+      "Gambar": [
+        "/assets/GAMBAR/hotel/Edotel_tebe_syariah/Edotel_tebe_syariah-1.jpg",
+        "/assets/GAMBAR/hotel/Edotel_tebe_syariah/Edotel_tebe_syariah-2.jpg",
+        "/assets/GAMBAR/hotel/Edotel_tebe_syariah/Edotel_tebe_syariah-3.jpg",
+        "/assets/GAMBAR/hotel/Edotel_tebe_syariah/Edotel_tebe_syariah-4.jpg",
+        "/assets/GAMBAR/hotel/Edotel_tebe_syariah/Edotel_tebe_syariah-5.jpg"
+      ],
+      "Has_Gambar": true
+    },
+    {
+      "Id_Tempat": "214",
+      "Nama_Tempat": "RADZ & RASFA Homestay Syariah",
+      "Kategori": "Hotel",
+      "Sub_Kategori": "Akomodasi",
+      "Estimasi_Harga": 50000,
+      "Rating": 4.5,
+      "Jumlah_Ulasan": 120,
+      "Latitude": -7.974073,
+      "Longitude": 112.6363326,
+      "Link": "",
+      "Gambar": [
+        "/assets/GAMBAR/hotel/RADZ_&_RASFA_Homestay_Syariah/RADZ_&_RASFA_Homestay_Syariah-1.jpg",
+        "/assets/GAMBAR/hotel/RADZ_&_RASFA_Homestay_Syariah/RADZ_&_RASFA_Homestay_Syariah-2.jpg",
+        "/assets/GAMBAR/hotel/RADZ_&_RASFA_Homestay_Syariah/RADZ_&_RASFA_Homestay_Syariah-3.jpg",
+        "/assets/GAMBAR/hotel/RADZ_&_RASFA_Homestay_Syariah/RADZ_&_RASFA_Homestay_Syariah-4.jpg"
+      ],
+      "Has_Gambar": true
+    },
+    {
+      "Id_Tempat": "365",
+      "Nama_Tempat": "Airy Singosari Raya Mondoroko 1 Malang",
+      "Kategori": "Hotel",
+      "Sub_Kategori": "Akomodasi",
+      "Estimasi_Harga": 50000,
+      "Rating": 4.5,
+      "Jumlah_Ulasan": 120,
+      "Latitude": -7.9054231,
+      "Longitude": 112.6597216,
+      "Link": "",
+      "Gambar": [
+        "/assets/GAMBAR/hotel/Airy_Singosari_Raya_Mondoroko_1_Malang/Airy_Singosari_Raya_Mondoroko_1_Malang-1.jpg",
+        "/assets/GAMBAR/hotel/Airy_Singosari_Raya_Mondoroko_1_Malang/Airy_Singosari_Raya_Mondoroko_1_Malang-2.jpg",
+        "/assets/GAMBAR/hotel/Airy_Singosari_Raya_Mondoroko_1_Malang/Airy_Singosari_Raya_Mondoroko_1_Malang-3.jpg",
+        "/assets/GAMBAR/hotel/Airy_Singosari_Raya_Mondoroko_1_Malang/Airy_Singosari_Raya_Mondoroko_1_Malang-4.jpg"
+      ],
+      "Has_Gambar": true
+    },
+    {
+      "Id_Tempat": "337",
+      "Nama_Tempat": "OYO 3350 Cozy Residence",
+      "Kategori": "Hotel",
+      "Sub_Kategori": "Akomodasi",
+      "Estimasi_Harga": 55673,
+      "Rating": 4.5,
+      "Jumlah_Ulasan": 120,
+      "Latitude": -7.9454091,
+      "Longitude": 112.6348957,
+      "Link": "",
+      "Gambar": [
+        "/assets/GAMBAR/hotel/OYO_3350_Cozy_Residence/OYO_3350_Cozy_Residence-1.jpg",
+        "/assets/GAMBAR/hotel/OYO_3350_Cozy_Residence/OYO_3350_Cozy_Residence-2.jpg",
+        "/assets/GAMBAR/hotel/OYO_3350_Cozy_Residence/OYO_3350_Cozy_Residence-3.jpg",
+        "/assets/GAMBAR/hotel/OYO_3350_Cozy_Residence/OYO_3350_Cozy_Residence-4.jpg"
+      ],
+      "Has_Gambar": true
+    }
+  ],
+  "kuliner": [
+    {
+      "Id_Tempat": "263",
+      "Nama_Tempat": "KISARASA Restaurant",
+      "Kategori": "Kuliner",
+      "Sub_Kategori": "Wisata Umum",
+      "Estimasi_Harga": 16500,
+      "Rating": 5.0,
+      "Jumlah_Ulasan": 82,
+      "Latitude": -8.1499055,
+      "Longitude": 112.5667518,
+      "Link": "https://www.google.com/maps/place/KISARASA+Restaurant/data=!4m7!3m6!1s0x2e789fb9a8c9320f:0x9d3f35d0a4b4a04!8m2!3d-8.1499055!4d112.5667518!16s%2Fg%2F11xm5cnty3!19sChIJDzLJqLmfeC4RBEpLCl3z0wk?authuser=0&hl=id&rclk=1",
+      "Gambar": [
+        "/assets/GAMBAR/makan/KISARASA_Restaurant/KISARASA_Restaurant-1.jpg",
+        "/assets/GAMBAR/makan/KISARASA_Restaurant/KISARASA_Restaurant-2.jpg",
+        "/assets/GAMBAR/makan/KISARASA_Restaurant/KISARASA_Restaurant-3.jpg",
+        "/assets/GAMBAR/makan/KISARASA_Restaurant/KISARASA_Restaurant-4.jpg"
+      ],
+      "Has_Gambar": true
+    },
+    {
+      "Id_Tempat": "47",
+      "Nama_Tempat": "Warung De Uwais Ayam dan Bebek Goreng",
+      "Kategori": "Kuliner",
+      "Sub_Kategori": "Wisata Umum",
+      "Estimasi_Harga": 18200,
+      "Rating": 5.0,
+      "Jumlah_Ulasan": 74,
+      "Latitude": -7.8460173,
+      "Longitude": 112.4740245,
+      "Link": "https://www.google.com/maps/place/Warung+De+Uwais+Ayam+dan+Bebek+Goreng/data=!4m7!3m6!1s0x2e787d0050b1203b:0x3addd321d7ca5389!8m2!3d-7.8460173!4d112.4740245!16s%2Fg%2F11w4gv5ddw!19sChIJOyCxUAB9eC4RiVPK1yHT3To?authuser=0&hl=id&rclk=1",
+      "Gambar": [
+        "/assets/GAMBAR/makan/Warung_De_Uwais_Ayam_dan_Bebek_Goreng/Warung_De_Uwais_Ayam_dan_Bebek_Goreng-1.jpg",
+        "/assets/GAMBAR/makan/Warung_De_Uwais_Ayam_dan_Bebek_Goreng/Warung_De_Uwais_Ayam_dan_Bebek_Goreng-2.jpg",
+        "/assets/GAMBAR/makan/Warung_De_Uwais_Ayam_dan_Bebek_Goreng/Warung_De_Uwais_Ayam_dan_Bebek_Goreng-3.jpg",
+        "/assets/GAMBAR/makan/Warung_De_Uwais_Ayam_dan_Bebek_Goreng/Warung_De_Uwais_Ayam_dan_Bebek_Goreng-4.jpg"
+      ],
+      "Has_Gambar": true
+    },
+    {
+      "Id_Tempat": "581",
+      "Nama_Tempat": "Warung Makan dan Kopi MAJU (57)",
+      "Kategori": "Kuliner",
+      "Sub_Kategori": "Wisata Umum",
+      "Estimasi_Harga": 15875,
+      "Rating": 5.0,
+      "Jumlah_Ulasan": 57,
+      "Latitude": -8.209926,
+      "Longitude": 112.7441143,
+      "Link": "https://www.google.com/maps/place/Warung+Makan+dan+Kopi+MAJU+%2857%29/data=!4m7!3m6!1s0x2dd619aebabedbe7:0xb7ed88ab30e4cbf7!8m2!3d-8.209926!4d112.7441143!16s%2Fg%2F11lds6m20k!19sChIJ59u-uq4Z1i0R98vkMKuI7bc?authuser=0&hl=id&rclk=1",
+      "Gambar": [
+        "/assets/GAMBAR/makan/Warung_Makan_dan_Kopi_MAJU_(57)/Warung_Makan_dan_Kopi_MAJU_(57)-1.jpg",
+        "/assets/GAMBAR/makan/Warung_Makan_dan_Kopi_MAJU_(57)/Warung_Makan_dan_Kopi_MAJU_(57)-2.jpg",
+        "/assets/GAMBAR/makan/Warung_Makan_dan_Kopi_MAJU_(57)/Warung_Makan_dan_Kopi_MAJU_(57)-3.jpg"
+      ],
+      "Has_Gambar": true
+    },
+    {
+      "Id_Tempat": "307",
+      "Nama_Tempat": "Mandhi Pagi Jual Nasi Goreng Kebuli, Briyani Nampan & Mandhi | Spesialist Arabic Plating Tercantik SeMalang Raya",
+      "Kategori": "Kuliner",
+      "Sub_Kategori": "Wisata Umum",
+      "Estimasi_Harga": 27000,
+      "Rating": 5.0,
+      "Jumlah_Ulasan": 45,
+      "Latitude": -7.9271327,
+      "Longitude": 112.5658525,
+      "Link": "https://www.google.com/maps/place/Mandhi+Pagi+Jual+Nasi+Goreng+Kebuli,+Briyani+Nampan+%26+Mandhi+%7C+Spesialist+Arabic+Plating+Tercantik+SeMalang+Raya/data=!4m7!3m6!1s0x2e7883001390ccdb:0xcf6960e296854df9!8m2!3d-7.9271327!4d112.5658525!16s%2Fg%2F11y67n3t2q!19sChIJ28yQEwCDeC4R-U2FluJgac8?authuser=0&hl=id&rclk=1",
+      "Gambar": [],
+      "Has_Gambar": false
+    },
+    {
+      "Id_Tempat": "140",
+      "Nama_Tempat": "A-yem Tiamkopi",
+      "Kategori": "Kuliner",
+      "Sub_Kategori": "Restoran · Jl. Indragiri",
+      "Estimasi_Harga": 49665,
+      "Rating": 5.0,
+      "Jumlah_Ulasan": 44,
+      "Latitude": -7.8657243,
+      "Longitude": 112.5105723,
+      "Link": "https://www.google.com/maps/place/A-yem+Tiamkopi/data=!4m7!3m6!1s0x2e7887001e240c81:0x17c532c66774ea6a!8m2!3d-7.8657243!4d112.5105723!16s%2Fg%2F11wr607380!19sChIJgQwkHgCHeC4Raup0Z8YyxRc?authuser=0&hl=id&rclk=1",
+      "Gambar": [
+        "/assets/GAMBAR/makan/A-yem_Tiamkopi/A-yem_Tiamkopi-1.jpg",
+        "/assets/GAMBAR/makan/A-yem_Tiamkopi/A-yem_Tiamkopi-2.jpg",
+        "/assets/GAMBAR/makan/A-yem_Tiamkopi/A-yem_Tiamkopi-3.jpg"
+      ],
+      "Has_Gambar": true
+    },
+    {
+      "Id_Tempat": "300",
+      "Nama_Tempat": "Monggo Pinarak",
+      "Kategori": "Kuliner",
+      "Sub_Kategori": "Wisata Umum",
+      "Estimasi_Harga": 18000,
+      "Rating": 5.0,
+      "Jumlah_Ulasan": 33,
+      "Latitude": -7.9543069,
+      "Longitude": 112.5675645,
+      "Link": "https://www.google.com/maps/place/Monggo+Pinarak/data=!4m7!3m6!1s0x2e78830036badbf5:0x3f8ab9fd728df058!8m2!3d-7.9543069!4d112.5675645!16s%2Fg%2F11wtpfb06f!19sChIJ9du6NgCDeC4RWPCNcv25ij8?authuser=0&hl=id&rclk=1",
+      "Gambar": [
+        "/assets/GAMBAR/makan/Monggo_Pinarak/Monggo_Pinarak-1.jpg",
+        "/assets/GAMBAR/makan/Monggo_Pinarak/Monggo_Pinarak-2.jpg",
+        "/assets/GAMBAR/makan/Monggo_Pinarak/Monggo_Pinarak-3.jpg",
+        "/assets/GAMBAR/makan/Monggo_Pinarak/Monggo_Pinarak-4.jpg"
+      ],
+      "Has_Gambar": true
+    },
+    {
+      "Id_Tempat": "567",
+      "Nama_Tempat": "Warung Pedas Mbak Menir",
+      "Kategori": "Kuliner",
+      "Sub_Kategori": "Warung Pedas Mbak Menir",
+      "Estimasi_Harga": 12500,
+      "Rating": 5.0,
+      "Jumlah_Ulasan": 32,
+      "Latitude": -7.9118442,
+      "Longitude": 112.6670742,
+      "Link": "https://www.google.com/maps/place/Warung+Pedas+Mbak+Menir/data=!4m7!3m6!1s0x2dd62b79b30dc461:0x48b7cf0925fea2e6!8m2!3d-7.9118442!4d112.6670742!16s%2Fg%2F11jpybdwyg!19sChIJYcQNs3kr1i0R5qL-JQnPt0g?authuser=0&hl=id&rclk=1",
+      "Gambar": [
+        "/assets/GAMBAR/makan/Warung_Pedas_Mbak_Menir/Warung_Pedas_Mbak_Menir-1.jpg",
+        "/assets/GAMBAR/makan/Warung_Pedas_Mbak_Menir/Warung_Pedas_Mbak_Menir-2.jpg",
+        "/assets/GAMBAR/makan/Warung_Pedas_Mbak_Menir/Warung_Pedas_Mbak_Menir-3.jpg"
+      ],
+      "Has_Gambar": true
+    },
+    {
+      "Id_Tempat": "334",
+      "Nama_Tempat": "Wangsa Rasa Eatery",
+      "Kategori": "Kuliner",
+      "Sub_Kategori": "Wisata Umum",
+      "Estimasi_Harga": 7000,
+      "Rating": 5.0,
+      "Jumlah_Ulasan": 27,
+      "Latitude": -7.8643754,
+      "Longitude": 112.5427672,
+      "Link": "https://www.google.com/maps/place/Wangsa+Rasa+Eatery/data=!4m7!3m6!1s0x2e78811548ebcf09:0x89e2ed326f05f618!8m2!3d-7.8643754!4d112.5427672!16s%2Fg%2F11x_mmy_b4!19sChIJCc_rSBWBeC4RGPYFbzLt4ok?authuser=0&hl=id&rclk=1",
+      "Gambar": [
+        "/assets/GAMBAR/makan/Wangsa_Rasa_Eatery/Wangsa_Rasa_Eatery-1.jpg",
+        "/assets/GAMBAR/makan/Wangsa_Rasa_Eatery/Wangsa_Rasa_Eatery-2.jpg",
+        "/assets/GAMBAR/makan/Wangsa_Rasa_Eatery/Wangsa_Rasa_Eatery-3.jpg",
+        "/assets/GAMBAR/makan/Wangsa_Rasa_Eatery/Wangsa_Rasa_Eatery-4.jpg"
+      ],
+      "Has_Gambar": true
+    }
+  ]
+}
