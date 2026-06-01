@@ -12,6 +12,7 @@
 
     <!-- CSS -->
     <link rel="stylesheet" href="{{ asset('assets/css/global.css') }}" />
+    <link rel="stylesheet" href="{{ asset('assets/css/code-2.css') }}" />
     <link rel="stylesheet" href="{{ asset('assets/css/code-3.css') }}" />
 
     <!-- JS -->
@@ -28,14 +29,19 @@
                     <a class="g-nav-link" href="/">Home</a>
                     <a class="g-nav-link" href="/recommender">Explore</a>
                     <a class="g-nav-link" href="/how-it-works">How It Works</a>
-                    <a class="g-nav-link active" href="/dashboard">Saved</a>
+                    <a class="g-nav-link" href="/directory">Directory</a>
                 </div>
                 <div class="g-nav-right">
                     <div class="g-nav-search">
                         <span class="material-symbols-outlined g-nav-search-icon">search</span>
                         <input type="text" placeholder="Cari destinasi..." />
                     </div>
-                    <div class="dash-avatar">P</div>
+                    <button class="g-nav-bookmark-btn" id="nav-bookmark-btn" title="Rencana Perjalanan Saya">
+                        <span class="material-symbols-outlined">bookmarks</span>
+                        <span class="bookmark-label">Rencana Saya</span>
+                        <span class="bookmark-badge" id="bookmark-badge-count">0</span>
+                    </button>
+                    <div id="nav-profile-container" style="display: flex; align-items: center;"></div>
                     <button class="g-nav-hamburger" id="hamburger-btn">
                         <span class="material-symbols-outlined">menu</span>
                     </button>
@@ -46,12 +52,17 @@
             <a class="g-mobile-link" href="/">Home</a>
             <a class="g-mobile-link" href="/recommender">Explore</a>
             <a class="g-mobile-link" href="/how-it-works">How It Works</a>
-            <a class="g-mobile-link active" href="/dashboard">Saved</a>
+            <a class="g-mobile-link" href="/directory">Directory</a>
+            <button class="g-mobile-bookmark-btn" id="mobile-nav-bookmark-btn">
+                <span class="material-symbols-outlined">bookmarks</span>
+                <span>Rencana Perjalanan Saya</span>
+                <span class="bookmark-badge-count" id="mobile-bookmark-badge-count">0</span>
+            </button>
         </div>
     </div>
 
     <!-- ===================== PLACE DETAILS ===================== -->
-    <section class="place-section">
+    <section class="place-section" id="place-details-section" style="display: none;">
         <div class="place-container">
 
             <!-- Gallery Bento -->
@@ -164,37 +175,65 @@
 
     <!-- ===================== DASHBOARD ===================== -->
     <section class="dash-section">
-        <div class="dash-container">
+        <!-- Guest State -->
+        <div class="dash-container" id="dashboard-guest-state" style="display: none;">
+            <div style="text-align:center; padding:80px 24px; max-width:600px; margin:40px auto; background:rgba(255,255,255,0.72); backdrop-filter:blur(24px); border:1px solid rgba(0,0,0,0.06); border-radius:24px; box-shadow:var(--shadow-md); animation: fadeIn 0.4s ease;">
+                <span class="material-symbols-outlined" style="font-size:72px; color:var(--color-primary); margin-bottom:20px;">account_circle</span>
+                <h2 style="font-family:var(--font-headline); font-weight:800; font-size:24px; color:var(--color-on-surface); margin-bottom:12px;">Akses Terbatas</h2>
+                <p style="color:var(--color-slate-500); font-size:14px; margin-bottom:28px; line-height:1.5;">Silakan masuk atau daftarkan akun Anda terlebih dahulu untuk melihat dashboard aktivitas kustom, menulis catatan perjalanan, dan mengelola profil petualang Malang Raya Anda.</p>
+                <button class="btn-teal" onclick="document.getElementById('auth-modal-overlay').classList.add('open');" style="padding:12px 36px; font-size:15px; font-weight:800; border-radius:30px;">Masuk ke Akun Saya</button>
+            </div>
+        </div>
+
+        <!-- Logged In Dashboard -->
+        <div class="dash-container" id="dashboard-logged-in-state" style="display: none;">
 
             <!-- Dashboard Header -->
             <header class="dash-header reveal">
                 <div class="dash-profile">
                     <div class="dash-avatar-wrap">
-                        <img class="dash-profile-img" alt="Profile Sarah" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAMLAbhnQmBCMwYqzO4zfEEHmB1fOCJb6SEaLqUPAm-_O8DtDYl4EZvcredtkUCeepyXi-8MAx3TNkWJvqR14OutVTeolmYYGkG8vxTa548diMQZjFKvBSk4A5lh2F7kno06ES5QLJA4k5lIUABJFK425cEkikH1SxGZqUrHaBp61oDxhSV1Pk_Qwm-caYEk5Q6gb0VoPa6BPz1NdTcBSc8BP6ShkdKler0iahIGf1lmDlhBBQI8Dw015FIuENDfE6ZmzcsLT5EM9A" />
+                        <img class="dash-profile-img" id="dash-profile-avatar" alt="Profile" src="https://api.dicebear.com/7.x/adventurer/svg?seed=Felix" />
                         <div class="dash-status-dot"></div>
                     </div>
                     <div>
-                        <p class="dash-greeting">Welcome back,</p>
-                        <h2 class="dash-name">Sarah Amara</h2>
-                        <p class="dash-role">
-                            <span class="material-symbols-outlined" style="font-size:1rem;font-variation-settings:'FILL' 1;color:var(--color-tertiary-container);">stars</span>
-                            Elite Explorer · 12 Destinasi
+                        <p class="dash-greeting" id="dash-greeting-text">Welcome back,</p>
+                        <h2 class="dash-name" id="dash-profile-name">User</h2>
+                        <p class="dash-role" id="dash-profile-bio">
+                            Loading your adventurer bio...
                         </p>
                     </div>
                 </div>
                 <div class="dash-stats-row">
                     <div class="dash-stat-pill">
                         <span class="dash-stat-label">Trip Points</span>
-                        <span class="dash-stat-val">4,820</span>
+                        <span class="dash-stat-val" id="dash-points-val">0</span>
                     </div>
                     <div class="dash-stat-pill">
                         <span class="dash-stat-label">Active Plans</span>
-                        <span class="dash-stat-val">2</span>
+                        <span class="dash-stat-val" id="dash-plans-val">0</span>
                     </div>
                 </div>
             </header>
 
-            <div class="dash-layout">
+            <!-- Dashboard Tabs Navigation -->
+            <div class="dash-tabs-nav reveal" style="display:flex; gap:12px; margin-bottom:28px; border-bottom:1.5px solid var(--color-slate-200); padding-bottom:12px; overflow-x:auto;">
+                <button class="dash-tab-btn active" data-tab="tab-saved" style="display:flex; align-items:center; gap:8px; padding:10px 18px; border-radius:12px; font-family:var(--font-headline); font-weight:800; font-size:14.5px; color:var(--color-slate-500); border:none; background:transparent; cursor:pointer; transition:all 0.2s;">
+                    <span class="material-symbols-outlined" style="font-size:18px;">favorite</span>
+                    <span>Destinasi & Budget</span>
+                </button>
+                <button class="dash-tab-btn" data-tab="tab-notes" style="display:flex; align-items:center; gap:8px; padding:10px 18px; border-radius:12px; font-family:var(--font-headline); font-weight:800; font-size:14.5px; color:var(--color-slate-500); border:none; background:transparent; cursor:pointer; transition:all 0.2s;">
+                    <span class="material-symbols-outlined" style="font-size:18px;">assignment</span>
+                    <span>Catatan Perjalanan (Travel Notes)</span>
+                </button>
+                <button class="dash-tab-btn" data-tab="tab-profile" style="display:flex; align-items:center; gap:8px; padding:10px 18px; border-radius:12px; font-family:var(--font-headline); font-weight:800; font-size:14.5px; color:var(--color-slate-500); border:none; background:transparent; cursor:pointer; transition:all 0.2s;">
+                    <span class="material-symbols-outlined" style="font-size:18px;">manage_accounts</span>
+                    <span>Edit Profil</span>
+                </button>
+            </div>
+
+            <!-- Tab 1 Panel: Saved Destinations -->
+            <div class="dash-tab-panel-content" id="tab-saved" style="display: block;">
+                <div class="dash-layout">
                 <!-- Main -->
                 <div class="dash-main">
 
@@ -207,7 +246,7 @@
                                 <span class="material-symbols-outlined" style="font-size:1rem;">arrow_forward</span>
                             </a>
                         </div>
-                        <div class="saved-grid">
+                        <div class="saved-grid" id="saved-places-grid">
                             <div class="saved-card">
                                 <img class="saved-img" alt="Bromo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAVaNEszJuD9BPaw-6ZNUZ8bF3kddFP3uY5bYtMggIeUsA948ziuMoZ4agiRwOCc9OLM5QuWv27aeOmLthubH8zjZDm8lbfFyo5lQO7RNXZCBNz7MRvFoTPW7dce9pmUX6he4SWq-4cfNpQrxwDUa1c5-Eya_edzJcNFWIdWDqs5HFnYesaakGMnVEfY7euiVJrHutsUhEqY9dDbD-xkH3Mc-PTMLAq34QDdOipGhsndemVHqUN0Hv6jQzc25K2K8D9ZxeHhGJc" />
                                 <div class="saved-overlay"></div>
@@ -243,19 +282,19 @@
                                 <span class="material-symbols-outlined">psychology</span>
                                 <span class="rec-label">AI Recommendation Engine</span>
                             </div>
-                            <h3 class="rec-title">
+                            <h3 class="rec-title" id="rec-engine-title">
                                 Karena Anda menyukai <span class="rec-highlight text-glow">The Shalimar</span>, kami sarankan:
                             </h3>
-                            <div class="rec-scroll">
+                            <div class="rec-scroll" id="rec-engine-cards">
                                 <div class="rec-card">
-                                    <img class="rec-img" alt="Melati Restaurant" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD_Z8lUue-yuSG1XpAg4dmHLQMt9lBoMZPHe1PWxXKeYXBH-Rw5-4TR4P8MFOZEARzGzwxbwLYonOwqyG-zFzEypC62EST19YR5xwq-sNl-kyIiak7WMFFBh1nIc0uwgYaenFa7SvwJADkpn26f7XNNVXRSV1-tLDZQL1YyEKACFDBzyfp1F0ewpA-93GQUHJOkImzO0vOLvJE2FI25ZzfasPtDaIKvj_ZjK90w7x8_Jzhn-kybS_nfybtz-SEVLVDEXvG_FD8_7sk" />
+                                    <img class="rec-img" alt="Melati Restaurant" src="/assets/GAMBAR/makan/Melati_Restaurant/Melati_Restaurant-1.jpg" />
                                     <div class="rec-card-info">
                                         <h4 class="rec-card-name">Melati Restaurant</h4>
                                         <p class="rec-card-desc">High-end Heritage Dining</p>
                                     </div>
                                 </div>
                                 <div class="rec-card">
-                                    <img class="rec-img" alt="Tugu Hotel" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCD3Vcs_J3gs00lTunInTlsqm7bkN5IBjE2AvhjDeZXjwqB32AJBaIAUzKuYv0kBqRwm7Ec0GLXrsurBDqLMnj2m2SLiC6l3iBQLMuOFl-R3GO9DBwGeek1TfNuQAgCsuqiDwnBZLYhDPSKy_T3-X3KIGTFIgvoC409slWmF_HRuHtLlCgIsKjigCqPv9Q0BLRFWm3oHhtQRqTwczaSTXVWjXHbozBaoBvkUNyHdIYJHogFgvYSwPTscAUyonCWKoQj5zuaFOXxFhY" />
+                                    <img class="rec-img" alt="Tugu Hotel" src="/assets/GAMBAR/wisata/Alun_Alun_Tugu_Malang_-_Jan_Pieterszoon_Coen_Plein/Alun_Alun_Tugu_Malang_-_Jan_Pieterszoon_Coen_Plein-1.jpg" />
                                     <div class="rec-card-info">
                                         <h4 class="rec-card-name">Tugu Hotel Museum</h4>
                                         <p class="rec-card-desc">Cultural &amp; Historical Exploration</p>
@@ -268,6 +307,25 @@
 
                 <!-- Sidebar -->
                 <div class="dash-sidebar">
+                    <!-- Target Budget Tracker (Aktivitas Baru) -->
+                    <div class="sidebar-widget reveal" style="margin-bottom: 20px;">
+                        <h3 class="sidebar-widget-title" style="display:flex; align-items:center; gap:8px;">
+                            <span class="material-symbols-outlined" style="color:var(--color-primary); font-size:18px;">payments</span>
+                            Target Budget Perjalanan
+                        </h3>
+                        <div style="display:flex; gap:10px; margin-bottom:12px; margin-top:8px;">
+                            <span style="font-size:15px; font-weight:800; color:var(--color-slate-400); align-self:center;">Rp</span>
+                            <input type="number" id="target-budget-input" value="100000" style="flex:1; border:1.5px solid var(--color-slate-200); border-radius:10px; padding:8px 12px; font-size:14px; font-weight:800; outline:none; font-family:inherit;" />
+                        </div>
+                        <div class="budget-status-bar-wrap" style="height:8px; background:var(--color-slate-100); border-radius:4px; overflow:hidden; margin-bottom:10px;">
+                            <div id="target-budget-fill" style="height:100%; width:0%; background:var(--color-primary); transition:width 0.3s ease;"></div>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; font-size:11.5px; font-weight:800;">
+                            <span id="target-budget-current" style="color:var(--color-slate-500);">Terpakai: Rp 0</span>
+                            <span id="target-budget-status" style="color:var(--color-primary);">0% Terpakai (Aman)</span>
+                        </div>
+                    </div>
+
                     <!-- Budget -->
                     <div class="sidebar-widget reveal">
                         <h3 class="sidebar-widget-title">Budget Allocation</h3>
@@ -275,7 +333,7 @@
                             <div class="budget-item" data-pct="40">
                                 <div class="budget-label-row">
                                     <span>Akomodasi (40%)</span>
-                                    <span class="budget-amount">IDR 12.0M</span>
+                                    <span class="budget-amount">Rp 12.000.000</span>
                                 </div>
                                 <div class="budget-track">
                                     <div class="budget-fill budget-primary" style="width:0"></div>
@@ -284,7 +342,7 @@
                             <div class="budget-item" data-pct="25">
                                 <div class="budget-label-row">
                                     <span>Kuliner (25%)</span>
-                                    <span class="budget-amount">IDR 7.5M</span>
+                                    <span class="budget-amount">Rp 7.500.000</span>
                                 </div>
                                 <div class="budget-track">
                                     <div class="budget-fill budget-secondary" style="width:0"></div>
@@ -293,7 +351,7 @@
                             <div class="budget-item" data-pct="20">
                                 <div class="budget-label-row">
                                     <span>Eksplorasi (20%)</span>
-                                    <span class="budget-amount">IDR 6.0M</span>
+                                    <span class="budget-amount">Rp 6.000.000</span>
                                 </div>
                                 <div class="budget-track">
                                     <div class="budget-fill budget-tertiary" style="width:0"></div>
@@ -302,7 +360,7 @@
                             <div class="budget-item" data-pct="15">
                                 <div class="budget-label-row">
                                     <span>Transport (15%)</span>
-                                    <span class="budget-amount">IDR 4.5M</span>
+                                    <span class="budget-amount">Rp 4.500.000</span>
                                 </div>
                                 <div class="budget-track">
                                     <div class="budget-fill budget-muted" style="width:0"></div>
@@ -311,7 +369,7 @@
                         </div>
                         <div class="budget-total">
                             <span>Total Budget</span>
-                            <span class="budget-total-val">IDR 30.0M</span>
+                            <span class="budget-total-val">Rp 30.000.000</span>
                         </div>
                     </div>
 
@@ -334,8 +392,109 @@
                         </ul>
                     </div>
                 </div>
-            </div>
-        </div>
+                </div> <!-- Closes .dash-layout -->
+            </div><!-- /#tab-saved -->
+
+            <!-- Tab 2 Panel: Travel Notes -->
+            <div class="dash-tab-panel-content" id="tab-notes" style="display: none;">
+                <div style="background:#fff; border: 1.5px solid var(--color-slate-200); border-radius:24px; padding:28px; box-shadow:var(--shadow-md); max-width:800px; margin:0 auto; animation: fadeIn 0.3s ease;">
+                    <h3 style="font-family:var(--font-headline); font-weight:900; font-size:20px; color:var(--color-on-surface); margin-bottom:8px; display:flex; align-items:center; gap:10px;">
+                        <span class="material-symbols-outlined" style="color:var(--color-primary); font-size:26px;">assignment</span>
+                        Catatan & Agenda Perjalanan
+                    </h3>
+                    <p style="color:var(--color-slate-400); font-size:13.5px; margin-bottom:24px;">Buat daftar rencana belanja, perlengkapan esensial, atau agenda kuliner Anda untuk menaklukkan Malang Raya!</p>
+
+                    <!-- Add Note Form -->
+                    <form id="add-travel-note-form" style="display:flex; gap:12px; margin-bottom:24px;">
+                        <input type="text" id="new-note-input" placeholder="Contoh: Siapkan jaket tebal untuk ke Kawah Bromo..." required style="flex:1; border:1.5px solid var(--color-slate-200); border-radius:12px; padding:12px 16px; font-size:14px; font-weight:600; outline:none; font-family:inherit;" />
+                        <button type="submit" class="btn-teal" style="padding:10px 24px; border-radius:12px; font-size:14px; box-shadow:none; height:46px; margin:0;">Tambah Catatan</button>
+                    </form>
+
+                    <!-- Notes Container -->
+                    <div id="travel-notes-list" style="display:flex; flex-direction:column; gap:12px;">
+                        <!-- Dynamically populated via JS -->
+                    </div>
+                </div>
+            </div><!-- /#tab-notes -->
+
+            <!-- Tab 3 Panel: Edit Profile -->
+            <div class="dash-tab-panel-content" id="tab-profile" style="display: none;">
+                <div style="background:#fff; border: 1.5px solid var(--color-slate-200); border-radius:24px; padding:28px; box-shadow:var(--shadow-md); max-width:600px; margin:0 auto; animation: fadeIn 0.3s ease;">
+                    <h3 style="font-family:var(--font-headline); font-weight:900; font-size:20px; color:var(--color-on-surface); margin-bottom:8px;">Pengaturan Profil Petualang</h3>
+                    <p style="color:var(--color-slate-400); font-size:13.5px; margin-bottom:24px;">Kustomisasi identitas Anda di Malang Raya Tourism. Data profil disimpan di database MySQL.</p>
+
+                    <form id="profile-edit-form" novalidate>
+                        @csrf
+                        
+                        <!-- Avatar Presets -->
+                        <div style="margin-bottom:24px;">
+                            <label style="font-size:12px; font-weight:800; color:var(--color-slate-500); text-transform:uppercase; display:block; margin-bottom:12px; letter-spacing:0.5px;">Pilih Avatar Petualang</label>
+                            <div style="display:flex; gap:16px; flex-wrap:wrap; background:#f8fafc; padding:14px; border-radius:16px; border:1px solid var(--color-slate-200);">
+                                <label style="cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:6px;">
+                                    <input type="radio" name="avatar" value="explorer" style="display:none;" />
+                                    <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=Felix" class="avatar-preset-choice" data-preset="explorer" style="width:48px; height:48px; border-radius:50%; border:3px solid transparent; padding:2px; transition:all 0.2s;" />
+                                    <span style="font-size:11px; font-weight:800; color:var(--color-slate-500);">Explorer</span>
+                                </label>
+                                <label style="cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:6px;">
+                                    <input type="radio" name="avatar" value="nature" style="display:none;" />
+                                    <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=Aneka" class="avatar-preset-choice" data-preset="nature" style="width:48px; height:48px; border-radius:50%; border:3px solid transparent; padding:2px; transition:all 0.2s;" />
+                                    <span style="font-size:11px; font-weight:800; color:var(--color-slate-500);">Nature</span>
+                                </label>
+                                <label style="cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:6px;">
+                                    <input type="radio" name="avatar" value="culinary" style="display:none;" />
+                                    <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=Buster" class="avatar-preset-choice" data-preset="culinary" style="width:48px; height:48px; border-radius:50%; border:3px solid transparent; padding:2px; transition:all 0.2s;" />
+                                    <span style="font-size:11px; font-weight:800; color:var(--color-slate-500);">Culinary</span>
+                                </label>
+                                <label style="cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:6px;">
+                                    <input type="radio" name="avatar" value="heritage" style="display:none;" />
+                                    <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=Charlie" class="avatar-preset-choice" data-preset="heritage" style="width:48px; height:48px; border-radius:50%; border:3px solid transparent; padding:2px; transition:all 0.2s;" />
+                                    <span style="font-size:11px; font-weight:800; color:var(--color-slate-500);">Heritage</span>
+                                </label>
+                                <label style="cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:6px;">
+                                    <input type="radio" name="avatar" value="luxury" style="display:none;" />
+                                    <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=Missy" class="avatar-preset-choice" data-preset="luxury" style="width:48px; height:48px; border-radius:50%; border:3px solid transparent; padding:2px; transition:all 0.2s;" />
+                                    <span style="font-size:11px; font-weight:800; color:var(--color-slate-500);">Luxury</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Full Name -->
+                        <div class="auth-input-group">
+                            <label for="edit-profile-name">Nama Lengkap</label>
+                            <div class="auth-input-wrap">
+                                <span class="material-symbols-outlined auth-input-icon">person</span>
+                                <input type="text" id="edit-profile-name" name="name" required />
+                            </div>
+                        </div>
+
+                        <!-- Email -->
+                        <div class="auth-input-group">
+                            <label for="edit-profile-email">Alamat Email</label>
+                            <div class="auth-input-wrap">
+                                <span class="material-symbols-outlined auth-input-icon">mail</span>
+                                <input type="email" id="edit-profile-email" name="email" required />
+                            </div>
+                        </div>
+
+                        <!-- Bio -->
+                        <div class="auth-input-group">
+                            <label for="edit-profile-bio">Biografi Traveler</label>
+                            <textarea id="edit-profile-bio" name="bio" rows="4" style="width:100%; border:1.5px solid var(--color-slate-200); border-radius:12px; padding:12px 16px; font-family:inherit; font-size:13.5px; font-weight:600; outline:none; resize:none; transition:all 0.2s;" placeholder="Ceritakan gaya petualangan Anda..."></textarea>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button type="submit" class="auth-submit-btn" style="margin-top:10px;">
+                            <span>Simpan Perubahan</span>
+                            <span class="material-symbols-outlined">save</span>
+                        </button>
+                    </form>
+
+                    <!-- Alert message container -->
+                    <div id="profile-edit-msg" style="display:none; margin-top:18px; padding:12px; border-radius:12px; font-size:13px; font-weight:700; text-align:center;"></div>
+                </div>
+            </div><!-- /#tab-profile -->
+
+        </div><!-- /#dashboard-logged-in-state -->
     </section>
 
     <!-- ===================== FOOTER ===================== -->
@@ -353,5 +512,78 @@
         </div>
     </footer>
 
+    <!-- ===================== PREMIUM DETAIL MODAL ===================== -->
+    <div class="ota-modal-overlay" id="ota-detail-modal">
+        <div class="ota-modal-content">
+            <div class="ota-modal-gallery">
+                <button class="ota-modal-close-btn" onclick="closeOtaDetail()" aria-label="Close">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+                
+                <button class="ota-modal-gallery-nav prev" id="modal-gallery-prev" aria-label="Previous image">
+                    <span class="material-symbols-outlined">chevron_left</span>
+                </button>
+                
+                <div class="ota-modal-gallery-track" id="modal-gallery-track">
+                    <!-- Injected dynamically -->
+                </div>
+                
+                <button class="ota-modal-gallery-nav next" id="modal-gallery-next" aria-label="Next image">
+                    <span class="material-symbols-outlined">chevron_right</span>
+                </button>
+                
+                <div class="ota-modal-gallery-indicators" id="modal-gallery-indicators">
+                    <!-- Injected dynamically -->
+                </div>
+            </div>
+            
+            <div class="ota-modal-body">
+                <div class="ota-modal-header-row">
+                    <div>
+                        <h3 class="ota-modal-title" id="modal-place-title">Nama Tempat</h3>
+                        <div class="ota-modal-badges">
+                            <span class="ota-modal-badge" id="modal-place-cat">Wisata</span>
+                            <span class="ota-modal-badge hotel-badge" id="modal-place-subcat">Nature</span>
+                        </div>
+                    </div>
+                    <div class="ota-modal-rating-badge">
+                        <span class="material-symbols-outlined">star</span>
+                        <span id="modal-place-rating">4.8</span>
+                    </div>
+                </div>
+                
+                <div class="ota-modal-info-grid">
+                    <div class="ota-modal-info-item">
+                        <span class="ota-modal-info-label" id="modal-price-label">Tiket Masuk</span>
+                        <span class="ota-modal-info-val" id="modal-place-price">Rp 15.000</span>
+                    </div>
+                    <div class="ota-modal-info-item">
+                        <span class="ota-modal-info-label">Jumlah Ulasan</span>
+                        <span class="ota-modal-info-val" id="modal-place-reviews">1.250 ulasan</span>
+                    </div>
+                </div>
+                
+                <div class="ota-modal-desc-box">
+                    <p id="modal-place-desc">
+                        Nikmati pesona alam Malang Raya yang memikat dengan fasilitas premium. Tempat ini dikurasi secara cerdas menggunakan Fuzzy C-Means Clustering untuk menjamin kepuasan kunjungan Anda.
+                    </p>
+                </div>
+                
+                <div class="ota-modal-actions">
+                    <a href="#" target="_blank" class="ota-modal-btn-primary" id="modal-gmaps-link">
+                        <span class="material-symbols-outlined">map</span>
+                        Buka Rute di Google Maps
+                    </a>
+                    <button class="ota-modal-btn-secondary" id="modal-save-btn" onclick="savePlaceToggle()" aria-label="Save place">
+                        <span class="material-symbols-outlined" id="modal-save-icon">bookmark</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @include('bookmark-drawer-and-modal')
+    <script src="{{ asset('assets/js/bookmark-drawer.js') }}"></script>
+    @include('auth-modal-and-dropdown')
 </body>
 </html>

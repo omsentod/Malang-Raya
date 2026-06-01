@@ -71,4 +71,35 @@ document.addEventListener('DOMContentLoaded', () => {
             heroBg.style.transform = `translateY(${scrolled * 0.3}px)`;
         }, { passive: true });
     }
+    // ── Update Navbar Bookmark Badge ──
+    window.updateNavbarBookmarkBadge = function() {
+        const savedPlacesKey = typeof window.getSavedPlacesKey === 'function' ? window.getSavedPlacesKey() : 'saved_places';
+        const saved = JSON.parse(localStorage.getItem(savedPlacesKey) || '[]');
+        const count = saved.length;
+        const savedLinks = document.querySelectorAll('a[href="/dashboard"]');
+        savedLinks.forEach(link => {
+            const existingBadge = link.querySelector('.nav-bookmark-badge');
+            if (existingBadge) {
+                existingBadge.remove();
+            }
+            if (count > 0) {
+                const badge = document.createElement('span');
+                badge.className = 'nav-bookmark-badge';
+                badge.textContent = count;
+                badge.style.cssText = `
+                    background: var(--color-primary, #006565);
+                    color: white;
+                    border-radius: 10px;
+                    padding: 1px 6px;
+                    font-size: 10px;
+                    font-weight: 800;
+                    margin-left: 6px;
+                    display: inline-block;
+                    vertical-align: middle;
+                `;
+                link.appendChild(badge);
+            }
+        });
+    };
+    updateNavbarBookmarkBadge();
 });

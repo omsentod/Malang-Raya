@@ -252,7 +252,12 @@
 
                 <!-- Right Actions -->
                 <div class="g-nav-right">
-                    <a href="/recommender" class="g-nav-btn">Mulai Eksplorasi</a>
+                    <button class="g-nav-bookmark-btn" id="nav-bookmark-btn" title="Rencana Perjalanan Saya">
+                        <span class="material-symbols-outlined">bookmarks</span>
+                        <span class="bookmark-label">Rencana Saya</span>
+                        <span class="bookmark-badge" id="bookmark-badge-count">0</span>
+                    </button>
+                    <div id="nav-profile-container" style="display: flex; align-items: center;"></div>
                     <button class="g-nav-hamburger" id="hamburger-btn" aria-label="Menu">
                         <span class="material-symbols-outlined">menu</span>
                     </button>
@@ -265,6 +270,11 @@
             <a class="g-mobile-link" href="/recommender">Explore</a>
             <a class="g-mobile-link" href="/how-it-works">How It Works</a>
             <a class="g-mobile-link active" href="/directory">Directory</a>
+            <button class="g-mobile-bookmark-btn" id="mobile-nav-bookmark-btn">
+                <span class="material-symbols-outlined">bookmarks</span>
+                <span>Rencana Perjalanan Saya</span>
+                <span class="bookmark-badge-count" id="mobile-bookmark-badge-count">0</span>
+            </button>
         </div>
     </div>
 
@@ -512,6 +522,15 @@
             .then(res => res.json())
             .then(data => {
                 searchIndex = data;
+                
+                // Parse URL query parameter for search if exists!
+                const urlParams = new URLSearchParams(window.location.search);
+                const searchParam = urlParams.get('search') || urlParams.get('q');
+                if (searchParam && searchInput) {
+                    searchInput.value = searchParam;
+                    searchQuery = searchParam.toLowerCase().trim();
+                }
+                
                 applyFilters();
             })
             .catch(err => {
@@ -734,6 +753,16 @@
             activePlace = item;
             modalImgIndex = 0;
 
+            // Record search query/item name dynamically
+            if (item && item.Nama_Tempat) {
+                const key = window.currentUser ? 'mraya_recent_searches_' + window.currentUser.id : 'mraya_recent_searches_guest';
+                let searches = JSON.parse(localStorage.getItem(key) || '[]');
+                searches = searches.filter(s => s.toLowerCase() !== item.Nama_Tempat.toLowerCase());
+                searches.unshift(item.Nama_Tempat);
+                searches = searches.slice(0, 5);
+                localStorage.setItem(key, JSON.stringify(searches));
+            }
+
             document.getElementById('modal-place-title').textContent = item.Nama_Tempat;
             document.getElementById('modal-place-cat').textContent = item.Kategori;
             document.getElementById('modal-place-subcat').textContent = item.Sub_Kategori;
@@ -763,7 +792,8 @@
             document.getElementById('modal-gmaps-link').href = mapsUrl;
 
             // Check bookmark
-            const saved = JSON.parse(localStorage.getItem('saved_places') || '[]');
+            const savedPlacesKey = typeof window.getSavedPlacesKey === 'function' ? window.getSavedPlacesKey() : 'saved_places';
+            const saved = JSON.parse(localStorage.getItem(savedPlacesKey) || '[]');
             const isSaved = saved.some(id => id === item.Id_Tempat);
             const saveIcon = document.getElementById('modal-save-icon');
             if (saveIcon) {
@@ -857,7 +887,8 @@
 
         window.savePlaceToggle = function() {
             if (!activePlace) return;
-            const saved = JSON.parse(localStorage.getItem('saved_places') || '[]');
+            const savedPlacesKey = typeof window.getSavedPlacesKey === 'function' ? window.getSavedPlacesKey() : 'saved_places';
+            const saved = JSON.parse(localStorage.getItem(savedPlacesKey) || '[]');
             const index = saved.indexOf(activePlace.Id_Tempat);
             const saveIcon = document.getElementById('modal-save-icon');
 
@@ -870,7 +901,8 @@
                 saveIcon.textContent = 'bookmark_added';
                 saveIcon.style.color = 'var(--color-primary)';
             }
-            localStorage.setItem('saved_places', JSON.stringify(saved));
+            localStorage.setItem(savedPlacesKey, JSON.stringify(saved));
+            if (window.updateNavbarBookmarkBadge) window.updateNavbarBookmarkBadge();
         };
 
         if (detailModal) {
@@ -879,5 +911,8 @@
             });
         }
     </script>
+    @include('bookmark-drawer-and-modal')
+    <script src="{{ asset('assets/js/bookmark-drawer.js') }}"></script>
+    @include('auth-modal-and-dropdown')
 </body>
 </html>

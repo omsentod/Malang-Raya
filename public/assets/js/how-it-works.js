@@ -18,22 +18,22 @@ function toggleSection(id) {
 }
 
 // Counter
-function cc(inpId, minusId, plusId, min=1) {
+function cc(inpId, minusId, plusId, min = 1) {
     const inp = document.getElementById(inpId);
-    document.getElementById(minusId).addEventListener('click', () => { if(+inp.value > min) inp.value = +inp.value - 1; });
-    document.getElementById(plusId).addEventListener('click',  () => { inp.value = +inp.value + 1; });
+    document.getElementById(minusId).addEventListener('click', () => { if (+inp.value > min) inp.value = +inp.value - 1; });
+    document.getElementById(plusId).addEventListener('click', () => { inp.value = +inp.value + 1; });
 }
-cc('sim-persons','sp-minus','sp-plus');
-cc('sim-duration','sd-minus','sd-plus');
+cc('sim-persons', 'sp-minus', 'sp-plus');
+cc('sim-duration', 'sd-minus', 'sd-plus');
 
 // Budget formatting
 const simBudget = document.getElementById('sim-budget');
 simBudget.addEventListener('input', e => {
-    let raw = e.target.value.replace(/\D/g,'');
+    let raw = e.target.value.replace(/\D/g, '');
     e.target.value = raw ? parseInt(raw).toLocaleString('id-ID') : '';
 });
 function getRawBudget() {
-    return parseFloat(document.getElementById('sim-budget').value.replace(/\./g,'').replace(/,/g,'')) || 3000000;
+    return parseFloat(document.getElementById('sim-budget').value.replace(/\./g, '').replace(/,/g, '')) || 3000000;
 }
 
 // ─── Loading State ───
@@ -88,19 +88,19 @@ function renderBudgetAlloc(input) {
     const alloc = input.budget_alloc;
     const anchors = input.budget_anchors;
     const budget = input.budget;
-    const pcts = { akomodasi:35, wisata:15, kuliner:30, transportasi:20 };
-    const icons = { akomodasi:'🏨', wisata:'🎯', kuliner:'🍜', transportasi:'🚗' };
+    const pcts = { akomodasi: 40, wisata: 15, kuliner: 20, transportasi: 25 };
+    const icons = { akomodasi: '🏨', wisata: '🎯', kuliner: '🍜', transportasi: '🚗' };
 
     let html = `
     <div class="info-box">
         <span class="material-symbols-outlined">info</span>
-        Budget <strong>${fmtRp(budget)}</strong> dibagi proporsional ke 4 komponen (35% akomodasi, 15% wisata, 30% kuliner, 20% transportasi). 
+        Budget <strong>${fmtRp(budget)}</strong> dibagi proporsional ke 4 komponen (40% akomodasi, 15% wisata, 20% kuliner, 25% transportasi). 
         Anchor centroid = budget per unit item, digunakan untuk inisialisasi centroid FCM per kategori.
     </div>
     <div class="stats-grid">
-        ${Object.entries(alloc).map(([k,v]) => `
+        ${Object.entries(alloc).map(([k, v]) => `
         <div class="stat-card">
-            <div class="stat-cat" style="color:var(--teal-400)">${icons[k]} ${k.charAt(0).toUpperCase()+k.slice(1)}</div>
+            <div class="stat-cat" style="color:var(--teal-400)">${icons[k]} ${k.charAt(0).toUpperCase() + k.slice(1)}</div>
             <div class="stat-row"><span class="stat-label">Alokasi</span><span class="stat-val">${fmtRp(v)}</span></div>
             <div class="stat-row"><span class="stat-label">Persentase</span><span class="stat-val">${pcts[k]}%</span></div>
             ${anchors[k] !== undefined ? `<div class="stat-row"><span class="stat-label">Anchor/Unit</span><span class="stat-val" style="color:var(--teal-400)">${fmtRp(anchors[k])}</span></div>` : ''}
@@ -120,8 +120,8 @@ function renderBudgetAlloc(input) {
 
 // ─── RENDER STEP 3: XBI Table ───
 function renderXBI(xbiData) {
-    const catColor = { wisata:'wisata', hotel:'hotel', kuliner:'kuliner' };
-    const catLabel = { wisata:'🌿 Wisata', hotel:'🏨 Hotel', kuliner:'🍜 Kuliner' };
+    const catColor = { wisata: 'wisata', hotel: 'hotel', kuliner: 'kuliner' };
+    const catLabel = { wisata: '🌿 Wisata', hotel: '🏨 Hotel', kuliner: '🍜 Kuliner' };
 
     let html = `
     <div class="info-box">
@@ -142,9 +142,9 @@ function renderXBI(xbiData) {
                 <tbody>
                 ${rows.map(r => `
                     <tr class="${r.xbi === minXBI ? 'optimal' : ''}">
-                        <td>c = ${r.c}${r.xbi === minXBI ? '<span class="badge-opt">OPTIMAL</span>':''}</td>
+                        <td>c = ${r.c}${r.xbi === minXBI ? '<span class="badge-opt">OPTIMAL</span>' : ''}</td>
                         <td>${r.xbi !== null ? r.xbi.toFixed(4) : 'error'}</td>
-                        <td style="font-size:11px">${r.centroids ? r.centroids.map(c=>fmtRp(c)).join(' / ') : '-'}</td>
+                        <td style="font-size:11px">${r.centroids ? r.centroids.map(c => fmtRp(c)).join(' / ') : '-'}</td>
                     </tr>`).join('')}
                 </tbody>
             </table>
@@ -156,14 +156,14 @@ function renderXBI(xbiData) {
 
 // ─── RENDER STEP 4: Ratio Validation ───
 function renderRatio(ratioData) {
-    const catLabel = { wisata:'🌿 Wisata', hotel:'🏨 Hotel', kuliner:'🍜 Kuliner' };
-    const catCls   = { wisata:'wisata', hotel:'hotel', kuliner:'kuliner' };
+    const catLabel = { wisata: '🌿 Wisata', hotel: '🏨 Hotel', kuliner: '🍜 Kuliner' };
+    const catCls = { wisata: 'wisata', hotel: 'hotel', kuliner: 'kuliner' };
     const schemeDesc = {
-        A:'0.5× / 1.0× / 1.5× (Lebar)',
-        B:'0.6× / 1.0× / 1.4× (Moderat) ★',
-        C:'0.7× / 1.0× / 1.3× (Sempit)',
-        D:'0.5× / 1.0× / 2.0× (Ekstrem)',
-        E:'0.8× / 1.0× / 1.2× (Sangat Sempit)',
+        A: '0.5× / 1.0× / 1.5× (Lebar)',
+        B: '0.6× / 1.0× / 1.4× (Moderat) ★',
+        C: '0.7× / 1.0× / 1.3× (Sempit)',
+        D: '0.5× / 1.0× / 2.0× (Ekstrem)',
+        E: '0.8× / 1.0× / 1.2× (Sangat Sempit)',
     };
     let html = `
     <div class="info-box">
@@ -184,10 +184,10 @@ function renderRatio(ratioData) {
                 ${rows.map(r => `
                     <tr class="${r.xbi === minXBI ? 'best-scheme' : ''}">
                         <td><span class="scheme-badge">${r.scheme}</span></td>
-                        <td style="font-size:12px;color:var(--slate-400)">${schemeDesc[r.scheme]||r.scheme}</td>
+                        <td style="font-size:12px;color:var(--slate-400)">${schemeDesc[r.scheme] || r.scheme}</td>
                         <td>
                             <div class="bar-cell">
-                                <div class="bar-bg"><div class="bar-fill" style="width:${Math.min(100,(minXBI/r.xbi)*100)}%"></div></div>
+                                <div class="bar-bg"><div class="bar-fill" style="width:${Math.min(100, (minXBI / r.xbi) * 100)}%"></div></div>
                                 ${r.xbi !== null ? r.xbi.toFixed(4) : 'error'}
                             </div>
                         </td>
@@ -203,16 +203,16 @@ function renderRatio(ratioData) {
 
 // ─── RENDER STEP 5: Clustering Result ───
 function renderClustering(clusterData) {
-    const catLabel  = { wisata:'🌿 Wisata', hotel:'🏨 Hotel', kuliner:'🍜 Kuliner' };
-    const catCls    = { wisata:'wisata', hotel:'hotel', kuliner:'kuliner' };
+    const catLabel = { wisata: '🌿 Wisata', hotel: '🏨 Hotel', kuliner: '🍜 Kuliner' };
+    const catCls = { wisata: 'wisata', hotel: 'hotel', kuliner: 'kuliner' };
 
     let html = '<div class="cluster-grid">';
     for (const [cat, d] of Object.entries(clusterData)) {
         if (d.error) { html += `<div class="stat-card"><div style="color:var(--rose-500)">${cat}: ${d.error}</div></div>`; continue; }
         const total = d.distribution.hemat + d.distribution.balanced + d.distribution.premium;
-        const pHemat    = (d.distribution.hemat    / total * 100).toFixed(0);
+        const pHemat = (d.distribution.hemat / total * 100).toFixed(0);
         const pBalanced = (d.distribution.balanced / total * 100).toFixed(0);
-        const pPremium  = (d.distribution.premium  / total * 100).toFixed(0);
+        const pPremium = (d.distribution.premium / total * 100).toFixed(0);
         html += `
         <div class="cluster-card">
             <div class="cluster-head ${catCls[cat]}">
@@ -263,7 +263,7 @@ function renderPackages(packages, budget) {
             </div>`;
         return;
     }
-    const catCls = { Hemat:'hemat', HEMAT:'hemat', Balanced:'balanced', BALANCED:'balanced', Premium:'premium', PREMIUM:'premium' };
+    const catCls = { Hemat: 'hemat', HEMAT: 'hemat', Balanced: 'balanced', BALANCED: 'balanced', Premium: 'premium', PREMIUM: 'premium' };
     let html = `<div class="pkgs-grid">`;
     packages.forEach(pkg => {
         const cls = catCls[pkg.kategori] || 'hemat';
@@ -306,11 +306,11 @@ function renderPackages(packages, budget) {
                     </div>
                     <div style="text-align:right">
                         <div style="font-size:11px;color:var(--slate-500)">Sisa budget</div>
-                        <div style="font-size:14px;font-weight:800;color:${remaining>=0?'var(--emerald-400)':'var(--rose-500)'}">${remaining>=0?'+':'-'}${fmtRp(Math.abs(remaining))}</div>
+                        <div style="font-size:14px;font-weight:800;color:${remaining >= 0 ? 'var(--emerald-400)' : 'var(--rose-500)'}">${remaining >= 0 ? '+' : '-'}${fmtRp(Math.abs(remaining))}</div>
                     </div>
                 </div>
                 <div style="font-size:11px;color:var(--slate-500);margin-top:10px;text-align:center">
-                    🚗 Transportasi: ${fmtRp(pkg.cost_transport)} | 📏 ${pkg.transport_detail?.total_distance_km?.toFixed(1)||'?'} km
+                    🚗 Transportasi: ${fmtRp(pkg.cost_transport)} | 📏 ${pkg.transport_detail?.total_distance_km?.toFixed(1) || '?'} km
                 </div>
             </div>
         </div>`;
@@ -321,8 +321,8 @@ function renderPackages(packages, budget) {
 
 // ─── Main Run ───
 document.getElementById('run-btn').addEventListener('click', async () => {
-    const budget   = getRawBudget();
-    const persons  = +document.getElementById('sim-persons').value;
+    const budget = getRawBudget();
+    const persons = +document.getElementById('sim-persons').value;
     const duration = +document.getElementById('sim-duration').value;
     const btn = document.getElementById('run-btn');
 
@@ -332,8 +332,8 @@ document.getElementById('run-btn').addEventListener('click', async () => {
 
     try {
         const fd = new FormData();
-        fd.append('budget',   budget);
-        fd.append('persons',  persons);
+        fd.append('budget', budget);
+        fd.append('persons', persons);
         fd.append('duration', duration);
 
         const res = await fetch('/api/how-it-works', {
@@ -359,13 +359,13 @@ document.getElementById('run-btn').addEventListener('click', async () => {
         renderPackages(data.packages, budget);
 
         // open all sections
-        ['sec-1','sec-2','sec-3','sec-4','sec-5','sec-6'].forEach(id => {
+        ['sec-1', 'sec-2', 'sec-3', 'sec-4', 'sec-5', 'sec-6'].forEach(id => {
             document.getElementById(id).classList.add('open');
         });
 
-        document.getElementById('results-all').scrollIntoView({ behavior:'smooth', block:'start' });
+        document.getElementById('results-all').scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-    } catch(e) {
+    } catch (e) {
         hideLoading();
         showError('Koneksi gagal: ' + e.message);
     } finally {

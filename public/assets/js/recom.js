@@ -5,9 +5,13 @@ const fmtRp = n => {
     if (n === null || n === undefined || isNaN(n)) return 'Rp 0';
     return 'Rp ' + Math.round(n).toLocaleString('id-ID');
 };
+const escapeHtmlAttr = str => {
+    if (str === null || str === undefined) return '';
+    return String(str).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+};
 const csrfToken = () => document.querySelector('meta[name="csrf-token"]')?.content || '';
 
-window.handleImgErrorRecom = function(el, icon) {
+window.handleImgErrorRecom = function (el, icon) {
     if (el.dataset.fallbackTriggered) return;
     el.dataset.fallbackTriggered = "true";
     const parent = el.parentNode;
@@ -25,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let activeWorkflow = 'budget';
     let allOptions = [];
     let searchIndex = [];
-    
+
     // Asynchronously fetch search index
     fetch('/assets/search_index.json')
         .then(res => res.json())
@@ -44,8 +48,8 @@ document.addEventListener('DOMContentLoaded', () => {
         for (let j = 0; j <= s.length; j++) { arr[0][j] = j; }
         for (let i = 1; i <= t.length; i++) {
             for (let j = 1; j <= s.length; j++) {
-                arr[i][j] = s[j - 1] === t[i - 1] 
-                    ? arr[i - 1][j - 1] 
+                arr[i][j] = s[j - 1] === t[i - 1]
+                    ? arr[i - 1][j - 1]
                     : Math.min(arr[i - 1][j - 1] + 1, arr[i][j - 1] + 1, arr[i - 1][j] + 1);
             }
         }
@@ -55,18 +59,47 @@ document.addEventListener('DOMContentLoaded', () => {
     function findTypoAutocorrect(query, items, nameKey = 'Nama_Tempat') {
         if (query.length < 3) return null;
         const cleanQuery = query.toLowerCase().trim();
+        const queryWords = cleanQuery.split(/\s+/).filter(w => w.length >= 2);
+
         let bestMatch = null;
-        let minDistance = 3; // Maximum typo tolerance distance
+        let bestScore = 999;
 
         for (const item of items) {
             const name = (item[nameKey] || '').toLowerCase();
             if (!name) continue;
-            const words = name.split(/\s+/);
-            for (const word of words) {
-                if (word.length < 3) continue;
-                const distance = levenshteinDistance(cleanQuery, word);
-                if (distance < minDistance) {
-                    minDistance = distance;
+
+            const itemWords = name.split(/\s+/).filter(w => w.length >= 2);
+
+            if (queryWords.length === 1) {
+                const qWord = queryWords[0];
+                for (const iWord of itemWords) {
+                    const dist = levenshteinDistance(qWord, iWord);
+                    if (dist < 3 && dist < bestScore) {
+                        bestScore = dist;
+                        bestMatch = item;
+                    }
+                }
+            } else {
+                let totalDist = 0;
+                let matchedAll = true;
+
+                for (const qWord of queryWords) {
+                    let minWordDist = 999;
+                    for (const iWord of itemWords) {
+                        const dist = levenshteinDistance(qWord, iWord);
+                        if (dist < minWordDist) {
+                            minWordDist = dist;
+                        }
+                    }
+                    if (minWordDist > 2) {
+                        matchedAll = false;
+                        break;
+                    }
+                    totalDist += minWordDist;
+                }
+
+                if (matchedAll && totalDist < bestScore) {
+                    bestScore = totalDist;
                     bestMatch = item;
                 }
             }
@@ -98,7 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Close search on clicking outside
         document.addEventListener('click', (e) => {
             if (!searchInput.contains(e.target) && !searchDropdown.contains(e.target)) {
-                searchDropdown.style.display = 'none';
+                searchDropdown.classList.remove('open');
             }
         });
 
@@ -116,11 +149,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const cleanQuery = query.trim().toLowerCase();
         if (cleanQuery.length === 0) {
-            searchDropdown.style.display = 'none';
+            searchDropdown.classList.remove('open');
             return;
         }
 
-        searchDropdown.style.display = 'block';
+        searchDropdown.classList.add('open');
         searchDropdown.innerHTML = '';
 
         const matches = [];
@@ -142,9 +175,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const autocorrectSuggestion = findTypoAutocorrect(cleanQuery, wisataItems, 'Nama_Tempat');
             if (autocorrectSuggestion && !matches.some(m => m.Id_Tempat === autocorrectSuggestion.Id_Tempat)) {
                 html += `
-                    <div class="autocomplete-autocorrect-banner" style="padding: 10px 14px; background: rgba(13, 148, 136, 0.05); font-size: 12px; border-bottom: 1px solid var(--slate-150); display: flex; align-items: center; gap: 6px;">
-                        <span class="material-symbols-outlined" style="font-size:16px; color: var(--teal-600);">auto_awesome</span>
-                        <span>Maksud Anda: <strong class="destination-autocorrect-link" style="color: var(--teal-600); cursor: pointer; text-decoration: underline;" data-item='${JSON.stringify(autocorrectSuggestion).replace(/'/g, "&#39;")}'>${autocorrectSuggestion.Nama_Tempat}</strong>?</span>
+                    <div class="autocomplete-autocorrect-banner">
+                        <span class="material-symbols-outlined" style="font-size:16px;">auto_awesome</span>
+                        <span>Maksud Anda: <strong class="destination-autocorrect-link" data-id="${autocorrectSuggestion.Id_Tempat}" data-name="${escapeHtmlAttr(autocorrectSuggestion.Nama_Tempat)}">${autocorrectSuggestion.Nama_Tempat}</strong>?</span>
                     </div>
                 `;
             }
@@ -152,26 +185,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (matches.length === 0 && html === '') {
             searchDropdown.innerHTML = `
-                <div class="autocomplete-empty" style="padding: 24px; text-align: center; color: var(--slate-400);">
-                    <span class="material-symbols-outlined" style="font-size: 32px; margin-bottom: 8px;">search_off</span>
-                    <h5 style="margin: 0 0 4px; font-size: 14px; font-weight: 700; color: var(--slate-700);">Tidak Ada Hasil</h5>
-                    <p style="margin: 0; font-size: 12px;">Cobalah kata kunci destinasi lain seperti "bromo", "jatim park", atau "coban".</p>
+                <div class="autocomplete-empty">
+                    <span class="material-symbols-outlined">search_off</span>
+                    <h5>Tidak Ada Hasil</h5>
+                    <p>Cobalah kata kunci destinasi lain seperti "bromo", "jatim park", atau "coban".</p>
                 </div>
             `;
             return;
         }
 
-        html += `<div class="autocomplete-section-title" style="padding: 10px 14px 4px; font-size: 11px; font-weight: 800; color: var(--slate-400); text-transform: uppercase; letter-spacing: 0.5px;">Hasil Pencarian Wisata</div>`;
+        html += `<div class="autocomplete-section-title">Hasil Pencarian Wisata</div>`;
 
         matches.forEach(item => {
             const priceFormatted = item.Estimasi_Harga > 0 ? fmtRp(item.Estimasi_Harga) : 'Gratis';
             const hasImg = item.Gambar && item.Gambar.length > 0;
-            
+
             const imgHTML = hasImg
-                ? `<img class="suggestion-thumb" src="${item.Gambar[0]}" alt="${item.Nama_Tempat}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" style="width: 40px; height: 40px; border-radius: 6px; object-fit: cover;" />
+                ? `<img class="suggestion-thumb" src="${item.Gambar[0]}" alt="${escapeHtmlAttr(item.Nama_Tempat)}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
                    <div class="suggestion-shimmer" style="display:none;"></div>`
-                : `<div class="ota-shimmer-placeholder suggestion-thumb" style="width: 40px; height: 40px; border-radius: 6px; background: var(--slate-100); display: flex; align-items: center; justify-content: center; color: var(--slate-400);">
-                       <span class="material-symbols-outlined" style="font-size:16px;">landscape</span>
+                : `<div class="ota-shimmer-placeholder suggestion-thumb">
+                       <span class="material-symbols-outlined" style="font-size:16px;color:var(--color-slate-400);">landscape</span>
                    </div>`;
 
             const highlightedName = highlightQueryMatch(item.Nama_Tempat, query);
@@ -179,17 +212,16 @@ document.addEventListener('DOMContentLoaded', () => {
             html += `
                 <div class="autocomplete-suggestion destination-suggestion-item" 
                      data-id="${item.Id_Tempat}" 
-                     data-name="${item.Nama_Tempat}"
-                     style="display: flex; align-items: center; gap: 12px; padding: 10px 14px; cursor: pointer; transition: background 0.2s; border-bottom: 1px solid var(--slate-100);">
+                     data-name="${escapeHtmlAttr(item.Nama_Tempat)}">
                     ${imgHTML}
-                    <div class="suggestion-info" style="flex: 1; display: flex; flex-direction: column; gap: 2px;">
-                        <div class="suggestion-title" style="font-size: 13px; font-weight: 700; color: var(--slate-800);">${highlightedName}</div>
-                        <div class="suggestion-meta" style="font-size: 11px; color: var(--slate-400); display: flex; align-items: center; gap: 6px;">
-                            <span class="suggestion-badge" style="background: var(--slate-100); padding: 2px 6px; border-radius: 4px; font-weight: 600; font-size: 10px; color: var(--slate-600);">${item.Kategori}</span>
+                    <div class="suggestion-info">
+                        <div class="suggestion-title">${highlightedName}</div>
+                        <div class="suggestion-meta">
+                            <span class="suggestion-badge">${item.Kategori}</span>
                             <span>• ${item.Sub_Kategori}</span>
                         </div>
                     </div>
-                    <div class="suggestion-price" style="font-size: 12px; font-weight: 700; color: var(--teal-600);">${priceFormatted}</div>
+                    <div class="suggestion-price">${priceFormatted}</div>
                 </div>
             `;
         });
@@ -207,8 +239,9 @@ document.addEventListener('DOMContentLoaded', () => {
         searchDropdown.querySelectorAll('.destination-autocorrect-link').forEach(link => {
             link.addEventListener('click', (e) => {
                 e.stopPropagation();
-                const item = JSON.parse(link.dataset.item);
-                selectDestinationItem(item.Id_Tempat, item.Nama_Tempat);
+                const id = link.dataset.id;
+                const name = link.dataset.name;
+                selectDestinationItem(id, name);
             });
         });
     }
@@ -224,7 +257,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (searchDropdown) {
-            searchDropdown.style.display = 'none';
+            searchDropdown.classList.remove('open');
         }
 
         onBudgetChange();
@@ -309,6 +342,36 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 item.distFromAnchor = 9999;
             }
+
+            // Calculate distance to hotel for kuliner alternatives
+            if (type === 'kuliner') {
+                let hLat = 0, hLon = 0;
+                if (nights > 0) {
+                    if (hotelMode === 'same') {
+                        if (selectedHotel) {
+                            hLat = selectedHotel.lat;
+                            hLon = selectedHotel.lon;
+                        } else {
+                            hLat = pkg.hotel_lat || 0;
+                            hLon = pkg.hotel_lon || 0;
+                        }
+                    } else {
+                        const activeN = selectedHotelsByNight[dayNum] || selectedHotelsByNight[dayNum - 1] || null;
+                        if (activeN) {
+                            hLat = activeN.lat;
+                            hLon = activeN.lon;
+                        } else {
+                            hLat = pkg.hotel_lat || 0;
+                            hLon = pkg.hotel_lon || 0;
+                        }
+                    }
+                }
+                if (hLat && hLon && itemLat && itemLon) {
+                    item.distToHotel = haversineDist(itemLat, itemLon, hLat, hLon);
+                } else {
+                    item.distToHotel = 0;
+                }
+            }
         });
 
         visibleAlts.sort((a, b) => a.distFromAnchor - b.distFromAnchor);
@@ -322,26 +385,47 @@ document.addEventListener('DOMContentLoaded', () => {
         const hasBudget = budgetLimit > 0;
 
         if (hasBudget) {
+            // Calculate baseline accommodation cost (use custom if selected, else default package cost)
             let curAccCost = 0;
             if (nights > 0) {
                 if (hotelMode === 'same') {
-                    if (selectedHotel) curAccCost = selectedHotel.cost;
+                    if (selectedHotel) {
+                        curAccCost = selectedHotel.cost;
+                    } else {
+                        curAccCost = pkg.cost_akomodasi;
+                    }
                 } else {
                     for (let n = 1; n <= nights; n++) {
                         const activeN = selectedHotelsByNight[n];
-                        if (activeN) curAccCost += activeN.cost;
+                        if (activeN) {
+                            curAccCost += activeN.cost;
+                        } else {
+                            curAccCost += pkg.hotel_harga * pkg.num_rooms;
+                        }
                     }
                 }
             }
 
+            // Calculate baseline Wisata cost (Day 1 only, use custom if selected, else default package wisata)
             let curWisCost = 0;
             const activeDay1 = selectedDays[1];
-            if (activeDay1) curWisCost = activeDay1.wisata_harga * persons;
+            if (activeDay1) {
+                curWisCost = activeDay1.wisata_harga * persons;
+            } else {
+                let day1Itin = pkg.itinerary?.find(item => item.day === 1);
+                curWisCost = (day1Itin ? day1Itin.wisata_harga : pkg.wisata_harga) * persons;
+            }
 
+            // Calculate baseline Kuliner cost (use custom if selected, else default package kuliner)
             let curKulCost = 0;
             for (let d = 1; d <= duration; d++) {
                 const dayPlan = selectedDays[d];
-                if (dayPlan) curKulCost += dayPlan.kuliner_harga * persons * 3;
+                if (dayPlan) {
+                    curKulCost += dayPlan.kuliner_harga * persons * 3;
+                } else {
+                    let dayItin = pkg.itinerary?.find(item => item.day === d);
+                    curKulCost += (dayItin ? dayItin.kuliner_harga : pkg.kuliner_harga) * persons * 3;
+                }
             }
 
             visibleAlts.forEach(item => {
@@ -360,7 +444,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             hypAccCost += itemHarga * pkg.num_rooms;
                         } else {
                             const activeN = selectedHotelsByNight[n];
-                            hypAccCost += activeN ? activeN.cost : 0;
+                            hypAccCost += activeN ? activeN.cost : (pkg.hotel_harga * pkg.num_rooms);
                         }
                     }
                 } else if (type === 'wisata') {
@@ -374,7 +458,12 @@ document.addEventListener('DOMContentLoaded', () => {
                             hypKulCost += itemHarga * persons * 3;
                         } else {
                             const dayPlan = selectedDays[d];
-                            hypKulCost += dayPlan ? dayPlan.kuliner_harga * persons * 3 : 0;
+                            if (dayPlan) {
+                                hypKulCost += dayPlan.kuliner_harga * persons * 3;
+                            } else {
+                                let dayItin = pkg.itinerary?.find(item => item.day === d);
+                                hypKulCost += (dayItin ? dayItin.kuliner_harga : pkg.kuliner_harga) * persons * 3;
+                            }
                         }
                     }
                 }
@@ -382,15 +471,33 @@ document.addEventListener('DOMContentLoaded', () => {
                 let hypTotalDistance = 0;
                 for (let dNum = 1; dNum <= duration; dNum++) {
                     let dPlan = selectedDays[dNum];
-                    
+                    if (!dPlan) {
+                        let dayItin = pkg.itinerary?.find(item => item.day === dNum) || {
+                            wisata: pkg.wisata_nama,
+                            wisata_harga: pkg.wisata_harga,
+                            wisata_lat: pkg.wisata_lat || 0,
+                            wisata_lon: pkg.wisata_lon || 0,
+                            kuliner: pkg.kuliner_nama,
+                            kuliner_harga: pkg.kuliner_harga,
+                            kuliner_lat: pkg.kuliner_lat || 0,
+                            kuliner_lon: pkg.kuliner_lon || 0
+                        };
+                        dPlan = {
+                            wisata_lat: dayItin.wisata_lat || 0,
+                            wisata_lon: dayItin.wisata_lon || 0,
+                            kuliner_lat: dayItin.kuliner_lat || 0,
+                            kuliner_lon: dayItin.kuliner_lon || 0,
+                        };
+                    }
+
                     if (dNum === dayNum) {
                         const itemLat = item.lat || item.Latitude || 0;
                         const itemLon = item.lon || item.Longitude || 0;
                         dPlan = {
-                            wisata_lat: type === 'wisata' ? itemLat : (dPlan ? dPlan.wisata_lat : 0),
-                            wisata_lon: type === 'wisata' ? itemLon : (dPlan ? dPlan.wisata_lon : 0),
-                            kuliner_lat: type === 'kuliner' ? itemLat : (dPlan ? dPlan.kuliner_lat : 0),
-                            kuliner_lon: type === 'kuliner' ? itemLon : (dPlan ? dPlan.kuliner_lon : 0),
+                            wisata_lat: type === 'wisata' ? itemLat : dPlan.wisata_lat,
+                            wisata_lon: type === 'wisata' ? itemLon : dPlan.wisata_lon,
+                            kuliner_lat: type === 'kuliner' ? itemLat : dPlan.kuliner_lat,
+                            kuliner_lon: type === 'kuliner' ? itemLon : dPlan.kuliner_lon,
                         };
                     }
 
@@ -403,13 +510,13 @@ document.addEventListener('DOMContentLoaded', () => {
                                     curHotel = item;
                                     nexHotel = item;
                                 } else {
-                                    curHotel = selectedHotel;
-                                    nexHotel = selectedHotel;
+                                    curHotel = selectedHotel || { lat: pkg.hotel_lat, lon: pkg.hotel_lon, nama: pkg.hotel_nama };
+                                    nexHotel = selectedHotel || { lat: pkg.hotel_lat, lon: pkg.hotel_lon, nama: pkg.hotel_nama };
                                 }
                             } else {
                                 const getHotelN = (n) => {
                                     if (type === 'split-hotel' && n === nightNum) return item;
-                                    return selectedHotelsByNight[n] || null;
+                                    return selectedHotelsByNight[n] || { lat: pkg.hotel_lat, lon: pkg.hotel_lon, nama: pkg.hotel_nama };
                                 };
                                 curHotel = getHotelN(dNum - 1) || getHotelN(dNum);
                                 nexHotel = getHotelN(dNum) || getHotelN(dNum - 1);
@@ -464,29 +571,49 @@ document.addEventListener('DOMContentLoaded', () => {
         html += `<div class="autocomplete-section-title" style="padding: 8px 12px 4px; font-size: 10px; font-weight: 800; color: var(--slate-400); text-transform: uppercase; letter-spacing: 0.5px;">Pilihan Alternatif</div>`;
 
         visibleAlts.forEach(item => {
-            const priceFormatted = fmtRp(item.harga);
-            const distSuffix = (item.distFromAnchor && item.distFromAnchor !== 9999)
-                ? `${item.distFromAnchor.toFixed(1)} km`
-                : '';
+            const priceFormatted = fmtRp(item.harga || item.Estimasi_Harga || 0);
+            let distSuffix = '';
+            if (item.distFromAnchor && item.distFromAnchor !== 9999) {
+                if (type === 'wisata') {
+                    distSuffix = `${item.distFromAnchor.toFixed(1)} km dari Hotel`;
+                } else if (type === 'kuliner') {
+                    if (item.distToHotel) {
+                        distSuffix = `${item.distFromAnchor.toFixed(1)} km dari Wisata & ${item.distToHotel.toFixed(1)} km ke Hotel`;
+                    } else {
+                        distSuffix = `${item.distFromAnchor.toFixed(1)} km dari Wisata`;
+                    }
+                } else {
+                    distSuffix = `${item.distFromAnchor.toFixed(1)} km`;
+                }
+            }
 
             let imgHTML = '';
             if (type === 'hotel' || type === 'split-hotel') {
                 const hFolder = item.nama.trim().replace(/ /g, '_');
-                imgHTML = `<img class="suggestion-thumb" src="/assets/GAMBAR/hotel/${hFolder}/${hFolder}-1.jpg" alt="${item.nama}" onerror="handleImgErrorRecom(this, 'hotel')" style="width: 32px; height: 32px; border-radius: 6px; object-fit: cover;" />`;
+                imgHTML = `
+                    <div class="suggestion-thumb-wrap" style="width: 32px; height: 32px; border-radius: 6px; overflow: hidden; flex-shrink: 0;">
+                        <img class="suggestion-thumb" src="/assets/GAMBAR/hotel/${hFolder}/${hFolder}-1.jpg" alt="${escapeHtmlAttr(item.nama)}" onerror="handleImgErrorRecom(this, 'hotel')" style="width: 100%; height: 100%; object-fit: cover;" />
+                    </div>
+                `;
             } else if (type === 'wisata') {
                 const wFolder = item.nama.trim().replace(/ /g, '_');
-                imgHTML = `<img class="suggestion-thumb" src="/assets/GAMBAR/wisata/${wFolder}/${wFolder}-1.jpg" alt="${item.nama}" onerror="handleImgErrorRecom(this, 'landscape')" style="width: 32px; height: 32px; border-radius: 6px; object-fit: cover;" />`;
-            } else {
                 imgHTML = `
-                    <div class="ota-shimmer-placeholder suggestion-thumb" style="width: 32px; height: 32px; border-radius: 6px; background: rgba(255, 160, 0, 0.1); color: #ff9800; display: flex; align-items: center; justify-content: center;">
-                        <span class="material-symbols-outlined" style="font-size: 14px;">restaurant</span>
+                    <div class="suggestion-thumb-wrap" style="width: 32px; height: 32px; border-radius: 6px; overflow: hidden; flex-shrink: 0;">
+                        <img class="suggestion-thumb" src="/assets/GAMBAR/wisata/${wFolder}/${wFolder}-1.jpg" alt="${escapeHtmlAttr(item.nama)}" onerror="handleImgErrorRecom(this, 'landscape')" style="width: 100%; height: 100%; object-fit: cover;" />
+                    </div>
+                `;
+            } else {
+                const kFolder = item.nama.trim().replace(/ /g, '_');
+                imgHTML = `
+                    <div class="suggestion-thumb-wrap" style="width: 32px; height: 32px; border-radius: 6px; overflow: hidden; flex-shrink: 0;">
+                        <img class="suggestion-thumb" src="/assets/GAMBAR/makan/${kFolder}/${kFolder}-1.jpg" alt="${escapeHtmlAttr(item.nama)}" onerror="handleImgErrorRecom(this, 'restaurant')" style="width: 100%; height: 100%; object-fit: cover;" />
                     </div>
                 `;
             }
 
             html += `
                 <div class="autocomplete-suggestion custom-suggestion-item" 
-                     data-name="${item.nama}"
+                     data-name="${escapeHtmlAttr(item.nama)}"
                      style="display: flex; align-items: center; gap: 10px; padding: 8px 12px; cursor: pointer; transition: background 0.2s; border-bottom: 1px solid var(--slate-100);">
                     ${imgHTML}
                     <div class="suggestion-info" style="flex: 1; display: flex; flex-direction: column; gap: 1px; min-width: 0;">
@@ -538,7 +665,7 @@ document.addEventListener('DOMContentLoaded', () => {
             activeOptionPackages[classIdx].cost_akomodasi = chosen.harga * nights * activeOptionPackages[0].num_rooms;
             activeOptionPackages[classIdx].hotel_lat = chosen.lat;
             activeOptionPackages[classIdx].hotel_lon = chosen.lon;
-            
+
             if (selectedHotel && selectedHotel.classIdx == classIdx) {
                 selectedHotel.nama = chosen.nama;
                 selectedHotel.harga = chosen.harga;
@@ -554,7 +681,7 @@ document.addEventListener('DOMContentLoaded', () => {
             activeOptionPackages[classIdx].cost_akomodasi = chosen.harga * activeOptionPackages[0].num_rooms;
             activeOptionPackages[classIdx].hotel_lat = chosen.lat;
             activeOptionPackages[classIdx].hotel_lon = chosen.lon;
-            
+
             if (selectedHotelsByNight[nightNum] && selectedHotelsByNight[nightNum].classIdx == classIdx) {
                 selectedHotelsByNight[nightNum].nama = chosen.nama;
                 selectedHotelsByNight[nightNum].harga = chosen.harga;
@@ -578,7 +705,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const title = "Konfirmasi Rute Wisata";
             const message = `Anda memilih <strong>${chosen.nama}</strong>.<br><br>📍 Jarak dari Hotel Akomodasi: <strong>${distance.toFixed(1)} km</strong>.<br>💰 HTM Tiket: <strong>${fmtRp(chosen.harga)} per orang</strong>.<br><br>Apakah Anda ingin mengonfirmasi perubahan rute wisata ini?`;
 
-            showSpatialConfirmationModal(title, message, 
+            showSpatialConfirmationModal(title, message,
                 () => {
                     let dayItin = activeOptionPackages[classIdx].itinerary.find(item => item.day === dayNum);
                     if (!dayItin) {
@@ -589,13 +716,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     dayItin.wisata_harga = chosen.harga;
                     dayItin.wisata_lat = chosen.lat;
                     dayItin.wisata_lon = chosen.lon;
-                    
+
+                    // Unlock Kuliner dropdown since wisata is successfully chosen
+                    stepWisataSelected[dayNum] = true;
+
                     if (selectedDays[dayNum] && selectedDays[dayNum].classIdx == classIdx) {
                         selectedDays[dayNum].wisata = chosen.nama;
                         selectedDays[dayNum].wisata_harga = chosen.harga;
                         selectedDays[dayNum].wisata_lat = chosen.lat;
                         selectedDays[dayNum].wisata_lon = chosen.lon;
-                        
+
                         const dayWisataCost = (dayNum === 1) ? chosen.harga * activeOptionPackages[0].num_persons : 0;
                         const dayKulinerCost = selectedDays[dayNum].kuliner_harga * activeOptionPackages[0].num_persons * 3;
                         const dayTransportCost = activeOptionPackages[classIdx].cost_transport / activeOptionPackages[0].duration;
@@ -618,13 +748,13 @@ document.addEventListener('DOMContentLoaded', () => {
             dayItin.kuliner_harga = chosen.harga;
             dayItin.kuliner_lat = chosen.lat;
             dayItin.kuliner_lon = chosen.lon;
-            
+
             if (selectedDays[dayNum] && selectedDays[dayNum].classIdx == classIdx) {
                 selectedDays[dayNum].kuliner = chosen.nama;
                 selectedDays[dayNum].kuliner_harga = chosen.harga;
                 selectedDays[dayNum].kuliner_lat = chosen.lat;
                 selectedDays[dayNum].kuliner_lon = chosen.lon;
-                
+
                 const dayWisataCost = (dayNum === 1) ? selectedDays[dayNum].wisata_harga * activeOptionPackages[0].num_persons : 0;
                 const dayKulinerCost = chosen.harga * activeOptionPackages[0].num_persons * 3;
                 const dayTransportCost = activeOptionPackages[classIdx].cost_transport / activeOptionPackages[0].duration;
@@ -683,19 +813,19 @@ document.addEventListener('DOMContentLoaded', () => {
     // Counter helper
     // ─────────────────────────────────────────────────
     function setupCounter(inputId, minusId, plusId, min = 1) {
-        const inp  = document.getElementById(inputId);
+        const inp = document.getElementById(inputId);
         const plus = document.getElementById(plusId);
-        const minus= document.getElementById(minusId);
+        const minus = document.getElementById(minusId);
         if (!inp || !plus || !minus) return;
         minus.addEventListener('click', () => { if (+inp.value > min) inp.value = +inp.value - 1; onBudgetChange(); });
-        plus.addEventListener('click',  () => { inp.value = +inp.value + 1; onBudgetChange(); });
+        plus.addEventListener('click', () => { inp.value = +inp.value + 1; onBudgetChange(); });
         inp.addEventListener('change', onBudgetChange);
     }
-    setupCounter('b-persons',  'b-persons-minus',  'b-persons-plus');
+    setupCounter('b-persons', 'b-persons-minus', 'b-persons-plus');
     setupCounter('b-duration', 'b-duration-minus', 'b-duration-plus');
-    setupCounter('f-persons',  'f-persons-minus',  'f-persons-plus');
+    setupCounter('f-persons', 'f-persons-minus', 'f-persons-plus');
     setupCounter('f-duration', 'f-duration-minus', 'f-duration-plus');
-    setupCounter('d-persons',  'd-persons-minus',  'd-persons-plus');
+    setupCounter('d-persons', 'd-persons-minus', 'd-persons-plus');
     setupCounter('d-duration', 'd-duration-minus', 'd-duration-plus');
 
     // ─────────────────────────────────────────────────
@@ -743,7 +873,7 @@ document.addEventListener('DOMContentLoaded', () => {
             bSlider.min = bMin;
             bSlider.max = bMax;
             bSlider.step = 10000;
-            
+
             let curVal = parseInt(bSlider.value) || 1000000;
             if (curVal < bMin) curVal = bMin;
             if (curVal > bMax) curVal = bMax;
@@ -827,10 +957,10 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('b-budget')?.addEventListener('input', e => {
         const valEl = document.getElementById('b-budget-val');
         if (valEl) valEl.textContent = fmtRp(+e.target.value);
-        
+
         const manualInp = document.getElementById('b-budget-manual');
         if (manualInp) manualInp.value = e.target.value;
-        
+
         onBudgetChange();
     });
 
@@ -849,10 +979,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 valEl.textContent = fmtRp(val);
             }
         }
-        
+
         const manualInp = document.getElementById('d-budget-manual');
         if (manualInp) manualInp.value = val < dMin ? "" : val;
-        
+
         onBudgetChange();
     });
 
@@ -862,20 +992,20 @@ document.addEventListener('DOMContentLoaded', () => {
         bManual.addEventListener('input', e => {
             const slider = document.getElementById('b-budget');
             if (!slider) return;
-            
+
             let val = parseInt(e.target.value);
             if (isNaN(val)) return;
-            
+
             const bPersons = +document.getElementById('b-persons')?.value || 1;
             const bDuration = +document.getElementById('b-duration')?.value || 1;
             const bMin = calculateScaledMinBudget(bPersons, bDuration);
-            
+
             const bMaxHotel = bDuration > 1 ? 4305000 * (bDuration - 1) * Math.ceil(bPersons / 2) : 0;
             const bMaxWisata = 275000 * bPersons;
             const bMaxKuliner = 150000 * bPersons * 3 * bDuration;
             const bMaxTransport = 300000;
             const bMax = Math.ceil((bMaxHotel + bMaxWisata + bMaxKuliner + bMaxTransport) / 10000) * 10000;
-            
+
             // Only synchronize to slider and trigger calculation if the value is within range
             if (val >= bMin && val <= bMax) {
                 slider.value = val;
@@ -884,29 +1014,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 onBudgetChange();
             }
         });
-        
+
         bManual.addEventListener('blur', e => {
             const slider = document.getElementById('b-budget');
             if (!slider) return;
-            
+
             let val = parseInt(e.target.value);
             if (isNaN(val)) return; // Allow empty
-            
+
             const bPersons = +document.getElementById('b-persons')?.value || 1;
             const bDuration = +document.getElementById('b-duration')?.value || 1;
             const bMin = calculateScaledMinBudget(bPersons, bDuration);
-            
+
             const bMaxHotel = bDuration > 1 ? 4305000 * (bDuration - 1) * Math.ceil(bPersons / 2) : 0;
             const bMaxWisata = 275000 * bPersons;
             const bMaxKuliner = 150000 * bPersons * 3 * bDuration;
             const bMaxTransport = 300000;
             const bMax = Math.ceil((bMaxHotel + bMaxWisata + bMaxKuliner + bMaxTransport) / 10000) * 10000;
-            
+
             if (val > bMax) {
                 val = bMax;
                 e.target.value = val;
             }
-            
+
             // Only synchronize slider if >= bMin
             if (val >= bMin) {
                 slider.value = val;
@@ -922,20 +1052,20 @@ document.addEventListener('DOMContentLoaded', () => {
         dManual.addEventListener('input', e => {
             const slider = document.getElementById('d-budget');
             if (!slider) return;
-            
+
             let val = parseInt(e.target.value);
             if (isNaN(val)) return;
-            
+
             const dPersons = +document.getElementById('d-persons')?.value || 1;
             const dDuration = +document.getElementById('d-duration')?.value || 1;
             const dMin = calculateScaledMinBudget(dPersons, dDuration);
-            
+
             const dMaxHotel = dDuration > 1 ? 4305000 * (dDuration - 1) * Math.ceil(dPersons / 2) : 0;
             const dMaxWisata = 275000 * dPersons;
             const dMaxKuliner = 150000 * dPersons * 3 * dDuration;
             const dMaxTransport = 300000;
             const dMax = Math.ceil((dMaxHotel + dMaxWisata + dMaxKuliner + dMaxTransport) / 10000) * 10000;
-            
+
             // Only synchronize to slider and trigger calculation if the value is within range
             if (val >= dMin && val <= dMax) {
                 slider.value = val;
@@ -944,11 +1074,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 onBudgetChange();
             }
         });
-        
+
         dManual.addEventListener('blur', e => {
             const slider = document.getElementById('d-budget');
             if (!slider) return;
-            
+
             let val = parseInt(e.target.value);
             if (isNaN(val)) {
                 // Empty means No Budget
@@ -961,22 +1091,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 onBudgetChange();
                 return;
             }
-            
+
             const dPersons = +document.getElementById('d-persons')?.value || 1;
             const dDuration = +document.getElementById('d-duration')?.value || 1;
             const dMin = calculateScaledMinBudget(dPersons, dDuration);
-            
+
             const dMaxHotel = dDuration > 1 ? 4305000 * (dDuration - 1) * Math.ceil(dPersons / 2) : 0;
             const dMaxWisata = 275000 * dPersons;
             const dMaxKuliner = 150000 * dPersons * 3 * dDuration;
             const dMaxTransport = 300000;
             const dMax = Math.ceil((dMaxHotel + dMaxWisata + dMaxKuliner + dMaxTransport) / 10000) * 10000;
-            
+
             if (val > dMax) {
                 val = dMax;
                 e.target.value = val;
             }
-            
+
             if (val >= dMin) {
                 slider.value = val;
                 const valEl = document.getElementById('d-budget-val');
@@ -994,7 +1124,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const manualVal = parseFloat(rawText);
             if (!isNaN(manualVal)) return manualVal;
         }
-        
+
         const slider = document.getElementById(elId);
         if (!slider) return 0;
         const val = parseFloat(slider.value) || 0;
@@ -1009,13 +1139,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function checkMinBudget(personsId, durationId, budgetId, warningBoxId) {
-        const persons  = +document.getElementById(personsId)?.value || 1;
+        const persons = +document.getElementById(personsId)?.value || 1;
         const duration = +document.getElementById(durationId)?.value || 1;
-        const budget   = getRawBudget(budgetId);
-        const box      = document.getElementById(warningBoxId);
-        
+        const budget = getRawBudget(budgetId);
+        const box = document.getElementById(warningBoxId);
+
         if (!box) return;
-        
+
         if (budget === 0) {
             box.style.display = 'none';
             return;
@@ -1078,10 +1208,10 @@ document.addEventListener('DOMContentLoaded', () => {
         updateBudgetSliders();
 
         // Tab Budget-First
-        const budget   = getRawBudget('b-budget');
-        const persons  = +document.getElementById('b-persons')?.value || 1;
+        const budget = getRawBudget('b-budget');
+        const persons = +document.getElementById('b-persons')?.value || 1;
         const duration = +document.getElementById('b-duration')?.value || 1;
-        
+
         const perPersonEl = document.getElementById('b-per-person');
         if (perPersonEl) {
             perPersonEl.textContent = fmtRp(persons > 0 ? budget / persons : 0);
@@ -1094,9 +1224,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (mealsEl) {
             mealsEl.textContent = (persons * duration * 3) + ' kali';
         }
-        
+
         checkMinBudget('b-persons', 'b-duration', 'b-budget', 'b-warning-box');
-        
+
         // Tab Destination-First
         checkMinBudget('d-persons', 'd-duration', 'd-budget', 'd-warning-box');
 
@@ -1127,7 +1257,7 @@ document.addEventListener('DOMContentLoaded', () => {
         hideError();
         const lo = document.getElementById('loading-overlay');
         if (lo) lo.classList.add('visible');
-        
+
         // animate steps
         let step = 1;
         clearInterval(window._loadInterval);
@@ -1152,7 +1282,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (msgEl) msgEl.textContent = msg;
         if (box) box.classList.add('visible');
     }
-    
+
     function hideError() {
         document.getElementById('error-box')?.classList.remove('visible');
     }
@@ -1166,9 +1296,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const tabsContainer = document.getElementById('options-tabs-container');
         const tabsEl = document.getElementById('options-tabs');
         const modeToggle = document.getElementById('mode-toggle-container');
-        
+
         allOptions = options;
-        
+
         // Ensure one option is marked active
         const hasActive = options.some(opt => opt.active);
         if (!hasActive && options && options[0]) {
@@ -1183,16 +1313,16 @@ document.addEventListener('DOMContentLoaded', () => {
             let visibleOptions = options;
             const needsViewAll = options.length > 5;
             const isShowingAll = showingAllAIAlternatives;
-            
+
             if (needsViewAll && !isShowingAll) {
                 visibleOptions = options.slice(0, 5);
             }
-            
+
             let dropdownHTML = `
                 <div class="custom-select-wrapper" style="max-width: 380px; margin-top: 8px; margin-bottom: 8px;">
                     <select class="custom-select-element" id="ai-alternatives-select" style="padding: 10px 40px 10px 14px; font-size: 13px;">
             `;
-            
+
             dropdownHTML += visibleOptions.map((opt, i) => {
                 const isSelected = opt.active;
                 // Proximity display fallback if not present
@@ -1203,20 +1333,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     </option>
                 `;
             }).join('');
-            
+
             if (needsViewAll && !isShowingAll) {
                 dropdownHTML += `<option value="__view_all__">🔍 Lihat Semua (${options.length} Opsi)...</option>`;
             }
-            
+
             dropdownHTML += `
                     </select>
                     <span class="material-symbols-outlined select-arrow" style="right: 14px; top: 50%; transform: translateY(-50%); font-size: 18px;">unfold_more</span>
                 </div>
             `;
-            
+
             tabsEl.innerHTML = dropdownHTML;
             tabsContainer.style.display = 'flex';
-            
+
             // Attach event listener
             const selectEl = document.getElementById('ai-alternatives-select');
             selectEl?.addEventListener('change', () => {
@@ -1228,14 +1358,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     document.getElementById('ai-alternatives-select')?.focus();
                     return;
                 }
-                
+
                 const idx = parseInt(val);
                 // Mark active option
                 options.forEach((opt, i) => opt.active = (i === idx));
-                
+
                 const selPackages = options[idx].packages;
                 const dur = selPackages[0]?.duration || 1;
-                
+
                 if (dur > 1) {
                     const isCustom = document.getElementById('mode-btn-custom')?.classList.contains('active');
                     if (isCustom) {
@@ -1254,14 +1384,14 @@ document.addEventListener('DOMContentLoaded', () => {
         // Handle Dual-Mode Toggle for Multi-Day plans
         if (duration > 1 && modeToggle) {
             modeToggle.style.display = 'flex';
-            
+
             // Set default active buttons
             const btnAuto = document.getElementById('mode-btn-auto');
             const btnCustom = document.getElementById('mode-btn-custom');
-            
+
             btnAuto?.classList.add('active');
             btnCustom?.classList.remove('active');
-            
+
             // Show pre-assembled Automatic Packages Grid by default
             document.getElementById('planner-wizard-container').style.display = 'none';
             document.getElementById('packages-grid').style.display = 'grid';
@@ -1272,13 +1402,13 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('mode-btn-auto')?.addEventListener('click', () => {
                 document.getElementById('mode-btn-auto').classList.add('active');
                 document.getElementById('mode-btn-custom').classList.remove('active');
-                
+
                 document.getElementById('planner-wizard-container').style.display = 'none';
                 document.getElementById('packages-grid').style.display = 'grid';
-                
+
                 const tabsCont = document.getElementById('options-tabs-container');
                 if (tabsCont) tabsCont.style.display = 'flex';
-                
+
                 const activeTab = document.querySelector('.opt-tab.active');
                 const idx = activeTab ? parseInt(activeTab.dataset.idx) : 0;
                 renderPackages(allOptions[idx]?.packages || initialPackages);
@@ -1289,13 +1419,13 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('mode-btn-custom')?.addEventListener('click', () => {
                 document.getElementById('mode-btn-custom').classList.add('active');
                 document.getElementById('mode-btn-auto').classList.remove('active');
-                
+
                 document.getElementById('packages-grid').style.display = 'none';
                 document.getElementById('planner-wizard-container').style.display = 'block';
-                
+
                 const tabsCont = document.getElementById('options-tabs-container');
                 if (tabsCont) tabsCont.style.display = 'none';
-                
+
                 const activeTab = document.querySelector('.opt-tab.active');
                 const idx = activeTab ? parseInt(activeTab.dataset.idx) : 0;
                 initPlannerWizard(allOptions[idx]?.packages || initialPackages);
@@ -1364,6 +1494,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const getFolder = name => name ? name.trim().replace(/ /g, '_') : '';
         const hFolder = getFolder(pkg.hotel_nama_real || pkg.hotel_nama);
         const wFolder = getFolder(pkg.wisata_nama);
+        const kFolder = getFolder(pkg.kuliner_nama);
 
         const isOneDay = pkg.nights === 0 || pkg.cost_akomodasi === 0 || pkg.duration === 1;
 
@@ -1393,17 +1524,17 @@ document.addEventListener('DOMContentLoaded', () => {
             subsequentDaysHTML += `
                 <div class="pkg-subsequent-days" style="margin-top: 14px; border-top: 1px dashed var(--slate-200); padding-top: 12px; display: flex; flex-direction: column; gap: 10px;">
                     ${pkg.itinerary.slice(1).map(day => {
-                        const prevDayHotel = pkg.itinerary[day.day - 2]?.hotel || (pkg.hotel_nama_real || pkg.hotel_nama);
-                        const isPindah = day.hotel && day.hotel !== 'Checkout' && day.hotel !== prevDayHotel;
-                        
-                        const hasHotel = day.hotel && day.hotel !== 'Checkout';
-                        const hotelCost = hasHotel ? (day.hotel_harga || 0) * pkg.num_rooms : 0;
-                        const wisataCost = (day.wisata_harga || 0) * pkg.num_persons;
-                        const kulinerCost = (day.kuliner_harga || 0) * pkg.num_persons * 3;
-                        const transportCost = Math.round(pkg.cost_transport / pkg.duration);
-                        const daySubtotal = hotelCost + wisataCost + kulinerCost + transportCost;
+                const prevDayHotel = pkg.itinerary[day.day - 2]?.hotel || (pkg.hotel_nama_real || pkg.hotel_nama);
+                const isPindah = day.hotel && day.hotel !== 'Checkout' && day.hotel !== prevDayHotel;
 
-                        return `
+                const hasHotel = day.hotel && day.hotel !== 'Checkout';
+                const hotelCost = hasHotel ? (day.hotel_harga || 0) * pkg.num_rooms : 0;
+                const wisataCost = (day.wisata_harga || 0) * pkg.num_persons;
+                const kulinerCost = (day.kuliner_harga || 0) * pkg.num_persons * 3;
+                const transportCost = Math.round(pkg.cost_transport / pkg.duration);
+                const daySubtotal = hotelCost + wisataCost + kulinerCost + transportCost;
+
+                return `
                         <div class="pkg-subsequent-day-row" style="background: var(--slate-50); border: 1px solid var(--slate-200); border-radius: 12px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); transition: all 0.2s;">
                             <div style="font-size: 10px; font-weight: 800; color: var(--teal-600); display: flex; align-items: center; gap: 4px; letter-spacing: 0.5px;">
                                 <span class="material-symbols-outlined" style="font-size: 13px;">calendar_month</span>
@@ -1460,7 +1591,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             </div>
                         </div>
                         `;
-                    }).join('')}
+            }).join('')}
                 </div>
             `;
         }
@@ -1486,8 +1617,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </div>
                 <div class="pkg-item">
-                    <div class="pkg-item-icon kuliner-img-container" style="position:relative; overflow:hidden; background:rgba(255,160,0,0.1); color:#ff9800; display:flex; align-items:center; justify-content:center;">
-                        <span class="material-symbols-outlined" style="font-size:18px;">restaurant</span>
+                    <div class="pkg-item-icon kuliner-img-container" style="position:relative; overflow:hidden;">
+                        <img src="/assets/GAMBAR/makan/${kFolder}/${kFolder}-1.jpg" alt="${pkg.kuliner_nama}" class="pkg-thumb-img" onerror="handleImgErrorRecom(this, 'restaurant')" />
+                        <div class="pkg-thumb-shimmer" style="display:none;"></div>
                     </div>
                     <div class="pkg-item-info">
                         <div class="pkg-item-cat">Kuliner</div>
@@ -1539,14 +1671,14 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
 
         const btn = card.querySelector('.pkg-btn-detail');
-        if(btn) {
+        if (btn) {
             btn.addEventListener('click', () => {
                 openDetailModal(pkg);
             });
         }
 
         const saveBtn = card.querySelector('.pkg-btn-save');
-        if(saveBtn) {
+        if (saveBtn) {
             saveBtn.addEventListener('click', () => {
                 const days = [];
                 if (pkg.itinerary && pkg.itinerary.length > 0) {
@@ -1600,13 +1732,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!modal || !body) return;
 
         const legs = pkg.transport_detail?.legs || [];
-        
-        if(legs.length === 0) {
+
+        if (legs.length === 0) {
             body.innerHTML = `<div style="text-align:center;padding:40px;color:var(--slate-500)">Data rute tidak tersedia untuk paket ini.</div>`;
         } else {
             const getFolder = name => name ? name.trim().replace(/ /g, '_') : '';
             const hFolder = getFolder(pkg.hotel_nama_real || pkg.hotel_nama);
             const wFolder = getFolder(pkg.wisata_nama);
+            const kFolder = getFolder(pkg.kuliner_nama);
             const isOneDay = pkg.nights === 0 || pkg.cost_akomodasi === 0 || pkg.duration === 1;
 
             let html = '';
@@ -1619,12 +1752,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div style="flex:1; height:90px; border-radius:10px; overflow:hidden; position:relative; border:1px solid var(--slate-200);">
                         <img src="/assets/GAMBAR/wisata/${wFolder}/${wFolder}-1.jpg" style="width:100%; height:100%; object-fit:cover;" onerror="handleImgErrorRecom(this, 'landscape')" />
                     </div>
+                    <div style="flex:1; height:90px; border-radius:10px; overflow:hidden; position:relative; border:1px solid var(--slate-200);">
+                        <img src="/assets/GAMBAR/makan/${kFolder}/${kFolder}-1.jpg" style="width:100%; height:100%; object-fit:cover;" onerror="handleImgErrorRecom(this, 'restaurant')" />
+                    </div>
                 </div>`;
             } else {
                 html += `
                 <div style="display:flex; gap:12px; margin-bottom:20px;">
                     <div style="flex:1; height:90px; border-radius:10px; overflow:hidden; position:relative; border:1px solid var(--slate-200);">
                         <img src="/assets/GAMBAR/wisata/${wFolder}/${wFolder}-1.jpg" style="width:100%; height:100%; object-fit:cover;" onerror="handleImgErrorRecom(this, 'landscape')" />
+                    </div>
+                    <div style="flex:1; height:90px; border-radius:10px; overflow:hidden; position:relative; border:1px solid var(--slate-200);">
+                        <img src="/assets/GAMBAR/makan/${kFolder}/${kFolder}-1.jpg" style="width:100%; height:100%; object-fit:cover;" onerror="handleImgErrorRecom(this, 'restaurant')" />
                     </div>
                 </div>`;
             }
@@ -1633,7 +1772,7 @@ document.addEventListener('DOMContentLoaded', () => {
             html += '<div style="font-weight: 800; font-size: 15px; color: var(--slate-800); margin-bottom: 12px; border-bottom: 1.5px solid var(--slate-100); padding-bottom: 6px;">🎯 Outline Rute Spasial Harian</div>';
             html += '<div class="timeline">';
             const hotelNameReal = pkg.hotel_nama_real || pkg.hotel_nama;
-            
+
             const places = isOneDay ? [
                 { name: pkg.kuliner_nama, cat: '📍 Titik Mulai (Basecamp / Kuliner)' },
                 { name: pkg.wisata_nama, cat: '🎯 Destinasi Wisata' },
@@ -1652,7 +1791,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="timeline-title">${places[i].name}</div>
                     <div class="timeline-desc">${places[i].cat}</div>
                 </div>`;
-                
+
                 if (i < legs.length) {
                     const leg = legs[i];
                     html += `
@@ -1687,16 +1826,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const mapsUrl = isOneDay
                 ? `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(pkg.kuliner_nama)}&destination=${encodeURIComponent(pkg.kuliner_nama)}&waypoints=${encodeURIComponent(pkg.wisata_nama)}&travelmode=driving`
                 : `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(hotelNameReal)}&destination=${encodeURIComponent(hotelNameReal)}&waypoints=${encodeURIComponent(`${pkg.wisata_nama}|${pkg.kuliner_nama}`)}&travelmode=driving`;
-            
+
             html += `
             <a href="${mapsUrl}" target="_blank" class="gmaps-btn">
                 <span class="material-symbols-outlined">map</span>
                 Buka Rute di Google Maps
             </a>`;
-            
+
             body.innerHTML = html;
         }
-        
+
         modal.classList.add('show');
     }
 
@@ -1758,8 +1897,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // ─────────────────────────────────────────────────
     document.getElementById('form-budget')?.addEventListener('submit', e => {
         e.preventDefault();
-        const budget   = getRawBudget('b-budget');
-        const persons  = +document.getElementById('b-persons')?.value || 1;
+        const budget = getRawBudget('b-budget');
+        const persons = +document.getElementById('b-persons')?.value || 1;
         const duration = +document.getElementById('b-duration')?.value || 1;
         const transport = document.getElementById('b-transport')?.value || '';
         const hotel_mode = document.getElementById('b-hotel-mode')?.value || 'same';
@@ -1774,14 +1913,14 @@ document.addEventListener('DOMContentLoaded', () => {
             showError(`Anggaran minimal untuk ${persons} orang, ${duration} hari adalah ${fmtRp(bMin)}. Silakan masukkan budget di atas nilai tersebut.`);
             return;
         }
-        
+
         callRecommend({ workflow: 'budget', budget, persons, duration, transport, hotel_mode },
             `Budget Rp ${budget.toLocaleString('id-ID')} — ${persons} orang, ${duration} hari`);
     });
 
     document.getElementById('form-flexible')?.addEventListener('submit', e => {
         e.preventDefault();
-        const persons  = +document.getElementById('f-persons')?.value || 1;
+        const persons = +document.getElementById('f-persons')?.value || 1;
         const duration = +document.getElementById('f-duration')?.value || 1;
         callRecommend({ workflow: 'flexible', persons, duration },
             `Flexible Explore — ${persons} orang, ${duration} hari`);
@@ -1791,15 +1930,15 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         const destEl = document.getElementById('d-dest-id');
         if (!destEl) return;
-        const destId   = destEl.value;
-        const persons  = +document.getElementById('d-persons')?.value || 1;
+        const destId = destEl.value;
+        const persons = +document.getElementById('d-persons')?.value || 1;
         const duration = +document.getElementById('d-duration')?.value || 1;
-        const budget   = getRawBudget('d-budget');
+        const budget = getRawBudget('d-budget');
         const transport = document.getElementById('d-transport')?.value || '';
         const hotel_mode = document.getElementById('d-hotel-mode')?.value || 'same';
 
         if (!destId) { showError('Pilih destinasi wisata terlebih dahulu.'); return; }
-        
+
         const dMin = calculateScaledMinBudget(persons, duration);
         const sliderVal = parseFloat(document.getElementById('d-budget')?.value) || 0;
         const isNoBudget = sliderVal < dMin;
@@ -1833,12 +1972,18 @@ document.addEventListener('DOMContentLoaded', () => {
     let showingAllAlternatives = {};
     let showingAllAIAlternatives = false;
     let currentStep = 0;
+    let lastRenderedStep = null;
     let activeOptionPackages = [];
     let hotelMode = 'same';
 
+    // Custom interactive flow state variables
+    let chosenStepPackageIdx = null;
+    let stepWisataSelected = {};
+    let stepKulinerSelected = {};
+
     function getDropdownOptionsHTML(alts, selectedVal, key, type, classIdx, context = {}) {
         let visibleAlts = JSON.parse(JSON.stringify(alts)); // clone to avoid sorting side-effects
-        
+
         let anchorLat = 0;
         let anchorLon = 0;
         let anchorName = '';
@@ -1904,6 +2049,37 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     item.distFromAnchor = 9999;
                 }
+
+                // Calculate distance to hotel for kuliner alternatives
+                if (type === 'kuliner' && context.dayNum !== undefined) {
+                    const d = context.dayNum;
+                    let hLat = 0, hLon = 0;
+                    if (nights > 0) {
+                        if (hotelMode === 'same') {
+                            if (selectedHotel) {
+                                hLat = selectedHotel.lat;
+                                hLon = selectedHotel.lon;
+                            } else {
+                                hLat = pkg.hotel_lat || 0;
+                                hLon = pkg.hotel_lon || 0;
+                            }
+                        } else {
+                            const activeN = selectedHotelsByNight[d] || selectedHotelsByNight[d - 1] || null;
+                            if (activeN) {
+                                hLat = activeN.lat;
+                                hLon = activeN.lon;
+                            } else {
+                                hLat = pkg.hotel_lat || 0;
+                                hLon = pkg.hotel_lon || 0;
+                            }
+                        }
+                    }
+                    if (hLat && hLon && itemLat && itemLon) {
+                        item.distToHotel = haversineDist(itemLat, itemLon, hLat, hLon);
+                    } else {
+                        item.distToHotel = 0;
+                    }
+                }
             });
 
             // Sort nearest first!
@@ -1919,27 +2095,47 @@ document.addEventListener('DOMContentLoaded', () => {
             const hasBudget = budgetLimit > 0;
 
             if (hasBudget) {
-                // Calculate current confirmed costs
+                // Calculate baseline accommodation cost (use custom if selected, else default package cost)
                 let curAccCost = 0;
                 if (nights > 0) {
                     if (hotelMode === 'same') {
-                        if (selectedHotel) curAccCost = selectedHotel.cost;
+                        if (selectedHotel) {
+                            curAccCost = selectedHotel.cost;
+                        } else {
+                            curAccCost = pkg.cost_akomodasi;
+                        }
                     } else {
                         for (let n = 1; n <= nights; n++) {
                             const activeN = selectedHotelsByNight[n];
-                            if (activeN) curAccCost += activeN.cost;
+                            if (activeN) {
+                                curAccCost += activeN.cost;
+                            } else {
+                                curAccCost += pkg.hotel_harga * pkg.num_rooms;
+                            }
                         }
                     }
                 }
 
+                // Calculate baseline Wisata cost (Day 1 only, use custom if selected, else default package wisata)
                 let curWisCost = 0;
                 const activeDay1 = selectedDays[1];
-                if (activeDay1) curWisCost = activeDay1.wisata_harga * persons;
+                if (activeDay1) {
+                    curWisCost = activeDay1.wisata_harga * persons;
+                } else {
+                    let day1Itin = pkg.itinerary?.find(item => item.day === 1);
+                    curWisCost = (day1Itin ? day1Itin.wisata_harga : pkg.wisata_harga) * persons;
+                }
 
+                // Calculate baseline Kuliner cost (use custom if selected, else default package kuliner)
                 let curKulCost = 0;
                 for (let d = 1; d <= duration; d++) {
                     const dayPlan = selectedDays[d];
-                    if (dayPlan) curKulCost += dayPlan.kuliner_harga * persons * 3;
+                    if (dayPlan) {
+                        curKulCost += dayPlan.kuliner_harga * persons * 3;
+                    } else {
+                        let dayItin = pkg.itinerary?.find(item => item.day === d);
+                        curKulCost += (dayItin ? dayItin.kuliner_harga : pkg.kuliner_harga) * persons * 3;
+                    }
                 }
 
                 visibleAlts.forEach(item => {
@@ -1958,7 +2154,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 hypAccCost += itemHarga * pkg.num_rooms;
                             } else {
                                 const activeN = selectedHotelsByNight[n];
-                                hypAccCost += activeN ? activeN.cost : 0;
+                                hypAccCost += activeN ? activeN.cost : (pkg.hotel_harga * pkg.num_rooms);
                             }
                         }
                     } else if (type === 'wisata') {
@@ -1972,7 +2168,12 @@ document.addEventListener('DOMContentLoaded', () => {
                                 hypKulCost += itemHarga * persons * 3;
                             } else {
                                 const dayPlan = selectedDays[d];
-                                hypKulCost += dayPlan ? dayPlan.kuliner_harga * persons * 3 : 0;
+                                if (dayPlan) {
+                                    hypKulCost += dayPlan.kuliner_harga * persons * 3;
+                                } else {
+                                    let dayItin = pkg.itinerary?.find(item => item.day === d);
+                                    hypKulCost += (dayItin ? dayItin.kuliner_harga : pkg.kuliner_harga) * persons * 3;
+                                }
                             }
                         }
                     }
@@ -1981,7 +2182,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     let hypTotalDistance = 0;
                     for (let dNum = 1; dNum <= duration; dNum++) {
                         let dPlan = selectedDays[dNum];
-                        
+
                         if (dNum === context.dayNum) {
                             const itemLat = item.lat || item.Latitude || 0;
                             const itemLon = item.lon || item.Longitude || 0;
@@ -2047,17 +2248,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const needsViewAll = alts.length > 5;
         const isShowingAll = showingAllAlternatives[key];
-        
+
         if (needsViewAll && !isShowingAll) {
             visibleAlts = visibleAlts.slice(0, 5);
         }
-        
+
         let html = visibleAlts.map(item => {
             const isSelected = (selectedVal === item.nama);
             const badgePrefix = item.isOverBudget ? '⚠️ [MELEBIHI ANGGARAN] ' : '';
-            const distSuffix = (item.distFromAnchor && item.distFromAnchor !== 9999) 
-                ? ` (${item.distFromAnchor.toFixed(1)} km dari ${type === 'wisata' ? 'Hotel' : 'Wisata'})` 
-                : '';
+            let distSuffix = '';
+            if (item.distFromAnchor && item.distFromAnchor !== 9999) {
+                if (type === 'wisata') {
+                    distSuffix = ` (${item.distFromAnchor.toFixed(1)} km dari Hotel)`;
+                } else if (type === 'kuliner') {
+                    if (item.distToHotel) {
+                        distSuffix = ` (${item.distFromAnchor.toFixed(1)} km dari Wisata & ${item.distToHotel.toFixed(1)} km ke Hotel)`;
+                    } else {
+                        distSuffix = ` (${item.distFromAnchor.toFixed(1)} km dari Wisata)`;
+                    }
+                } else {
+                    distSuffix = ` (${item.distFromAnchor.toFixed(1)} km)`;
+                }
+            }
             const styleString = item.isOverBudget ? 'color: #dc2626; font-weight: 700;' : '';
 
             return `
@@ -2066,22 +2278,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 </option>
             `;
         }).join('');
-        
+
         if (needsViewAll && !isShowingAll) {
             html += `<option value="__view_all__">🔍 Lihat Semua (${alts.length} Opsi)...</option>`;
         }
-        
+
         return html;
     }
 
     // Bookmark UI synchronizer
     function updateBookmarkUI() {
         const count = bookmarkList.length;
-        
+
         // Update badge counts in navbars
         const badge = document.getElementById('bookmark-badge-count');
         if (badge) badge.textContent = count;
-        
+
         const mBadge = document.getElementById('mobile-bookmark-badge-count');
         if (mBadge) mBadge.textContent = count;
 
@@ -2202,7 +2414,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         html += `<div style="font-weight: 800; font-size: 14.5px; color: var(--slate-800); margin: 20px 0 12px; border-bottom: 1.5px solid var(--slate-100); padding-bottom: 6px;">📅 Rencana Perjalanan Harian</div>`;
         html += `<div style="display:flex; flex-direction:column; gap:10px; margin-bottom:24px;">`;
-        
+
         plan.days.forEach((day, dIdx) => {
             html += `
                 <div style="background:var(--slate-50); border:1.5px solid var(--slate-200); border-radius:14px; padding:14px;">
@@ -2213,7 +2425,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div style="font-size:14px; font-weight:800; color:var(--slate-800); margin-bottom:4px;">🌲 Wisata: ${day.wisata}</div>
                     <div style="font-size:12.5px; font-weight:600; color:var(--slate-500); margin-bottom:6px;">🍜 Makan: ${day.kuliner}</div>
             `;
-            
+
             // If the plan has exact leg distances calculated
             if (plan.legs && plan.legs.length > 0) {
                 const dayLegs = plan.legs.slice(dIdx * 3, dIdx * 3 + 3);
@@ -2233,10 +2445,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     html += `</div>`;
                 }
             }
-            
+
             html += `</div>`;
         });
-        
+
         html += `</div>`;
 
         // Multi-point Google Maps URL
@@ -2244,7 +2456,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (plan.hotelMode === 'split' && plan.hotelsByNight && plan.hotelsByNight[1]) {
             origin = plan.hotelsByNight[1].nama;
         }
-        
+
         let mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(origin)}`;
         if (plan.days.length > 0) {
             let waypoints = plan.days.map(d => `${d.wisata}|${d.kuliner}`).join('|');
@@ -2256,11 +2468,178 @@ document.addEventListener('DOMContentLoaded', () => {
                 <span class="material-symbols-outlined">map</span>
                 Buka Rute Lengkap di Google Maps
             </a>
+            <button id="print-custom-pdf-btn" style="display:flex; align-items:center; justify-content:center; gap:8px; width:100%; background:var(--slate-800); color:#fff; border:none; padding:14px; border-radius:12px; font-weight:800; text-align:center; margin-top:12px; cursor:pointer; box-shadow:0 4px 12px rgba(30,41,59,0.3); transition:all 0.2s;">
+                <span class="material-symbols-outlined">print</span>
+                Cetak / Simpan PDF Rencana
+            </button>
             </div>
         `;
 
         body.innerHTML = html;
         modal.classList.add('show');
+
+        // Attach click listener for printing PDF
+        document.getElementById('print-custom-pdf-btn')?.addEventListener('click', () => {
+            printPlanToPDF(plan);
+        });
+    }
+
+    // Helper function to render a print-optimized travel itinerary window and trigger browser print dialog
+    function printPlanToPDF(plan) {
+        const persons = plan.persons;
+        const duration = plan.duration;
+        const nights = duration - 1;
+
+        let accommodationHTML = '';
+        if (plan.hotelMode === 'same' || !plan.hotelMode) {
+            if (plan.hotel) {
+                accommodationHTML = `
+                    <div class="section-title">🏨 Akomodasi Terpilih (Satu Hotel)</div>
+                    <div class="item-card">
+                        <div class="item-info">
+                            <div class="item-cat">Hotel / Homestay (${plan.hotel.className.toUpperCase()})</div>
+                            <div class="item-name">${plan.hotel.nama}</div>
+                            <div class="item-price">Tarif: ${fmtRp(plan.hotel.harga)} /malam | Durasi: ${nights} Malam | Kamar: ${Math.ceil(persons / 2)} Kamar</div>
+                            <div style="font-weight:700; margin-top:4px; color:#0f766e;">Subtotal Akomodasi: ${fmtRp(plan.hotel.cost)}</div>
+                        </div>
+                    </div>
+                `;
+            }
+        } else {
+            accommodationHTML = `<div class="section-title">🏨 Akomodasi Terpilih (Ganti Hotel Tiap Malam)</div>`;
+            const nightKeys = Object.keys(plan.hotelsByNight || {});
+            nightKeys.forEach(n => {
+                const hot = plan.hotelsByNight[n];
+                accommodationHTML += `
+                    <div class="item-card">
+                        <div class="item-info">
+                            <div class="item-cat">Hotel Malam ${n} (${hot.className.toUpperCase()})</div>
+                            <div class="item-name">${hot.nama}</div>
+                            <div class="item-price">Tarif: ${fmtRp(hot.harga)} /malam | Kamar: ${Math.ceil(persons / 2)} Kamar</div>
+                            <div style="font-weight:700; margin-top:4px; color:#0f766e;">Total Malam Ini: ${fmtRp(hot.cost)}</div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        let itineraryHTML = '';
+        plan.days.forEach((day, dIdx) => {
+            const dayWisataCost = (day.day === 1) ? day.wisata_harga * persons : 0;
+            const dayKulinerCost = day.kuliner_harga * persons * 3;
+            const dayTransportCost = Math.round(plan.transportCost / duration);
+            const daySubtotal = dayWisataCost + dayKulinerCost + dayTransportCost;
+
+            itineraryHTML += `
+                <div class="day-card">
+                    <div class="day-header">
+                        <span class="day-title">HARI ${day.day} (${day.className.toUpperCase()})</span>
+                        <span class="day-badge">${day.className}</span>
+                    </div>
+                    <div class="day-wisata">🌲 Wisata: ${day.wisata} <span style="font-weight:600; font-size:12px; color:#64748b;">(Tiket: ${day.day === 1 ? fmtRp(day.wisata_harga) + '/org' : 'Gratis (Sudah di Hari 1)'})</span></div>
+                    <div class="day-kuliner">🍜 Kuliner: ${day.kuliner} <span style="font-weight:600; font-size:12px; color:#64748b;">(Harga: ${fmtRp(day.kuliner_harga)} /porsi × 3x makan)</span></div>
+            `;
+
+            if (plan.legs && plan.legs.length > 0) {
+                const dayLegs = plan.legs.slice(dIdx * 3, dIdx * 3 + 3);
+                if (dayLegs.length > 0) {
+                    itineraryHTML += `<div style="margin-top:12px; padding-top:8px; border-top:1px dashed #cbd5e1;">`;
+                    dayLegs.forEach(leg => {
+                        itineraryHTML += `
+                            <div class="leg-row">
+                                <span style="font-size:14px;">🚗</span>
+                                <span>${leg.from} &rarr; ${leg.to} <strong>(${leg.distance?.toFixed(1) || '?'} km)</strong></span>
+                            </div>
+                        `;
+                    });
+                    itineraryHTML += `</div>`;
+                }
+            }
+
+            itineraryHTML += `
+                    <div style="margin-top:10px; padding-top:8px; border-top:1px solid #e2e8f0; font-size:12px; display:flex; justify-content:space-between; font-weight:700; color:#475569;">
+                        <span>Subtotal Wisata, Makan & Transport Hari ${day.day}:</span>
+                        <span style="color:#0f766e;">${fmtRp(daySubtotal)}</span>
+                    </div>
+                </div>
+            `;
+        });
+
+        const printWin = window.open('', '_blank', 'width=850,height=900');
+        if (!printWin) {
+            alert("Popup blocked! Silakan izinkan browser membuka pop-up untuk mencetak PDF.");
+            return;
+        }
+
+        printWin.document.write(`
+            <html>
+            <head>
+                <title>${plan.title}</title>
+                <style>
+                    body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; color: #1e293b; padding: 40px; line-height: 1.5; background: #fff; }
+                    .header { background: #0f766e; color: #fff; padding: 24px; border-radius: 12px; margin-bottom: 30px; }
+                    .header h1 { margin: 0 0 8px; font-size: 24px; font-weight: 800; }
+                    .header p { margin: 0; font-size: 14px; opacity: 0.9; }
+                    .section-title { font-size: 16px; font-weight: 800; color: #0f766e; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin: 30px 0 16px; text-transform: uppercase; letter-spacing: 0.5px; }
+                    .item-card { border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; display: flex; gap: 16px; align-items: center; margin-bottom: 12px; background: #fff; page-break-inside: avoid; }
+                    .item-info { flex: 1; }
+                    .item-cat { font-size: 11px; font-weight: 700; color: #0d9488; text-transform: uppercase; margin-bottom: 4px; }
+                    .item-name { font-size: 15px; font-weight: 800; margin: 2px 0 4px; color: #0f172a; }
+                    .item-price { font-size: 12.5px; color: #475569; }
+                    .day-card { border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; background: #f8fafc; margin-bottom: 16px; page-break-inside: avoid; }
+                    .day-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid #cbd5e1; padding-bottom: 8px; }
+                    .day-title { font-size: 13.5px; font-weight: 800; color: #0f766e; letter-spacing: 0.5px; }
+                    .day-badge { background: #cbd5e1; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 800; text-transform: uppercase; }
+                    .day-wisata { font-size: 14.5px; font-weight: 800; color: #0f172a; margin-bottom: 6px; }
+                    .day-kuliner { font-size: 13.5px; font-weight: 700; color: #475569; }
+                    .leg-row { font-size: 11.5px; color: #0f766e; font-style: italic; display: flex; align-items: center; gap: 6px; margin-top: 6px; }
+                    .total-row { display: flex; justify-content: space-between; align-items: center; background: #f1f5f9; padding: 20px; border-radius: 12px; font-weight: 800; font-size: 16px; border: 1.5px solid #cbd5e1; margin-top: 30px; page-break-inside: avoid; }
+                    @media print {
+                        body { padding: 0; font-size: 12px; }
+                        .header { border-radius: 0; box-shadow: none; border: 1px solid #0f766e; }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <h1>Laporan Rencana Perjalanan Wisata</h1>
+                    <p>Hasil Kustomisasi Mandiri — Malang Raya Spatiotemporal Planner</p>
+                    <div style="margin-top: 14px; font-size: 13.5px; opacity:0.95; font-weight:600;">
+                        👥 Jumlah Peserta: ${persons} Orang | 📅 Durasi Perjalanan: ${duration} Hari | 🚗 Transportasi: ${plan.vehDesc}
+                    </div>
+                </div>
+
+                ${accommodationHTML}
+
+                <div class="section-title">📅 Rincian Rencana Perjalanan Harian</div>
+                ${itineraryHTML}
+
+                <div class="section-title">🚗 Biaya Transportasi & Jarak Spasial</div>
+                <div class="item-card">
+                    <div class="item-info">
+                        <div class="item-cat">Transportasi Darat (${plan.vehDesc})</div>
+                        <div class="item-name">Total Jarak Tempuh Spasial: ${plan.totalDistance.toFixed(1)} km</div>
+                        <div class="item-price">Menggunakan tarif transportasi kustom: ${fmtRp(plan.transportCost)}</div>
+                    </div>
+                </div>
+
+                <div class="total-row">
+                    <span>ESTIMASI GABUNGAN BIAYA RUTE KUSTOM:</span>
+                    <span style="color:#0f766e; font-size:22px; font-weight:900;">${fmtRp(plan.totalCost)}</span>
+                </div>
+
+                <script>
+                    window.onload = function() {
+                        setTimeout(function() {
+                            window.print();
+                            window.close();
+                        }, 300);
+                    };
+                </script>
+            </body>
+            </html>
+        `);
+        printWin.document.close();
     }
 
     // Trigger Success Splash Celebration
@@ -2300,7 +2679,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!selPackages || selPackages.length === 0) return;
         // Deep copy packages
         activeOptionPackages = JSON.parse(JSON.stringify(selPackages));
-        
+
         // Reset interactive selection states completely
         selectedHotel = null;
         selectedHotelsByNight = {};
@@ -2308,7 +2687,13 @@ document.addEventListener('DOMContentLoaded', () => {
         showingAllAlternatives = {};
         currentStep = 0;
         hotelMode = 'same'; // Default mode is 'same'
-        
+
+        // Reset custom interactive flow states
+        chosenStepPackageIdx = null;
+        lastRenderedStep = null;
+        stepWisataSelected = {};
+        stepKulinerSelected = {};
+
         // Hide options tabs container to satisfy custom mode layout
         const tabsCont = document.getElementById('options-tabs-container');
         if (tabsCont) tabsCont.style.display = 'none';
@@ -2323,10 +2708,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const R = 6371; // km
         const dLat = (lat2 - lat1) * Math.PI / 180;
         const dLon = (lon2 - lon1) * Math.PI / 180;
-        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                  Math.sin(dLon/2) * Math.sin(dLon/2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         return R * c;
     }
 
@@ -2412,7 +2797,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function getAlternatives(category, classIdx, dayNum = null) {
         const list = [];
         if (!allOptions || !allOptions[0] || !allOptions[0].clustered_items) return list;
-        
+
         const clustered = allOptions[0].clustered_items;
         if (category === 'hotel') {
             const hotels = clustered.hotel[classIdx] || clustered.hotel[String(classIdx)] || [];
@@ -2476,7 +2861,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function getAllUniqueCategoryAlternatives(category, dayNum = null) {
         const list = [];
         if (!allOptions) return list;
-        
+
         allOptions.forEach(opt => {
             opt.packages.forEach((pkg, classIdx) => {
                 if (category === 'hotel') {
@@ -2544,7 +2929,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         });
-        
+
         // Fallbacks if list is empty
         if (list.length === 0 && activeOptionPackages && activeOptionPackages.length > 0) {
             const pkg = activeOptionPackages[0];
@@ -2605,6 +2990,171 @@ document.addEventListener('DOMContentLoaded', () => {
         const classNames = ['hemat', 'balanced', 'premium'];
         const classLabels = ['HEMAT', 'BALANCED', 'PREMIUM'];
 
+        // Calculate Budget limit
+        let budgetLimit = 0;
+        if (activeWorkflow === 'budget') {
+            budgetLimit = getRawBudget('b-budget');
+        } else if (activeWorkflow === 'destination') {
+            budgetLimit = getRawBudget('d-budget');
+        }
+        const hasBudget = budgetLimit > 0;
+
+        const hasStartedCustomizing = (selectedHotel !== null) || 
+                                      (Object.keys(selectedHotelsByNight).length > 0) || 
+                                      (Object.keys(selectedDays).length > 0);
+
+        // Helper to predict total cost if choosing a specific option index at current step
+        function predictTotalCostForOption(type, idx, curStepDef) {
+            let optAccommodationCost = 0;
+            let optTotalWisataCost = 0;
+            let optTotalKulinerCost = 0;
+            let optTotalDistance = 0;
+            let optTransportCost = 0;
+
+            const persons = activeOptionPackages[0].num_persons;
+            const duration = activeOptionPackages[0].duration;
+            const nights = duration - 1;
+
+            // 1. Accommodation
+            if (nights > 0) {
+                if (hotelMode === 'same') {
+                    if (type === 'hotel') {
+                        optAccommodationCost = activeOptionPackages[idx].cost_akomodasi;
+                    } else {
+                        optAccommodationCost = selectedHotel ? selectedHotel.cost : activeOptionPackages[idx].cost_akomodasi;
+                    }
+                } else {
+                    for (let n = 1; n <= nights; n++) {
+                        if (type === 'split-hotel' && curStepDef.nightNum === n) {
+                            optAccommodationCost += activeOptionPackages[idx].hotel_harga * activeOptionPackages[idx].num_rooms;
+                        } else {
+                            const activeN = selectedHotelsByNight[n];
+                            if (activeN) {
+                                optAccommodationCost += activeN.cost;
+                            } else {
+                                optAccommodationCost += activeOptionPackages[idx].hotel_harga * activeOptionPackages[idx].num_rooms;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 2. Wisata + Kuliner + Distance
+            for (let dNum = 1; dNum <= duration; dNum++) {
+                let dayPlan = null;
+                if (type === 'day' && curStepDef.dayNum === dNum) {
+                    const pkg = activeOptionPackages[idx];
+                    let dayItin = pkg.itinerary?.find(item => item.day === dNum) || {
+                        wisata: pkg.wisata_nama,
+                        wisata_harga: pkg.wisata_harga,
+                        wisata_lat: pkg.wisata_lat || 0,
+                        wisata_lon: pkg.wisata_lon || 0,
+                        kuliner: pkg.kuliner_nama,
+                        kuliner_harga: pkg.kuliner_harga,
+                        kuliner_lat: pkg.kuliner_lat || 0,
+                        kuliner_lon: pkg.kuliner_lon || 0
+                    };
+                    dayPlan = {
+                        wisata: dayItin.wisata || dayItin.wisata_nama || pkg.wisata_nama,
+                        wisata_harga: dayItin.wisata_harga !== undefined ? dayItin.wisata_harga : pkg.wisata_harga,
+                        wisata_lat: dayItin.wisata_lat || pkg.wisata_lat || 0,
+                        wisata_lon: dayItin.wisata_lon || pkg.wisata_lon || 0,
+                        kuliner: dayItin.kuliner || dayItin.kuliner_nama || pkg.kuliner_nama,
+                        kuliner_harga: dayItin.kuliner_harga !== undefined ? dayItin.kuliner_harga : pkg.kuliner_harga,
+                        kuliner_lat: dayItin.kuliner_lat || pkg.kuliner_lat || 0,
+                        kuliner_lon: dayItin.kuliner_lon || pkg.kuliner_lon || 0
+                    };
+                } else {
+                    dayPlan = selectedDays[dNum];
+                    if (!dayPlan) {
+                        const pkg = activeOptionPackages[idx];
+                        let dayItin = pkg.itinerary?.find(item => item.day === dNum) || {
+                            wisata: pkg.wisata_nama,
+                            wisata_harga: pkg.wisata_harga,
+                            wisata_lat: pkg.wisata_lat || 0,
+                            wisata_lon: pkg.wisata_lon || 0,
+                            kuliner: pkg.kuliner_nama,
+                            kuliner_harga: pkg.kuliner_harga,
+                            kuliner_lat: pkg.kuliner_lat || 0,
+                            kuliner_lon: pkg.kuliner_lon || 0
+                        };
+                        dayPlan = {
+                            wisata: dayItin.wisata || dayItin.wisata_nama || pkg.wisata_nama,
+                            wisata_harga: dayItin.wisata_harga !== undefined ? dayItin.wisata_harga : pkg.wisata_harga,
+                            wisata_lat: dayItin.wisata_lat || pkg.wisata_lat || 0,
+                            wisata_lon: dayItin.wisata_lon || pkg.wisata_lon || 0,
+                            kuliner: dayItin.kuliner || dayItin.kuliner_nama || pkg.kuliner_nama,
+                            kuliner_harga: dayItin.kuliner_harga !== undefined ? dayItin.kuliner_harga : pkg.kuliner_harga,
+                            kuliner_lat: dayItin.kuliner_lat || pkg.kuliner_lat || 0,
+                            kuliner_lon: dayItin.kuliner_lon || pkg.kuliner_lon || 0
+                        };
+                    }
+                }
+
+                if (dNum === 1) {
+                    optTotalWisataCost = dayPlan.wisata_harga * persons;
+                }
+                optTotalKulinerCost += dayPlan.kuliner_harga * persons * 3;
+
+                // Hotel Anchors
+                let currentHotel = null;
+                let nextHotel = null;
+                if (nights > 0) {
+                    if (hotelMode === 'same') {
+                        if (type === 'hotel') {
+                            currentHotel = { nama: activeOptionPackages[idx].hotel_nama, lat: activeOptionPackages[idx].hotel_lat || 0, lon: activeOptionPackages[idx].hotel_lon || 0 };
+                            nextHotel = currentHotel;
+                        } else {
+                            if (selectedHotel) {
+                                currentHotel = selectedHotel;
+                                nextHotel = selectedHotel;
+                            } else {
+                                currentHotel = { nama: activeOptionPackages[idx].hotel_nama, lat: activeOptionPackages[idx].hotel_lat || 0, lon: activeOptionPackages[idx].hotel_lon || 0 };
+                                nextHotel = currentHotel;
+                            }
+                        }
+                    } else {
+                        const getHotelN = (n) => {
+                            if (type === 'split-hotel' && curStepDef.nightNum === n) {
+                                return { nama: activeOptionPackages[idx].hotel_nama, lat: activeOptionPackages[idx].hotel_lat || 0, lon: activeOptionPackages[idx].hotel_lon || 0 };
+                            }
+                            return selectedHotelsByNight[n] || { nama: activeOptionPackages[idx].hotel_nama, lat: activeOptionPackages[idx].hotel_lat || 0, lon: activeOptionPackages[idx].hotel_lon || 0 };
+                        };
+                        currentHotel = getHotelN(dNum - 1) || getHotelN(dNum);
+                        nextHotel = getHotelN(dNum) || getHotelN(dNum - 1);
+                    }
+                }
+
+                let d1 = 0, d2 = 0, d3 = 0;
+                const chLat = currentHotel ? (currentHotel.lat || currentHotel.Latitude || 0) : 0;
+                const chLon = currentHotel ? (currentHotel.lon || currentHotel.Longitude || 0) : 0;
+                const nhLat = nextHotel ? (nextHotel.lat || nextHotel.Latitude || 0) : chLat;
+                const nhLon = nextHotel ? (nextHotel.lon || nextHotel.Longitude || 0) : chLon;
+
+                if (duration === 1 || !currentHotel || !chLat) {
+                    d1 = haversineDist(dayPlan.kuliner_lat, dayPlan.kuliner_lon, dayPlan.wisata_lat, dayPlan.wisata_lon);
+                    optTotalDistance += d1 * 2;
+                } else {
+                    d1 = haversineDist(chLat, chLon, dayPlan.wisata_lat, dayPlan.wisata_lon);
+                    d2 = haversineDist(dayPlan.wisata_lat, dayPlan.wisata_lon, dayPlan.kuliner_lat, dayPlan.kuliner_lon);
+                    d3 = haversineDist(dayPlan.kuliner_lat, dayPlan.kuliner_lon, nhLat, nhLon);
+                    optTotalDistance += d1 + d2 + d3;
+                }
+            }
+
+            let ratePerKm = 2250;
+            if (persons <= 1) {
+                ratePerKm = 2250;
+            } else if (persons <= 4) {
+                ratePerKm = 5150;
+            } else {
+                ratePerKm = 6000;
+            }
+
+            optTransportCost = optTotalDistance > 0 ? Math.round(optTotalDistance * ratePerKm) : 0;
+            return optAccommodationCost + optTotalWisataCost + optTotalKulinerCost + optTransportCost;
+        }
+
         // Force hotelMode to same if nights <= 1 (2-day trip)
         if (nights <= 1 && hotelMode !== 'same') {
             hotelMode = 'same';
@@ -2622,7 +3172,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         }
-        
+
         const startDayStep = (nights > 0 && hotelMode === 'split') ? nights : 1;
         for (let d = 1; d <= duration; d++) {
             const stepIdx = (nights > 0 && hotelMode === 'split') ? (nights + d - 1) : d;
@@ -2640,13 +3190,13 @@ document.addEventListener('DOMContentLoaded', () => {
         steps.forEach((step, i) => {
             const isActive = currentStep === step.stepIdx;
             const isComp = step.isCompleted;
-            
+
             if (i > 0) {
                 const prevStep = steps[i - 1];
                 const isConnectorCompleted = prevStep.isCompleted;
                 stepperHTML += `<div class="stepper-connector ${isConnectorCompleted ? 'completed' : ''}"></div>`;
             }
-            
+
             stepperHTML += `
                 <div class="stepper-step ${isActive ? 'active' : (isComp ? 'completed' : '')}" data-step="${step.stepIdx}">
                     <span class="material-symbols-outlined" style="font-size:16px;">${step.icon}</span>
@@ -2675,6 +3225,33 @@ document.addEventListener('DOMContentLoaded', () => {
         let optionsHTML = '';
         const curStepDef = steps.find(s => s.stepIdx === currentStep) || steps[0];
 
+        // Sync history selections back to interactive chosen states
+        if (curStepDef) {
+            const stepChanged = lastRenderedStep !== currentStep;
+            if (stepChanged) {
+                lastRenderedStep = currentStep;
+                chosenStepPackageIdx = null; // Unconditionally reset chosen package for the new step
+            }
+
+            if (curStepDef.type === 'hotel') {
+                if (selectedHotel && (chosenStepPackageIdx === null || stepChanged)) {
+                    chosenStepPackageIdx = selectedHotel.classIdx;
+                }
+            } else if (curStepDef.type === 'split-hotel') {
+                const nNum = curStepDef.nightNum;
+                if (selectedHotelsByNight[nNum] && (chosenStepPackageIdx === null || stepChanged)) {
+                    chosenStepPackageIdx = selectedHotelsByNight[nNum].classIdx;
+                }
+            } else if (curStepDef.type === 'day') {
+                const dNum = curStepDef.dayNum;
+                if (selectedDays[dNum] && (chosenStepPackageIdx === null || stepChanged)) {
+                    chosenStepPackageIdx = selectedDays[dNum].classIdx;
+                    stepWisataSelected[dNum] = true;
+                    stepKulinerSelected[dNum] = true;
+                }
+            }
+        }
+
         if (curStepDef.type === 'hotel') {
             optionsHTML = `
                 <h3 style="font-size:16px; font-weight:800; color:var(--slate-700); margin: 0 0 16px;">🏨 Pilih Akomodasi Perjalanan:</h3>
@@ -2688,24 +3265,41 @@ document.addEventListener('DOMContentLoaded', () => {
                 const label = classLabels[classIdx];
                 const isSelected = selectedHotel && selectedHotel.classIdx === idx;
                 const hFolder = pkg.hotel_nama_real ? pkg.hotel_nama_real.trim().replace(/ /g, '_') : '';
-                const hotelAlts = getAlternatives('hotel', classIdx);
+
+                // Handle visual locking of non-selected package cards
+                let cardStyle = "position:relative; overflow:visible !important;";
+                if (chosenStepPackageIdx !== null && idx !== chosenStepPackageIdx) {
+                    cardStyle += " opacity: 0.25; filter: grayscale(95%) blur(1.5px); pointer-events: none; transition: all 0.3s;";
+                }
+
+                const predictedCost = predictTotalCostForOption('hotel', idx, curStepDef);
+                const isOptionOverBudget = hasBudget && hasStartedCustomizing && predictedCost > budgetLimit;
 
                 optionsHTML += `
-                    <div class="pkg-card interactive-card ${cls} ${isSelected ? 'selected' : ''}" data-type="hotel" data-idx="${idx}" style="position:relative;">
+                    <div class="pkg-card interactive-card ${cls} ${isSelected ? 'selected' : ''}" data-type="hotel" data-idx="${idx}" style="${cardStyle}">
                         <div class="selected-overlay"><span class="material-symbols-outlined">check</span></div>
                         <div class="pkg-banner ${cls}">
                             <span class="pkg-badge ${cls}">${label}</span>
                             <span class="pkg-xbi">Akomodasi</span>
+                            ${isOptionOverBudget ? `<span class="pkg-badge error" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); font-size: 10px; padding: 2px 8px; font-weight: 800; border-radius: 6px; margin-left: auto; display: inline-flex; align-items: center; gap: 2px;">⚠️ Over Budget</span>` : ''}
                         </div>
                         <div class="pkg-body" style="padding:16px; display:flex; flex-direction:column; gap:12px; height: calc(100% - 40px);">
                             <div class="hotel-img-container shadow-sm" style="position:relative; overflow:hidden; height:100px; border-radius:8px;">
-                                <img src="/assets/GAMBAR/hotel/${hFolder}/${hFolder}-1.jpg" alt="${pkg.hotel_nama}" class="pkg-thumb-img" onerror="handleImgErrorRecom(this, 'hotel')" />
+                                <img src="/assets/GAMBAR/hotel/${hFolder}/${hFolder}-1.jpg" alt="${escapeHtmlAttr(pkg.hotel_nama)}" class="pkg-thumb-img" onerror="handleImgErrorRecom(this, 'hotel')" />
                             </div>
                             
                             <!-- Hotel Dropdown Selector -->
                             <div class="custom-dropdown-wrap" style="margin-bottom:0; position: relative;">
                                 <label class="custom-dropdown-label" style="font-size:11px; font-weight:700;">🏨 Pilih Hotel Alternatif:</label>
                                 <div class="custom-select-wrapper" style="position: relative;">
+                                    ${chosenStepPackageIdx === null ? `
+                                    <div class="custom-select-trigger-inactive" 
+                                         style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border: 1.5px solid var(--slate-200); border-radius: 8px; font-size: 12px; background: var(--slate-50); color: var(--slate-400); cursor: not-allowed; user-select: none;"
+                                         title="Pilih paket terlebih dahulu untuk merancang">
+                                        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: calc(100% - 20px);">${pkg.hotel_nama_real || pkg.hotel_nama || ''}</span>
+                                        <span class="material-symbols-outlined select-arrow" style="font-size: 16px; color: var(--slate-300);">lock</span>
+                                    </div>
+                                    ` : `
                                     <div class="custom-select-trigger" 
                                          data-class-idx="${idx}" 
                                          data-type="hotel" 
@@ -2716,8 +3310,10 @@ document.addEventListener('DOMContentLoaded', () => {
                                     <div class="custom-search-select-dropdown" style="
                                         position: absolute;
                                         top: 100%; left: 0; right: 0;
-                                        background: #fff;
-                                        border: 1.5px solid var(--slate-200);
+                                        background: rgba(255, 255, 255, 0.98);
+                                        backdrop-filter: blur(20px);
+                                        -webkit-backdrop-filter: blur(20px);
+                                        border: 1px solid rgba(0, 101, 101, 0.15);
                                         border-radius: 12px;
                                         box-shadow: 0 10px 25px rgba(15, 23, 42, 0.15);
                                         z-index: 1000;
@@ -2726,6 +3322,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                         display: none;
                                         margin-top: 4px;
                                     "></div>
+                                    `}
                                 </div>
                             </div>
 
@@ -2750,9 +3347,20 @@ document.addEventListener('DOMContentLoaded', () => {
                                 </div>
                             </div>
                             
-                            <button class="finalize-btn select-option-btn" style="margin-top:12px; padding:10px; font-size:12px;" data-type="hotel" data-idx="${idx}">
-                                ${isSelected ? 'Akomodasi Terpilih' : 'Pilih Akomodasi Ini'}
+                            ${chosenStepPackageIdx === null ? `
+                            <button class="finalize-btn start-draft-btn" style="margin-top:12px; padding:10px; font-size:12px; background: var(--slate-800); border-color: var(--slate-800);" data-idx="${idx}">
+                                Rancang Paket ${label}
                             </button>
+                            ` : `
+                            <div style="display:flex; flex-direction:column; gap:8px; margin-top:12px;">
+                                <button class="finalize-btn select-option-btn" style="padding:10px; font-size:12px;" data-type="hotel" data-idx="${idx}">
+                                    ${isSelected ? 'Akomodasi Terpilih' : 'Konfirmasi Akomodasi & Lanjutkan'}
+                                </button>
+                                <button class="finalize-btn cancel-draft-btn" style="padding:8px; font-size:12px; background:transparent; border:1.5px solid var(--slate-300); color:var(--slate-600);" data-idx="${idx}">
+                                    Batalkan Pilihan / Ganti Paket
+                                </button>
+                            </div>
+                            `}
                         </div>
                     </div>
                 `;
@@ -2776,22 +3384,40 @@ document.addEventListener('DOMContentLoaded', () => {
                 const hFolder = pkg.hotel_nama_real ? pkg.hotel_nama_real.trim().replace(/ /g, '_') : '';
                 const hotelAlts = getAlternatives('hotel', classIdx);
 
+                // Handle visual locking of non-selected package cards
+                let cardStyle = "position:relative; overflow:visible !important;";
+                if (chosenStepPackageIdx !== null && idx !== chosenStepPackageIdx) {
+                    cardStyle += " opacity: 0.25; filter: grayscale(95%) blur(1.5px); pointer-events: none; transition: all 0.3s;";
+                }
+
+                const predictedCost = predictTotalCostForOption('split-hotel', idx, curStepDef);
+                const isOptionOverBudget = hasBudget && hasStartedCustomizing && predictedCost > budgetLimit;
+
                 optionsHTML += `
-                    <div class="pkg-card interactive-card ${cls} ${isSelected ? 'selected' : ''}" data-type="split-hotel" data-idx="${idx}" style="position:relative;">
+                    <div class="pkg-card interactive-card ${cls} ${isSelected ? 'selected' : ''}" data-type="split-hotel" data-idx="${idx}" style="${cardStyle}">
                         <div class="selected-overlay"><span class="material-symbols-outlined">check</span></div>
                         <div class="pkg-banner ${cls}">
                             <span class="pkg-badge ${cls}">${label}</span>
                             <span class="pkg-xbi">Malam ${nightNum}</span>
+                            ${isOptionOverBudget ? `<span class="pkg-badge error" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); font-size: 10px; padding: 2px 8px; font-weight: 800; border-radius: 6px; margin-left: auto; display: inline-flex; align-items: center; gap: 2px;">⚠️ Over Budget</span>` : ''}
                         </div>
                         <div class="pkg-body" style="padding:16px; display:flex; flex-direction:column; gap:12px; height: calc(100% - 40px);">
                             <div class="hotel-img-container shadow-sm" style="position:relative; overflow:hidden; height:100px; border-radius:8px;">
-                                <img src="/assets/GAMBAR/hotel/${hFolder}/${hFolder}-1.jpg" alt="${pkg.hotel_nama}" class="pkg-thumb-img" onerror="handleImgErrorRecom(this, 'hotel')" />
+                                <img src="/assets/GAMBAR/hotel/${hFolder}/${hFolder}-1.jpg" alt="${escapeHtmlAttr(pkg.hotel_nama)}" class="pkg-thumb-img" onerror="handleImgErrorRecom(this, 'hotel')" />
                             </div>
                             
                             <!-- Split Hotel Dropdown Selector -->
                             <div class="custom-dropdown-wrap" style="margin-bottom:0; position: relative;">
                                 <label class="custom-dropdown-label" style="font-size:11px; font-weight:700;">🏨 Pilih Hotel Alternatif:</label>
                                 <div class="custom-select-wrapper" style="position: relative;">
+                                    ${chosenStepPackageIdx === null ? `
+                                    <div class="custom-select-trigger-inactive" 
+                                         style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border: 1.5px solid var(--slate-200); border-radius: 8px; font-size: 12px; background: var(--slate-50); color: var(--slate-400); cursor: not-allowed; user-select: none;"
+                                         title="Pilih paket terlebih dahulu untuk merancang">
+                                        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: calc(100% - 20px);">${pkg.hotel_nama_real || pkg.hotel_nama || ''}</span>
+                                        <span class="material-symbols-outlined select-arrow" style="font-size: 16px; color: var(--slate-300);">lock</span>
+                                    </div>
+                                    ` : `
                                     <div class="custom-select-trigger" 
                                          data-class-idx="${idx}" 
                                          data-night="${nightNum}"
@@ -2803,8 +3429,10 @@ document.addEventListener('DOMContentLoaded', () => {
                                     <div class="custom-search-select-dropdown" style="
                                         position: absolute;
                                         top: 100%; left: 0; right: 0;
-                                        background: #fff;
-                                        border: 1.5px solid var(--slate-200);
+                                        background: rgba(255, 255, 255, 0.98);
+                                        backdrop-filter: blur(20px);
+                                        -webkit-backdrop-filter: blur(20px);
+                                        border: 1px solid rgba(0, 101, 101, 0.15);
                                         border-radius: 12px;
                                         box-shadow: 0 10px 25px rgba(15, 23, 42, 0.15);
                                         z-index: 1000;
@@ -2813,6 +3441,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                         display: none;
                                         margin-top: 4px;
                                     "></div>
+                                    `}
                                 </div>
                             </div>
 
@@ -2837,9 +3466,20 @@ document.addEventListener('DOMContentLoaded', () => {
                                 </div>
                             </div>
                             
-                            <button class="finalize-btn select-option-btn" style="margin-top:12px; padding:10px; font-size:12px;" data-type="split-hotel" data-idx="${idx}">
-                                ${isSelected ? 'Akomodasi Terpilih' : 'Pilih Akomodasi Ini'}
+                            ${chosenStepPackageIdx === null ? `
+                            <button class="finalize-btn start-draft-btn" style="margin-top:12px; padding:10px; font-size:12px; background: var(--slate-800); border-color: var(--slate-800);" data-idx="${idx}">
+                                Rancang Paket ${label}
                             </button>
+                            ` : `
+                            <div style="display:flex; flex-direction:column; gap:8px; margin-top:12px;">
+                                <button class="finalize-btn select-option-btn" style="padding:10px; font-size:12px;" data-type="split-hotel" data-idx="${idx}">
+                                    ${isSelected ? 'Akomodasi Terpilih' : 'Pilih Akomodasi Ini'}
+                                </button>
+                                <button class="finalize-btn cancel-draft-btn" style="padding:8px; font-size:12px; background:transparent; border:1.5px solid var(--slate-300); color:var(--slate-600);" data-idx="${idx}">
+                                    Batalkan Pilihan / Ganti Paket
+                                </button>
+                            </div>
+                            `}
                         </div>
                     </div>
                 `;
@@ -2858,7 +3498,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const cls = classNames[classIdx];
                 const label = classLabels[classIdx];
                 const isSelected = selectedDays[d] && selectedDays[d].classIdx === idx;
-                
+
                 // Read or default Day d itinerary
                 let dayItin = pkg.itinerary.find(item => item.day === d);
                 if (!dayItin) {
@@ -2875,6 +3515,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 const wFolder = dayItin.wisata ? dayItin.wisata.trim().replace(/ /g, '_') : '';
+                const kFolder = dayItin.kuliner ? dayItin.kuliner.trim().replace(/ /g, '_') : '';
                 const dayWisataCost = dayItin.wisata_harga * pkg.num_persons;
                 const dayKulinerCost = dayItin.kuliner_harga * pkg.num_persons * 3;
                 const dayTransportCost = pkg.cost_transport / pkg.duration;
@@ -2883,22 +3524,52 @@ document.addEventListener('DOMContentLoaded', () => {
                 const wisataAlts = getWisataAlternativesForTier(classIdx, d);
                 const kulinerAlts = getKulinerAlternativesForTier(classIdx, d);
 
+                // Handle visual locking of non-selected package cards
+                let cardStyle = "position:relative; overflow:visible !important;";
+                if (chosenStepPackageIdx !== null && idx !== chosenStepPackageIdx) {
+                    cardStyle += " opacity: 0.25; filter: grayscale(95%) blur(1.5px); pointer-events: none; transition: all 0.3s;";
+                }
+
+                const predictedCost = predictTotalCostForOption('day', idx, curStepDef);
+                const isOptionOverBudget = hasBudget && hasStartedCustomizing && predictedCost > budgetLimit;
+
                 optionsHTML += `
-                    <div class="pkg-card interactive-card ${cls} ${isSelected ? 'selected' : ''}" data-type="day" data-idx="${idx}" style="position:relative;">
+                    <div class="pkg-card interactive-card ${cls} ${isSelected ? 'selected' : ''}" data-type="day" data-idx="${idx}" style="${cardStyle}">
                         <div class="selected-overlay"><span class="material-symbols-outlined">check</span></div>
                         <div class="pkg-banner ${cls}">
                             <span class="pkg-badge ${cls}">${label}</span>
                             <span class="pkg-xbi">Hari ${d}</span>
+                            ${isOptionOverBudget ? `<span class="pkg-badge error" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); font-size: 10px; padding: 2px 8px; font-weight: 800; border-radius: 6px; margin-left: auto; display: inline-flex; align-items: center; gap: 2px;">⚠️ Over Budget</span>` : ''}
                         </div>
                         <div class="pkg-body" style="padding:16px; display:flex; flex-direction:column; gap:12px; height: calc(100% - 40px);">
-                            <div class="wisata-img-container shadow-sm" style="position:relative; overflow:hidden; height:100px; border-radius:8px;">
-                                <img src="/assets/GAMBAR/wisata/${wFolder}/${wFolder}-1.jpg" alt="${dayItin.wisata}" class="pkg-thumb-img" onerror="handleImgErrorRecom(this, 'landscape')" />
+                            <div style="display:flex; gap:8px;">
+                                <div class="wisata-img-container shadow-sm" style="position:relative; overflow:hidden; height:80px; flex:1; border-radius:8px;">
+                                    <img src="/assets/GAMBAR/wisata/${wFolder}/${wFolder}-1.jpg" alt="${escapeHtmlAttr(dayItin.wisata)}" class="pkg-thumb-img" onerror="handleImgErrorRecom(this, 'landscape')" style="width:100%; height:100%; object-fit:cover;" />
+                                </div>
+                                <div class="kuliner-img-container shadow-sm" style="position:relative; overflow:hidden; height:80px; flex:1; border-radius:8px;">
+                                    <img src="/assets/GAMBAR/makan/${kFolder}/${kFolder}-1.jpg" alt="${escapeHtmlAttr(dayItin.kuliner)}" class="pkg-thumb-img" onerror="handleImgErrorRecom(this, 'restaurant')" style="width:100%; height:100%; object-fit:cover;" />
+                                </div>
                             </div>
                             
                             <!-- Wisata Dropdown Split -->
                             <div class="custom-dropdown-wrap" style="margin-bottom:0; position: relative;">
                                 <label class="custom-dropdown-label" style="font-size:11px; font-weight:700;">🌲 Pilih Wisata:</label>
                                 <div class="custom-select-wrapper" style="position: relative;">
+                                    ${chosenStepPackageIdx === null ? `
+                                    <div class="custom-select-trigger-inactive" 
+                                         style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border: 1.5px solid var(--slate-200); border-radius: 8px; font-size: 11.5px; background: var(--slate-50); color: var(--slate-400); cursor: not-allowed; user-select: none;"
+                                         title="Pilih paket terlebih dahulu untuk merancang">
+                                        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: calc(100% - 20px);">${dayItin.wisata || ''}</span>
+                                        <span class="material-symbols-outlined select-arrow" style="font-size: 16px; color: var(--slate-300);">lock</span>
+                                    </div>
+                                    ` : (activeWorkflow === 'destination' && d === 1) ? `
+                                    <div class="custom-select-trigger-locked" 
+                                         style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border: 1.5px solid var(--slate-200); border-radius: 8px; font-size: 11.5px; background: var(--slate-100); color: var(--slate-500); cursor: not-allowed; user-select: none;"
+                                         title="Dikunci dari input pencarian destinasi awal">
+                                        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: calc(100% - 20px); font-weight: 600;">🔒 ${dayItin.wisata || ''} (Locked)</span>
+                                        <span class="material-symbols-outlined" style="font-size: 14px; color: var(--slate-400);">lock</span>
+                                    </div>
+                                    ` : `
                                     <div class="custom-select-trigger" 
                                          data-class-idx="${idx}" 
                                          data-day="${d}"
@@ -2910,8 +3581,10 @@ document.addEventListener('DOMContentLoaded', () => {
                                     <div class="custom-search-select-dropdown" style="
                                         position: absolute;
                                         top: 100%; left: 0; right: 0;
-                                        background: #fff;
-                                        border: 1.5px solid var(--slate-200);
+                                        background: rgba(255, 255, 255, 0.98);
+                                        backdrop-filter: blur(20px);
+                                        -webkit-backdrop-filter: blur(20px);
+                                        border: 1px solid rgba(0, 101, 101, 0.15);
                                         border-radius: 12px;
                                         box-shadow: 0 10px 25px rgba(15, 23, 42, 0.15);
                                         z-index: 1000;
@@ -2920,6 +3593,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                         display: none;
                                         margin-top: 4px;
                                     "></div>
+                                    `}
                                 </div>
                             </div>
 
@@ -2927,6 +3601,14 @@ document.addEventListener('DOMContentLoaded', () => {
                             <div class="custom-dropdown-wrap" style="margin-bottom:0; position: relative;">
                                 <label class="custom-dropdown-label" style="font-size:11px; font-weight:700;">🍜 Pilih Kuliner:</label>
                                 <div class="custom-select-wrapper" style="position: relative;">
+                                    ${chosenStepPackageIdx === null ? `
+                                    <div class="custom-select-trigger-inactive" 
+                                         style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border: 1.5px solid var(--slate-200); border-radius: 8px; font-size: 11.5px; background: var(--slate-50); color: var(--slate-400); cursor: not-allowed; user-select: none;"
+                                         title="Pilih paket terlebih dahulu untuk merancang">
+                                        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: calc(100% - 20px);">${dayItin.kuliner || ''}</span>
+                                        <span class="material-symbols-outlined select-arrow" style="font-size: 16px; color: var(--slate-300);">lock</span>
+                                    </div>
+                                    ` : (stepWisataSelected[d] || (activeWorkflow === 'destination' && d === 1)) ? `
                                     <div class="custom-select-trigger" 
                                          data-class-idx="${idx}" 
                                          data-day="${d}"
@@ -2938,8 +3620,10 @@ document.addEventListener('DOMContentLoaded', () => {
                                     <div class="custom-search-select-dropdown" style="
                                         position: absolute;
                                         top: 100%; left: 0; right: 0;
-                                        background: #fff;
-                                        border: 1.5px solid var(--slate-200);
+                                        background: rgba(255, 255, 255, 0.98);
+                                        backdrop-filter: blur(20px);
+                                        -webkit-backdrop-filter: blur(20px);
+                                        border: 1px solid rgba(0, 101, 101, 0.15);
                                         border-radius: 12px;
                                         box-shadow: 0 10px 25px rgba(15, 23, 42, 0.15);
                                         z-index: 1000;
@@ -2948,6 +3632,14 @@ document.addEventListener('DOMContentLoaded', () => {
                                         display: none;
                                         margin-top: 4px;
                                     "></div>
+                                    ` : `
+                                    <div class="custom-select-trigger-inactive" 
+                                         style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border: 1.5px dashed var(--slate-300); border-radius: 8px; font-size: 11.5px; background: var(--slate-50); color: var(--slate-400); cursor: not-allowed; user-select: none;"
+                                         title="Pilih wisata terlebih dahulu untuk membuka kuliner">
+                                        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: calc(100% - 20px); font-weight: 600; color: var(--slate-450);">🔒 Pilih Wisata Terlebih Dahulu</span>
+                                        <span class="material-symbols-outlined select-arrow" style="font-size: 16px; color: var(--slate-300);">lock</span>
+                                    </div>
+                                    `}
                                 </div>
                             </div>
 
@@ -2972,9 +3664,20 @@ document.addEventListener('DOMContentLoaded', () => {
                                 </div>
                             </div>
                             
-                            <button class="finalize-btn select-option-btn" style="margin-top:12px; padding:10px; font-size:12px;" data-type="day" data-idx="${idx}">
-                                ${isSelected ? 'Rute Terpilih' : 'Pilih Rute Hari Ini'}
+                            ${chosenStepPackageIdx === null ? `
+                            <button class="finalize-btn start-draft-btn" style="margin-top:12px; padding:10px; font-size:12px; background: var(--slate-800); border-color: var(--slate-800);" data-idx="${idx}">
+                                Rancang Paket ${label}
                             </button>
+                            ` : `
+                            <div style="display:flex; flex-direction:column; gap:8px; margin-top:12px;">
+                                <button class="finalize-btn select-option-btn" style="padding:10px; font-size:12px;" data-type="day" data-idx="${idx}">
+                                    ${isSelected ? 'Rute Terpilih' : 'Pilih Rute Hari Ini'}
+                                </button>
+                                <button class="finalize-btn cancel-draft-btn" style="padding:8px; font-size:12px; background:transparent; border:1.5px solid var(--slate-300); color:var(--slate-600);" data-idx="${idx}">
+                                    Batalkan Pilihan / Ganti Paket
+                                </button>
+                            </div>
+                            `}
                         </div>
                     </div>
                 `;
@@ -2982,71 +3685,110 @@ document.addEventListener('DOMContentLoaded', () => {
             optionsHTML += `</div>`;
         }
 
-        // 3. Spatiotemporal Real-Time CONFIRMED Cost Computations ONLY
-        const persons = activeOptionPackages[0].num_persons;
+        // 3. Spatiotemporal Proactive Baseline Cost Computations
+        const activePkgIdx = chosenStepPackageIdx !== null ? chosenStepPackageIdx : 0;
+        const pkg = activeOptionPackages[activePkgIdx];
+        const persons = pkg.num_persons;
         let accommodationCost = 0;
         let totalWisataCost = 0;
         let totalKulinerCost = 0;
         let totalDistance = 0;
         let transportCost = 0;
 
-        // Calculate confirmed Accommodation cost
+        // Calculate baseline Accommodation cost
         if (nights > 0) {
             if (hotelMode === 'same') {
                 if (selectedHotel) {
                     accommodationCost = selectedHotel.cost;
+                } else {
+                    accommodationCost = pkg.cost_akomodasi;
                 }
             } else {
                 for (let n = 1; n <= nights; n++) {
                     const activeN = selectedHotelsByNight[n];
                     if (activeN) {
                         accommodationCost += activeN.cost;
+                    } else {
+                        accommodationCost += pkg.hotel_harga * pkg.num_rooms;
                     }
                 }
             }
         }
 
-        // Calculate confirmed Wisata, confirmed Kuliner, and confirmed Leg Spasial Distances
+        // Calculate baseline Wisata, baseline Kuliner, and baseline Leg Spasial Distances
         const legs = [];
         for (let dNum = 1; dNum <= duration; dNum++) {
-            const dayPlan = selectedDays[dNum];
-            if (dayPlan) {
-                // Sesuai rumus skripsi (uji_gabungan.py & recommender.py), tiket wisata hanya dihitung 1x (hari pertama)
-                if (dNum === 1) {
-                    totalWisataCost = dayPlan.wisata_harga * persons;
-                }
-                totalKulinerCost += dayPlan.kuliner_harga * persons * 3;
+            let dayPlan = selectedDays[dNum];
+            if (!dayPlan) {
+                let dayItin = pkg.itinerary?.find(item => item.day === dNum) || {
+                    wisata: pkg.wisata_nama,
+                    wisata_harga: pkg.wisata_harga,
+                    wisata_lat: pkg.wisata_lat || 0,
+                    wisata_lon: pkg.wisata_lon || 0,
+                    kuliner: pkg.kuliner_nama,
+                    kuliner_harga: pkg.kuliner_harga,
+                    kuliner_lat: pkg.kuliner_lat || 0,
+                    kuliner_lon: pkg.kuliner_lon || 0,
+                };
+                dayPlan = {
+                    wisata: dayItin.wisata || dayItin.wisata_nama || pkg.wisata_nama,
+                    wisata_harga: dayItin.wisata_harga !== undefined ? dayItin.wisata_harga : pkg.wisata_harga,
+                    wisata_lat: dayItin.wisata_lat || pkg.wisata_lat || 0,
+                    wisata_lon: dayItin.wisata_lon || pkg.wisata_lon || 0,
+                    kuliner: dayItin.kuliner || dayItin.kuliner_nama || pkg.kuliner_nama,
+                    kuliner_harga: dayItin.kuliner_harga !== undefined ? dayItin.kuliner_harga : pkg.kuliner_harga,
+                    kuliner_lat: dayItin.kuliner_lat || pkg.kuliner_lat || 0,
+                    kuliner_lon: dayItin.kuliner_lon || pkg.kuliner_lon || 0,
+                };
+            }
 
-                // Determine current day's hotel anchors
-                let currentHotel = null;
-                let nextHotel = null;
-                if (nights > 0) {
-                    if (hotelMode === 'same') {
+            // Sesuai rumus skripsi (uji_gabungan.py & recommender.py), tiket wisata hanya dihitung 1x (hari pertama)
+            if (dNum === 1) {
+                totalWisataCost = dayPlan.wisata_harga * persons;
+            }
+            totalKulinerCost += dayPlan.kuliner_harga * persons * 3;
+
+            // Determine hotel anchors for the day (with baseline substitution)
+            let currentHotel = null;
+            let nextHotel = null;
+            if (nights > 0) {
+                if (hotelMode === 'same') {
+                    if (selectedHotel) {
                         currentHotel = selectedHotel;
                         nextHotel = selectedHotel;
                     } else {
-                        currentHotel = selectedHotelsByNight[dNum - 1] || selectedHotelsByNight[dNum] || null;
-                        nextHotel = selectedHotelsByNight[dNum] || selectedHotelsByNight[dNum - 1] || null;
+                        currentHotel = { nama: pkg.hotel_nama, lat: pkg.hotel_lat || 0, lon: pkg.hotel_lon || 0 };
+                        nextHotel = currentHotel;
                     }
-                }
-
-                // Confirmed spatial legs Haversine
-                let d1 = 0, d2 = 0, d3 = 0;
-                if (duration === 1 || !currentHotel) {
-                    d1 = haversineDist(dayPlan.kuliner_lat, dayPlan.kuliner_lon, dayPlan.wisata_lat, dayPlan.wisata_lon);
-                    d2 = d1;
-                    totalDistance += d1 * 2; // Accumulate circular route distance
-                    legs.push({ from: dayPlan.kuliner, to: dayPlan.wisata, distance: d1 });
-                    legs.push({ from: dayPlan.wisata, to: dayPlan.kuliner, distance: d1 });
                 } else {
-                    d1 = haversineDist(currentHotel.lat, currentHotel.lon, dayPlan.wisata_lat, dayPlan.wisata_lon);
-                    d2 = haversineDist(dayPlan.wisata_lat, dayPlan.wisata_lon, dayPlan.kuliner_lat, dayPlan.kuliner_lon);
-                    d3 = haversineDist(dayPlan.kuliner_lat, dayPlan.kuliner_lon, (nextHotel || currentHotel).lat, (nextHotel || currentHotel).lon);
-                    totalDistance += d1 + d2 + d3; // Accumulate spatial route distance per day
-                    legs.push({ from: currentHotel.nama, to: dayPlan.wisata, distance: d1 });
-                    legs.push({ from: dayPlan.wisata, to: dayPlan.kuliner, distance: d2 });
-                    legs.push({ from: dayPlan.kuliner, to: (nextHotel || currentHotel).nama, distance: d3 });
+                    const getHotelN = (n) => {
+                        return selectedHotelsByNight[n] || { nama: pkg.hotel_nama, lat: pkg.hotel_lat || 0, lon: pkg.hotel_lon || 0 };
+                    };
+                    currentHotel = getHotelN(dNum - 1) || getHotelN(dNum);
+                    nextHotel = getHotelN(dNum) || getHotelN(dNum - 1);
                 }
+            }
+
+            // Spatial legs Haversine (with baseline substitution)
+            let d1 = 0, d2 = 0, d3 = 0;
+            const chLat = currentHotel ? (currentHotel.lat || currentHotel.Latitude || 0) : 0;
+            const chLon = currentHotel ? (currentHotel.lon || currentHotel.Longitude || 0) : 0;
+            const nhLat = nextHotel ? (nextHotel.lat || nextHotel.Latitude || 0) : chLat;
+            const nhLon = nextHotel ? (nextHotel.lon || nextHotel.Longitude || 0) : chLon;
+
+            if (duration === 1 || !currentHotel || !chLat) {
+                d1 = haversineDist(dayPlan.kuliner_lat, dayPlan.kuliner_lon, dayPlan.wisata_lat, dayPlan.wisata_lon);
+                totalDistance += d1 * 2; // Accumulate circular route distance
+                legs.push({ from: dayPlan.kuliner, to: dayPlan.wisata, distance: d1 });
+                legs.push({ from: dayPlan.wisata, to: dayPlan.kuliner, distance: d1 });
+            } else {
+                d1 = haversineDist(chLat, chLon, dayPlan.wisata_lat, dayPlan.wisata_lon);
+                d2 = haversineDist(dayPlan.wisata_lat, dayPlan.wisata_lon, dayPlan.kuliner_lat, dayPlan.kuliner_lon);
+                d3 = haversineDist(dayPlan.kuliner_lat, dayPlan.kuliner_lon, nhLat, nhLon);
+                totalDistance += d1 + d2 + d3; // Accumulate spatial route distance per day
+                legs.push({ from: currentHotel.nama, to: dayPlan.wisata, distance: d1 });
+                legs.push({ from: dayPlan.wisata, to: dayPlan.kuliner, distance: d2 });
+                legs.push({ from: dayPlan.kuliner, to: (nextHotel || currentHotel).nama, distance: d3 });
             }
         }
 
@@ -3065,6 +3807,70 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         transportCost = totalDistance > 0 ? Math.round(totalDistance * ratePerKm) : 0;
         const runningCost = accommodationCost + totalWisataCost + totalKulinerCost + transportCost;
+
+        // Visible (confirmed-only) Cost Computations (Starts from 0)
+        let accommodationCostVisible = 0;
+        let totalWisataCostVisible = 0;
+        let totalKulinerCostVisible = 0;
+        let totalDistanceVisible = 0;
+        let transportCostVisible = 0;
+
+        if (nights > 0) {
+            if (hotelMode === 'same') {
+                if (selectedHotel) {
+                    accommodationCostVisible = selectedHotel.cost;
+                }
+            } else {
+                for (let n = 1; n <= nights; n++) {
+                    const activeN = selectedHotelsByNight[n];
+                    if (activeN) {
+                        accommodationCostVisible += activeN.cost;
+                    }
+                }
+            }
+        }
+
+        for (let dNum = 1; dNum <= duration; dNum++) {
+            const dayPlan = selectedDays[dNum];
+            if (dayPlan) {
+                if (dNum === 1) {
+                    totalWisataCostVisible = dayPlan.wisata_harga * persons;
+                }
+                totalKulinerCostVisible += dayPlan.kuliner_harga * persons * 3;
+
+                // Distance calculation for visible path
+                let currentHotel = null;
+                let nextHotel = null;
+                if (nights > 0) {
+                    if (hotelMode === 'same') {
+                        currentHotel = selectedHotel;
+                        nextHotel = selectedHotel;
+                    } else {
+                        currentHotel = selectedHotelsByNight[dNum - 1] || selectedHotelsByNight[dNum] || null;
+                        nextHotel = selectedHotelsByNight[dNum] || selectedHotelsByNight[dNum - 1] || null;
+                    }
+                }
+
+                let d1 = 0, d2 = 0, d3 = 0;
+                const chLat = currentHotel ? (currentHotel.lat || currentHotel.Latitude || 0) : 0;
+                const chLon = currentHotel ? (currentHotel.lon || currentHotel.Longitude || 0) : 0;
+                const nhLat = nextHotel ? (nextHotel.lat || nextHotel.Latitude || 0) : chLat;
+                const nhLon = nextHotel ? (nextHotel.lon || nextHotel.Longitude || 0) : chLon;
+
+                if (duration === 1 || !currentHotel || !chLat) {
+                    d1 = haversineDist(dayPlan.kuliner_lat, dayPlan.kuliner_lon, dayPlan.wisata_lat, dayPlan.wisata_lon);
+                    totalDistanceVisible += d1 * 2;
+                } else {
+                    d1 = haversineDist(chLat, chLon, dayPlan.wisata_lat, dayPlan.wisata_lon);
+                    d2 = haversineDist(dayPlan.wisata_lat, dayPlan.wisata_lon, dayPlan.kuliner_lat, dayPlan.kuliner_lon);
+                    d3 = haversineDist(dayPlan.kuliner_lat, dayPlan.kuliner_lon, nhLat, nhLon);
+                    totalDistanceVisible += d1 + d2 + d3;
+                }
+            }
+        }
+
+        transportCostVisible = totalDistanceVisible > 0 ? Math.round(totalDistanceVisible * ratePerKm) : 0;
+        const runningCostVisible = accommodationCostVisible + totalWisataCostVisible + totalKulinerCostVisible + transportCostVisible;
 
         // Generate Itemized Day-by-Day Summary HTML
         let daysSummaryHTML = '';
@@ -3273,17 +4079,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Calculate Budget limit
-        let budgetLimit = 0;
-        if (activeWorkflow === 'budget') {
-            budgetLimit = getRawBudget('b-budget');
-        } else if (activeWorkflow === 'destination') {
-            budgetLimit = getRawBudget('d-budget');
-        }
-        const hasBudget = budgetLimit > 0;
-        const budgetPercent = hasBudget ? Math.min(100, (runningCost / budgetLimit) * 100) : 0;
-        const isOverBudget = hasBudget && runningCost > budgetLimit;
-        const remaining = hasBudget ? budgetLimit - runningCost : 0;
+        const budgetPercent = hasBudget ? Math.min(100, (runningCostVisible / budgetLimit) * 100) : 0;
+        const isOverBudget = hasBudget && runningCostVisible > budgetLimit;
+        const remaining = hasBudget ? budgetLimit - runningCostVisible : 0;
 
         let budgetOverageHTML = '';
         if (hasBudget) {
@@ -3333,7 +4131,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="panel-divider"></div>
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                     <span style="font-size:12.5px; font-weight:800; color:var(--slate-750);">ESTIMASI TOTAL</span>
-                    <strong style="font-size:18px; font-weight:900; color:var(--teal-700);">${fmtRp(runningCost)}</strong>
+                    <strong style="font-size:18px; font-weight:900; color:var(--teal-700);">${fmtRp(runningCostVisible)}</strong>
                 </div>
                 ${budgetOverageHTML}
 
@@ -3378,23 +4176,33 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        // Dropdown selection input bindings inside tier-specific cards
-        wizardContainer.querySelectorAll('.custom-search-select-input').forEach(inpEl => {
-            inpEl.addEventListener('input', (e) => {
-                const query = e.target.value;
-                renderSearchSelectSuggestions(inpEl, query);
-            });
+        // Toggle dropdown open/close on clicking custom select triggers
+        wizardContainer.querySelectorAll('.custom-select-trigger').forEach(triggerEl => {
+            triggerEl.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const dropdownEl = triggerEl.closest('.custom-select-wrapper')?.querySelector('.custom-search-select-dropdown');
+                if (!dropdownEl) return;
 
-            inpEl.addEventListener('focus', () => {
-                renderSearchSelectSuggestions(inpEl, inpEl.value);
+                const isOpen = dropdownEl.style.display === 'block';
+
+                // Close other open custom select dropdowns
+                wizardContainer.querySelectorAll('.custom-search-select-dropdown').forEach(d => {
+                    if (d !== dropdownEl) d.style.display = 'none';
+                });
+
+                if (!isOpen) {
+                    renderSearchSelectSuggestions(triggerEl);
+                } else {
+                    dropdownEl.style.display = 'none';
+                }
             });
         });
 
         // Close searchable suggestions on clicking outside
         document.addEventListener('click', (e) => {
-            wizardContainer.querySelectorAll('.custom-search-select-input').forEach(inpEl => {
-                const dropdownEl = inpEl.closest('.custom-dropdown-wrap')?.querySelector('.custom-search-select-dropdown');
-                if (dropdownEl && !inpEl.contains(e.target) && !dropdownEl.contains(e.target)) {
+            wizardContainer.querySelectorAll('.custom-search-select-dropdown').forEach(dropdownEl => {
+                const triggerEl = dropdownEl.closest('.custom-select-wrapper')?.querySelector('.custom-select-trigger');
+                if (dropdownEl && triggerEl && !triggerEl.contains(e.target) && !dropdownEl.contains(e.target)) {
                     dropdownEl.style.display = 'none';
                 }
             });
@@ -3444,10 +4252,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     }, 300);
                 } else if (type === 'day') {
                     const d = curStepDef.dayNum;
-                    let dayItin = pkg.itinerary.find(item => item.day === d) || { 
-                        wisata: pkg.wisata_nama, 
-                        kuliner: pkg.kuliner_nama, 
-                        wisata_harga: pkg.wisata_harga, 
+                    let dayItin = pkg.itinerary.find(item => item.day === d) || {
+                        wisata: pkg.wisata_nama,
+                        kuliner: pkg.kuliner_nama,
+                        wisata_harga: pkg.wisata_harga,
                         kuliner_harga: pkg.kuliner_harga,
                         wisata_lat: pkg.wisata_lat || 0,
                         wisata_lon: pkg.wisata_lon || 0,
@@ -3489,7 +4297,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             cost: dayTotal
                         };
                         btn.closest('.pkg-card').classList.add('selected');
-                        
+
                         setTimeout(() => {
                             const nextStepExists = steps.find(s => s.stepIdx === currentStep + 1);
                             if (nextStepExists) {
@@ -3501,6 +4309,46 @@ document.addEventListener('DOMContentLoaded', () => {
                         }, 300);
                     });
                 }
+            });
+        });
+
+        // Click on start-draft-btn (Rancang Paket)
+        wizardContainer.querySelectorAll('.start-draft-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const idx = parseInt(btn.dataset.idx);
+                chosenStepPackageIdx = idx;
+
+                // If it's a day step, determine initial wisata selection lock state
+                if (curStepDef.type === 'day') {
+                    const d = curStepDef.dayNum;
+                    if (activeWorkflow === 'destination' && d === 1) {
+                        stepWisataSelected[d] = true;
+                    } else {
+                        stepWisataSelected[d] = false;
+                    }
+                }
+
+                renderPlannerStep();
+            });
+        });
+
+        // Click on cancel-draft-btn (Batalkan / Ganti Paket)
+        wizardContainer.querySelectorAll('.cancel-draft-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                chosenStepPackageIdx = null;
+
+                // Clear any committed selections for this step when canceled
+                if (curStepDef.type === 'hotel') {
+                    selectedHotel = null;
+                } else if (curStepDef.type === 'split-hotel') {
+                    delete selectedHotelsByNight[curStepDef.nightNum];
+                } else if (curStepDef.type === 'day') {
+                    delete selectedDays[curStepDef.dayNum];
+                    stepWisataSelected[curStepDef.dayNum] = false;
+                    stepKulinerSelected[curStepDef.dayNum] = false;
+                }
+
+                renderPlannerStep();
             });
         });
 
@@ -3522,7 +4370,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function finalizeTravelPlan(totalCost, legs, totalDistance, transportCost, vehDesc) {
         const duration = activeOptionPackages[0].duration;
         const persons = activeOptionPackages[0].num_persons;
-        
+
         // Build the days summary array
         const daysArr = [];
         for (let d = 1; d <= duration; d++) {
@@ -3559,7 +4407,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Add to bookmark list
         bookmarkList.unshift(newPlan);
         localStorage.setItem('mraya_bookmarks', JSON.stringify(bookmarkList));
-        
+
         // Sync UI
         updateBookmarkUI();
 

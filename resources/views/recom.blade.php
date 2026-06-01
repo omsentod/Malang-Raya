@@ -34,7 +34,7 @@
                         <span class="bookmark-label">Rencana Saya</span>
                         <span class="bookmark-badge" id="bookmark-badge-count">0</span>
                     </button>
-                    <a href="/how-it-works" class="g-nav-btn">Cara Kerja AI</a>
+                    <div id="nav-profile-container" style="display: flex; align-items: center;"></div>
                     <button class="g-nav-hamburger" id="hamburger-btn">
                         <span class="material-symbols-outlined">menu</span>
                     </button>
@@ -284,7 +284,6 @@
                                 z-index: 1000;
                                 max-height: 280px;
                                 overflow-y: auto;
-                                display: none;
                                 margin-top: 4px;
                             "></div>
                         </div>
@@ -501,5 +500,6 @@
         window.wisataCatalog = {!! json_encode($wisataList) !!};
     </script>
 <script src="{{ asset('assets/js/recom.js') }}"></script>
+@include('auth-modal-and-dropdown')
 </body>
 </html>
