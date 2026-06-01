@@ -1,25 +1,7 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # ======================================================================
-    # 1. SECURITY: Block direct access to sensitive files and folders
-    # ======================================================================
-    # Prevent downloading sensitive configuration files
-    RedirectMatch 403 (?i)\.(env|git|cache|bin|log|sh|sql|yaml|yml|json|md|txt)$
-    
-    # Block access to core Laravel application folders
-    RedirectMatch 403 (?i)/(vendor|storage|app|bootstrap|config|database|resources|routes|tests)/
-
-    # ======================================================================
-    # 2. ROUTING: Internally redirect all traffic to the /public folder
-    # ======================================================================
-    # Match the user's specific domains
-    RewriteCond %{HTTP_HOST} ^rifqi\.sumdebetta\.com$ [NC,OR]
-    RewriteCond %{HTTP_HOST} ^www\.rifqi\.sumdebetta\.com$ [NC]
-    
-    # Prevent infinite loops: only rewrite if the request doesn't already start with /public/
+    # Redirect all traffic to the public/ folder
     RewriteCond %{REQUEST_URI} !^/public/
-    
-    # Internally route all requests into the public folder
     RewriteRule ^(.*)$ public/$1 [L]
 </IfModule>
