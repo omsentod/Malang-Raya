@@ -1,0 +1,17 @@
+/node_modules
+/public/hot
+/public/storage
+/vendor
+.env
+.env.backup
+.env.production
+.DS_Store
+Thumbs.db
+
+# Laravel Storage Framework & Logs (Abaikan file dinamisnya)
+/storage/framework/cache/data/*
+/storage/framework/sessions/*
+/storage/framework/testing/*
+/storage/framework/views/*
+/storage/logs/*
+/storage/*.key
