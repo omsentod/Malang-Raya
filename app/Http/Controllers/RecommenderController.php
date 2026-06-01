@@ -74,6 +74,13 @@ class RecommenderController extends Controller
 
         $process = new Process($args);
         $process->setWorkingDirectory($this->workingDir());
+        $process->setEnv([
+            'OPENBLAS_NUM_THREADS' => '1',
+            'MKL_NUM_THREADS' => '1',
+            'OMP_NUM_THREADS' => '1',
+            'NUMEXPR_NUM_THREADS' => '1',
+            'VECLIB_MAXIMUM_THREADS' => '1',
+        ]);
         $process->setTimeout(90);
 
         try {
@@ -121,6 +128,13 @@ class RecommenderController extends Controller
 
         $process = new Process($args);
         $process->setWorkingDirectory($this->workingDir());
+        $process->setEnv([
+            'OPENBLAS_NUM_THREADS' => '1',
+            'MKL_NUM_THREADS' => '1',
+            'OMP_NUM_THREADS' => '1',
+            'NUMEXPR_NUM_THREADS' => '1',
+            'VECLIB_MAXIMUM_THREADS' => '1',
+        ]);
         $process->setTimeout(120);
 
         try {
@@ -153,6 +167,13 @@ class RecommenderController extends Controller
         ];
         $process = new Process($args);
         $process->setWorkingDirectory($this->workingDir());
+        $process->setEnv([
+            'OPENBLAS_NUM_THREADS' => '1',
+            'MKL_NUM_THREADS' => '1',
+            'OMP_NUM_THREADS' => '1',
+            'NUMEXPR_NUM_THREADS' => '1',
+            'VECLIB_MAXIMUM_THREADS' => '1',
+        ]);
         $process->setTimeout(30);
         try {
             $process->mustRun();
