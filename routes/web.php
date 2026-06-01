@@ -6,6 +6,18 @@ use App\Http\Controllers\AuthController;
 
 Route::get('/', function () {
     $featuredPath = storage_path('app/python/catalog_featured.json');
+    $fallbackPath = resource_path('data/catalog_featured.json');
+
+    // If storage file doesn't exist but fallback exists, copy it as a starting baseline
+    if (!file_exists($featuredPath) && file_exists($fallbackPath)) {
+        try {
+            @mkdir(dirname($featuredPath), 0755, true);
+            @copy($fallbackPath, $featuredPath);
+        } catch (\Exception $e) {
+            // Silently handle write issues on hosting
+        }
+    }
+
     if (!file_exists($featuredPath)) {
         try {
             $venv = storage_path('app/python/venv/bin/python');
@@ -21,6 +33,11 @@ Route::get('/', function () {
     $catalog = [];
     if (file_exists($featuredPath)) {
         $catalog = json_decode(file_get_contents($featuredPath), true) ?? [];
+    }
+
+    // Ultimate fallback to committed resource file if storage is still missing or failed to decode
+    if (empty($catalog) && file_exists($fallbackPath)) {
+        $catalog = json_decode(file_get_contents($fallbackPath), true) ?? [];
     }
 
     return view('landing', compact('catalog'));
