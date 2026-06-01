@@ -578,17 +578,39 @@
                 // Location filter
                 let matchesLoc = true;
                 if (activeLocFilter !== 'Semua') {
-                    // Match link or tags or coordinates inside search_index
                     const link = (item.Link || "").toLowerCase();
                     const subcat = (item.Sub_Kategori || "").toLowerCase();
                     const name = (item.Nama_Tempat || "").toLowerCase();
+                    const lat = Number(item.Latitude);
+                    const lng = Number(item.Longitude);
+
+                    // High-precision geographic coordinate classification for Malang Raya
+                    // 1. Kota Malang: Central dense urban area
+                    const isKotaMalangCoords = (lat <= -7.91 && lat >= -8.04 && lng >= 112.58 && lng <= 112.69);
                     
+                    // 2. Kota Batu: Northwest mountainous area (excluding western districts Pujon/Ngantang/Kasembon)
+                    const isBatuCoords = (lat <= -7.74 && lat >= -7.92 && lng >= 112.475 && lng <= 112.578);
+
+                    // Default to Kabupaten Malang (since it surrounds both Kota Malang and Batu)
+                    let itemLoc = "Kab. Malang";
+                    
+                    if (isKotaMalangCoords && !name.includes("kabupaten") && !link.includes("kabupaten")) {
+                        itemLoc = "Kota Malang";
+                    } else if (isBatuCoords || name.includes("batu") || link.includes("batu") || subcat.includes("batu")) {
+                        // Exclude western districts (Pujon, Ngantang, Kasembon) which are Kabupaten Malang
+                        const isWesternKabMalang = (lng < 112.47 || name.includes("pujon") || name.includes("ngantang") || name.includes("kasembon") || link.includes("pujon") || link.includes("ngantang") || link.includes("kasembon"));
+                        if (!isWesternKabMalang) {
+                            itemLoc = "Batu";
+                        }
+                    }
+
+                    // Apply filter based on target active location
                     if (activeLocFilter === 'Batu') {
-                        matchesLoc = link.includes('batu') || subcat.includes('batu') || name.includes('batu');
+                        matchesLoc = (itemLoc === "Batu");
                     } else if (activeLocFilter === 'Kota Malang') {
-                        matchesLoc = (link.includes('kota+malang') || link.includes('kec.') || subcat.includes('kota malang') || name.includes('kota malang')) && !name.includes('kabupaten') && !link.includes('kabupaten');
+                        matchesLoc = (itemLoc === "Kota Malang");
                     } else if (activeLocFilter === 'Kab. Malang') {
-                        matchesLoc = link.includes('kabupaten') || link.includes('kab.') || subcat.includes('kabupaten') || name.includes('kabupaten') || name.includes('kab. malang');
+                        matchesLoc = (itemLoc === "Kab. Malang");
                     }
                 }
 
