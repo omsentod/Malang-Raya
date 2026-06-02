@@ -789,37 +789,40 @@ document.addEventListener('DOMContentLoaded', () => {
         const notes = JSON.parse(localStorage.getItem(noteKey) || '[]');
         if (notes.length === 0) {
             notesList.innerHTML = `
-                <div style="text-align:center; padding:30px 10px; border:1px dashed var(--color-slate-200); border-radius:12px;">
-                    <span class="material-symbols-outlined" style="font-size:32px; color:var(--color-slate-300); margin-bottom:8px;">assignment_late</span>
-                    <p style="margin:0; font-size:13px; color:var(--color-slate-400); font-weight:600;">Belum ada catatan perjalanan.</p>
+                <div class="empty-results" style="border-radius:16px; background:rgba(255,255,255,0.7); border:1px dashed var(--color-surface-container-high); padding:3rem 1.5rem; text-align:center;">
+                    <span class="material-symbols-outlined" style="font-size:3rem; color:var(--color-slate-300); margin-bottom:0.75rem;">assignment_late</span>
+                    <h4 style="font-family:var(--font-headline); font-size:1.15rem; font-weight:800; color:var(--color-slate-700); margin-bottom:0.25rem;">Belum ada catatan</h4>
+                    <p style="color:var(--color-slate-400); font-size:0.8125rem; margin:0;">Tambahkan daftar rencana, barang bawaan, atau kuliner impian Anda di atas.</p>
                 </div>
             `;
             return;
         }
 
         notesList.innerHTML = notes.map(note => `
-            <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; background:#f8fafc; border:1px solid var(--color-slate-200); border-radius:12px; padding:12px 16px; transition:all 0.2s;">
-                <label style="display:flex; align-items:center; gap:10px; flex:1; cursor:pointer;">
-                    <input type="checkbox" class="note-check-btn" data-id="${note.id}" ${note.completed ? 'checked' : ''} style="accent-color:var(--color-primary); width:18px; height:18px;" />
-                    <span style="font-size:13.5px; font-weight:600; color:${note.completed ? 'var(--color-slate-400)' : 'var(--color-slate-700)'}; text-decoration:${note.completed ? 'line-through' : 'none'}; text-align:left; line-height:1.4;">
-                        ${escapeHtml(note.text)}
-                    </span>
-                </label>
-                <button class="note-delete-btn" data-id="${note.id}" title="Hapus Catatan" style="color:var(--color-slate-400); cursor:pointer; background:none; border:none; transition:color 0.15s; outline:none; box-shadow:none;">
-                    <span class="material-symbols-outlined" style="font-size:18px;">delete</span>
+            <div class="note-card ${note.completed ? 'completed' : ''}">
+                <div class="note-content">
+                    <div class="note-checkbox ${note.completed ? 'checked' : ''}" data-id="${note.id}">
+                        ${note.completed ? '<span class="material-symbols-outlined">check</span>' : ''}
+                    </div>
+                    <span class="note-text">${escapeHtml(note.text)}</span>
+                </div>
+                <button class="btn-delete-note note-delete-btn" data-id="${note.id}" title="Hapus Catatan">
+                    <span class="material-symbols-outlined" style="font-size:20px;">delete</span>
                 </button>
             </div>
         `).join('');
 
-        // Bind check action
-        notesList.querySelectorAll('.note-check-btn').forEach(input => {
-            input.addEventListener('change', () => {
-                const id = parseInt(input.dataset.id);
+        // Bind check action to the custom checkbox and card click
+        notesList.querySelectorAll('.note-content').forEach(element => {
+            element.style.cursor = 'pointer';
+            element.addEventListener('click', () => {
+                const checkbox = element.querySelector('.note-checkbox');
+                const id = parseInt(checkbox.dataset.id);
                 const noteKey = typeof window.getTravelNotesKey === 'function' ? window.getTravelNotesKey() : 'travel_notes';
                 const currentNotes = JSON.parse(localStorage.getItem(noteKey) || '[]');
                 const note = currentNotes.find(n => n.id === id);
                 if (note) {
-                    note.completed = input.checked;
+                    note.completed = !note.completed;
                     localStorage.setItem(noteKey, JSON.stringify(currentNotes));
                     renderTravelNotes();
                 }
@@ -828,7 +831,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Bind delete action
         notesList.querySelectorAll('.note-delete-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
                 const id = parseInt(btn.dataset.id);
                 const noteKey = typeof window.getTravelNotesKey === 'function' ? window.getTravelNotesKey() : 'travel_notes';
                 let currentNotes = JSON.parse(localStorage.getItem(noteKey) || '[]');
