@@ -47,12 +47,22 @@
         grid-template-columns: 8fr 4fr;
         height: 520px;
     }
+    .gallery-main {
+        height: 100% !important;
+    }
+    .gallery-side {
+        height: 100% !important;
+    }
+    .gallery-sub {
+        height: 100% !important;
+    }
 }
 
 .gallery-main {
     position: relative;
     border-radius: var(--radius-xl);
     overflow: hidden;
+    height: 380px;
     min-height: 280px;
 }
 
@@ -118,6 +128,7 @@
     position: relative;
     border-radius: var(--radius-xl);
     overflow: hidden;
+    height: 180px;
     min-height: 120px;
 }
 
