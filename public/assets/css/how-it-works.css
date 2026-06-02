@@ -321,3 +321,114 @@
             font-family: 'JetBrains Mono', monospace;
             font-size: 13px;
         }
+
+        /* ─── RESPONSIVE / MOBILE OPTIMIZATIONS ─── */
+        @media (max-width: 960px) {
+            .xbi-tables {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .cluster-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding-top: 70px;
+            }
+            .hiw-content {
+                padding: 0 12px 60px;
+            }
+            .sim-panel {
+                padding: 0 12px;
+            }
+            .xbi-tables {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            .cluster-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hiw-hero {
+                padding: 48px 16px 36px;
+            }
+            .hiw-hero h1 {
+                font-size: 32px !important;
+            }
+            .hiw-badge {
+                padding: 4px 12px;
+                font-size: 11px;
+                margin-bottom: 16px;
+            }
+            .input-card {
+                padding: 20px 16px;
+                margin: -16px auto 32px;
+                border-radius: 16px;
+            }
+            .input-fields {
+                grid-template-columns: 1fr;
+                gap: 14px;
+            }
+            .run-btn {
+                width: 100%;
+                justify-content: center;
+                margin-top: 8px;
+                padding: 14px;
+            }
+            .viz-section-head {
+                padding: 14px 16px;
+                gap: 10px;
+            }
+            .viz-body {
+                padding: 16px;
+            }
+            .viz-step-num {
+                width: 30px;
+                height: 30px;
+                font-size: 12px;
+                border-radius: 8px;
+            }
+            .viz-step-title {
+                font-size: 14px;
+            }
+            .viz-step-sub {
+                font-size: 11px;
+            }
+            .tech-tip-card {
+                padding: 18px 16px;
+                border-radius: 16px;
+            }
+            .tech-tip-header h3 {
+                font-size: 15px;
+            }
+            .tech-tip-text {
+                font-size: 13px;
+            }
+        }
+
+        /* ─── TABLE RESPONSIVENESS OVERRIDES ─── */
+        .xbi-card {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        table.xbi-tbl {
+            min-width: 280px;
+        }
+        table.ratio-tbl {
+            display: block;
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            white-space: nowrap;
+        }

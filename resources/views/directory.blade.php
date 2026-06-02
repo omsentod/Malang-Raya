@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Eksplorasi seluruh direktori pariwisata Malang Raya — wisata, hotel, dan kuliner terkurasi AI." />
     <title>Direktori Destinasi — Malang Raya Tourism</title>
+    <link rel="icon" type="image/png" href="{{ asset('assets/GAMBAR/logo-tree.png') }}" />
 
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -240,7 +241,7 @@
         <nav class="g-navbar light" id="main-navbar">
             <div class="g-navbar-inner">
                 <!-- Brand -->
-                <a class="g-nav-brand" href="/">Malang Raya</a>
+                <a class="g-nav-brand" href="/"><img src="{{ asset('assets/GAMBAR/logo-tree.png') }}" alt="Logo" />Malang Raya</a>
 
                 <!-- Center Links -->
                 <div class="g-nav-center">
@@ -270,11 +271,6 @@
             <a class="g-mobile-link" href="/recommender">Explore</a>
             <a class="g-mobile-link" href="/how-it-works">How It Works</a>
             <a class="g-mobile-link active" href="/directory">Directory</a>
-            <button class="g-mobile-bookmark-btn" id="mobile-nav-bookmark-btn">
-                <span class="material-symbols-outlined">bookmarks</span>
-                <span>Rencana Perjalanan Saya</span>
-                <span class="bookmark-badge-count" id="mobile-bookmark-badge-count">0</span>
-            </button>
         </div>
     </div>
 

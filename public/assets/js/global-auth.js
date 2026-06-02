@@ -76,51 +76,10 @@
                         </div>
                     `;
 
-                    // 2. RENDER MOBILE SESSION PROFILE VIEWER
+                    // 2. CLEAN UP MOBILE MENU FROM AUTH ELEMENTS
                     if (mobileMenu) {
-                        // Remove existing profile/logout sections
                         mobileMenu.querySelector('.mobile-profile-section')?.remove();
                         mobileMenu.querySelector('.mobile-logout-link')?.remove();
-                        
-                        const profileSec = document.createElement('div');
-                        profileSec.className = 'mobile-profile-section';
-                        profileSec.style.cssText = `
-                            padding: 16px;
-                            border-top: 1.5px solid rgba(0,0,0,0.06);
-                            display: flex;
-                            align-items: center;
-                            gap: 12px;
-                            margin-top: auto;
-                        `;
-                        profileSec.innerHTML = `
-                            <img src="${window.getAvatarUrl(data.user.avatar)}" style="width:36px; height:36px; border-radius:50%; object-fit:cover; background:#006565;" alt="Avatar" />
-                            <div style="text-align:left;">
-                                <div style="font-weight:800; font-size:13.5px; color:var(--color-primary);">${escapeHtml(data.user.name)}</div>
-                                <div style="font-size:11px; color:var(--color-slate-400);">${escapeHtml(data.user.email)}</div>
-                            </div>
-                        `;
-                        
-                        const logoutBtn = document.createElement('a');
-                        logoutBtn.className = 'g-mobile-link mobile-logout-link logout';
-                        logoutBtn.style.cssText = `
-                            color: #ef4444 !important;
-                            font-weight: 800;
-                            display: flex;
-                            align-items: center;
-                            gap: 8px;
-                            cursor: pointer;
-                            border-top: 1px solid rgba(0,0,0,0.04);
-                        `;
-                        logoutBtn.innerHTML = `
-                            <span class="material-symbols-outlined" style="font-size:18px;">logout</span>
-                            <span>Keluar Akun</span>
-                        `;
-                        logoutBtn.addEventListener('click', handleLogoutAction);
-
-                        mobileMenu.appendChild(profileSec);
-                        mobileMenu.appendChild(logoutBtn);
-
-                        // If "Masuk" exists in mobile menu, remove it
                         mobileMenu.querySelector('#mobile-login-trigger')?.remove();
                     }
 
@@ -156,32 +115,11 @@
                         <button class="g-nav-btn" id="nav-login-trigger" style="margin-left: 10px;">Masuk</button>
                     `;
 
-                    // 2. RENDER MOBILE GUEST LOGIN TRIGGER
+                    // 2. CLEAN UP MOBILE MENU FROM AUTH ELEMENTS
                     if (mobileMenu) {
                         mobileMenu.querySelector('.mobile-profile-section')?.remove();
                         mobileMenu.querySelector('.mobile-logout-link')?.remove();
                         mobileMenu.querySelector('#mobile-login-trigger')?.remove();
-
-                        const mLoginBtn = document.createElement('a');
-                        mLoginBtn.className = 'g-mobile-link';
-                        mLoginBtn.id = 'mobile-login-trigger';
-                        mLoginBtn.style.cssText = `
-                            font-weight: 800;
-                            color: var(--color-primary) !important;
-                            cursor: pointer;
-                        `;
-                        mLoginBtn.innerHTML = `
-                            <span class="material-symbols-outlined" style="font-size:18px; vertical-align:middle; margin-right:6px;">login</span>
-                            Masuk / Daftar
-                        `;
-                        mLoginBtn.addEventListener('click', (e) => {
-                            e.preventDefault();
-                            openAuthModal();
-                            mobileMenu.classList.remove('open');
-                            const burgerIcon = document.querySelector('#hamburger-btn .material-symbols-outlined');
-                            if (burgerIcon) burgerIcon.textContent = 'menu';
-                        });
-                        mobileMenu.appendChild(mLoginBtn);
                     }
 
                     // Attach click modal opening

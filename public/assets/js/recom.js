@@ -385,94 +385,68 @@ document.addEventListener('DOMContentLoaded', () => {
         const hasBudget = budgetLimit > 0;
 
         if (hasBudget) {
-            // Calculate baseline accommodation cost (use custom if selected, else default package cost)
-            let curAccCost = 0;
-            if (nights > 0) {
-                if (hotelMode === 'same') {
-                    if (selectedHotel) {
-                        curAccCost = selectedHotel.cost;
-                    } else {
-                        curAccCost = pkg.cost_akomodasi;
-                    }
-                } else {
-                    for (let n = 1; n <= nights; n++) {
-                        const activeN = selectedHotelsByNight[n];
-                        if (activeN) {
-                            curAccCost += activeN.cost;
-                        } else {
-                            curAccCost += pkg.hotel_harga * pkg.num_rooms;
-                        }
-                    }
-                }
-            }
-
-            // Calculate baseline Wisata cost (Day 1 only, use custom if selected, else default package wisata)
-            let curWisCost = 0;
-            const activeDay1 = selectedDays[1];
-            if (activeDay1) {
-                curWisCost = activeDay1.wisata_harga * persons;
-            } else {
-                let day1Itin = pkg.itinerary?.find(item => item.day === 1);
-                curWisCost = (day1Itin ? day1Itin.wisata_harga : pkg.wisata_harga) * persons;
-            }
-
-            // Calculate baseline Kuliner cost (use custom if selected, else default package kuliner)
-            let curKulCost = 0;
-            for (let d = 1; d <= duration; d++) {
-                const dayPlan = selectedDays[d];
-                if (dayPlan) {
-                    curKulCost += dayPlan.kuliner_harga * persons * 3;
-                } else {
-                    let dayItin = pkg.itinerary?.find(item => item.day === d);
-                    curKulCost += (dayItin ? dayItin.kuliner_harga : pkg.kuliner_harga) * persons * 3;
-                }
-            }
-
             visibleAlts.forEach(item => {
-                let hypAccCost = curAccCost;
-                let hypWisCost = curWisCost;
-                let hypKulCost = curKulCost;
-
                 const itemHarga = item.harga || item.Estimasi_Harga || 0;
+                let hypAccCost = 0;
+                let hypWisCost = 0;
+                let hypKulCost = 0;
 
-                if (type === 'hotel') {
-                    hypAccCost = itemHarga * nights * pkg.num_rooms;
-                } else if (type === 'split-hotel') {
-                    hypAccCost = 0;
-                    for (let n = 1; n <= nights; n++) {
-                        if (n === nightNum) {
-                            hypAccCost += itemHarga * pkg.num_rooms;
+                // 1. Calculate accommodation cost for this prospective choice
+                if (nights > 0) {
+                    if (hotelMode === 'same') {
+                        if (type === 'hotel') {
+                            hypAccCost = itemHarga * nights * pkg.num_rooms;
                         } else {
-                            const activeN = selectedHotelsByNight[n];
-                            hypAccCost += activeN ? activeN.cost : (pkg.hotel_harga * pkg.num_rooms);
+                            hypAccCost = selectedHotel ? selectedHotel.cost : 0;
                         }
-                    }
-                } else if (type === 'wisata') {
-                    if (dayNum === 1) {
-                        hypWisCost = itemHarga * persons;
-                    }
-                } else if (type === 'kuliner') {
-                    hypKulCost = 0;
-                    for (let d = 1; d <= duration; d++) {
-                        if (d === dayNum) {
-                            hypKulCost += itemHarga * persons * 3;
-                        } else {
-                            const dayPlan = selectedDays[d];
-                            if (dayPlan) {
-                                hypKulCost += dayPlan.kuliner_harga * persons * 3;
+                    } else {
+                        for (let n = 1; n <= nights; n++) {
+                            if (type === 'split-hotel' && nightNum === n) {
+                                hypAccCost += itemHarga * pkg.num_rooms;
                             } else {
-                                let dayItin = pkg.itinerary?.find(item => item.day === d);
-                                hypKulCost += (dayItin ? dayItin.kuliner_harga : pkg.kuliner_harga) * persons * 3;
+                                const activeN = selectedHotelsByNight[n];
+                                if (activeN) {
+                                    hypAccCost += activeN.cost;
+                                }
                             }
                         }
                     }
                 }
 
+                // 2. Calculate Wisata cost (Day 1 only)
+                if (type === 'wisata') {
+                    if (dayNum === 1) {
+                        hypWisCost = itemHarga * persons;
+                    }
+                } else {
+                    const activeDay1 = selectedDays[1];
+                    if (activeDay1) {
+                        hypWisCost = activeDay1.wisata_harga * persons;
+                    }
+                }
+
+                // 3. Calculate Kuliner cost
+                for (let d = 1; d <= duration; d++) {
+                    if (type === 'kuliner' && dayNum === d) {
+                        hypKulCost += itemHarga * persons * 3;
+                    } else {
+                        const dayPlan = selectedDays[d];
+                        if (dayPlan) {
+                            hypKulCost += dayPlan.kuliner_harga * persons * 3;
+                        }
+                    }
+                }
+
+                // 4. Calculate spatial distance and transport costs
                 let hypTotalDistance = 0;
                 for (let dNum = 1; dNum <= duration; dNum++) {
-                    let dPlan = selectedDays[dNum];
-                    if (!dPlan) {
-                        let dayItin = pkg.itinerary?.find(item => item.day === dNum) || {
+                    let dPlan = null;
+                    if (dNum === dayNum && (type === 'wisata' || type === 'kuliner')) {
+                        const itemLat = item.lat || item.Latitude || 0;
+                        const itemLon = item.lon || item.Longitude || 0;
+                        const activeD = selectedDays[dNum];
+                        
+                        let dayItin = pkg.itinerary?.find(it => it.day === dayNum) || {
                             wisata: pkg.wisata_nama,
                             wisata_harga: pkg.wisata_harga,
                             wisata_lat: pkg.wisata_lat || 0,
@@ -482,23 +456,15 @@ document.addEventListener('DOMContentLoaded', () => {
                             kuliner_lat: pkg.kuliner_lat || 0,
                             kuliner_lon: pkg.kuliner_lon || 0
                         };
-                        dPlan = {
-                            wisata_lat: dayItin.wisata_lat || 0,
-                            wisata_lon: dayItin.wisata_lon || 0,
-                            kuliner_lat: dayItin.kuliner_lat || 0,
-                            kuliner_lon: dayItin.kuliner_lon || 0,
-                        };
-                    }
 
-                    if (dNum === dayNum) {
-                        const itemLat = item.lat || item.Latitude || 0;
-                        const itemLon = item.lon || item.Longitude || 0;
                         dPlan = {
-                            wisata_lat: type === 'wisata' ? itemLat : dPlan.wisata_lat,
-                            wisata_lon: type === 'wisata' ? itemLon : dPlan.wisata_lon,
-                            kuliner_lat: type === 'kuliner' ? itemLat : dPlan.kuliner_lat,
-                            kuliner_lon: type === 'kuliner' ? itemLon : dPlan.kuliner_lon,
+                            wisata_lat: type === 'wisata' ? itemLat : (activeD ? activeD.wisata_lat : (dayItin.wisata_lat || pkg.wisata_lat || 0)),
+                            wisata_lon: type === 'wisata' ? itemLon : (activeD ? activeD.wisata_lon : (dayItin.wisata_lon || pkg.wisata_lon || 0)),
+                            kuliner_lat: type === 'kuliner' ? itemLat : (activeD ? activeD.kuliner_lat : (dayItin.kuliner_lat || pkg.kuliner_lat || 0)),
+                            kuliner_lon: type === 'kuliner' ? itemLon : (activeD ? activeD.kuliner_lon : (dayItin.kuliner_lon || pkg.kuliner_lon || 0)),
                         };
+                    } else {
+                        dPlan = selectedDays[dNum];
                     }
 
                     if (dPlan) {
@@ -510,13 +476,13 @@ document.addEventListener('DOMContentLoaded', () => {
                                     curHotel = item;
                                     nexHotel = item;
                                 } else {
-                                    curHotel = selectedHotel || { lat: pkg.hotel_lat, lon: pkg.hotel_lon, nama: pkg.hotel_nama };
-                                    nexHotel = selectedHotel || { lat: pkg.hotel_lat, lon: pkg.hotel_lon, nama: pkg.hotel_nama };
+                                    curHotel = selectedHotel;
+                                    nexHotel = selectedHotel;
                                 }
                             } else {
                                 const getHotelN = (n) => {
-                                    if (type === 'split-hotel' && n === nightNum) return item;
-                                    return selectedHotelsByNight[n] || { lat: pkg.hotel_lat, lon: pkg.hotel_lon, nama: pkg.hotel_nama };
+                                    if (type === 'split-hotel' && nightNum === n) return item;
+                                    return selectedHotelsByNight[n] || null;
                                 };
                                 curHotel = getHotelN(dNum - 1) || getHotelN(dNum);
                                 nexHotel = getHotelN(dNum) || getHotelN(dNum - 1);
@@ -2095,113 +2061,75 @@ document.addEventListener('DOMContentLoaded', () => {
             const hasBudget = budgetLimit > 0;
 
             if (hasBudget) {
-                // Calculate baseline accommodation cost (use custom if selected, else default package cost)
-                let curAccCost = 0;
-                if (nights > 0) {
-                    if (hotelMode === 'same') {
-                        if (selectedHotel) {
-                            curAccCost = selectedHotel.cost;
-                        } else {
-                            curAccCost = pkg.cost_akomodasi;
-                        }
-                    } else {
-                        for (let n = 1; n <= nights; n++) {
-                            const activeN = selectedHotelsByNight[n];
-                            if (activeN) {
-                                curAccCost += activeN.cost;
-                            } else {
-                                curAccCost += pkg.hotel_harga * pkg.num_rooms;
-                            }
-                        }
-                    }
-                }
-
-                // Calculate baseline Wisata cost (Day 1 only, use custom if selected, else default package wisata)
-                let curWisCost = 0;
-                const activeDay1 = selectedDays[1];
-                if (activeDay1) {
-                    curWisCost = activeDay1.wisata_harga * persons;
-                } else {
-                    let day1Itin = pkg.itinerary?.find(item => item.day === 1);
-                    curWisCost = (day1Itin ? day1Itin.wisata_harga : pkg.wisata_harga) * persons;
-                }
-
-                // Calculate baseline Kuliner cost (use custom if selected, else default package kuliner)
-                let curKulCost = 0;
-                for (let d = 1; d <= duration; d++) {
-                    const dayPlan = selectedDays[d];
-                    if (dayPlan) {
-                        curKulCost += dayPlan.kuliner_harga * persons * 3;
-                    } else {
-                        let dayItin = pkg.itinerary?.find(item => item.day === d);
-                        curKulCost += (dayItin ? dayItin.kuliner_harga : pkg.kuliner_harga) * persons * 3;
-                    }
-                }
-
                 visibleAlts.forEach(item => {
-                    let hypAccCost = curAccCost;
-                    let hypWisCost = curWisCost;
-                    let hypKulCost = curKulCost;
+                    let hypAccCost = 0;
+                    let hypWisCost = 0;
+                    let hypKulCost = 0;
+                    let hypTotalDistance = 0;
 
                     const itemHarga = item.harga || item.Estimasi_Harga || 0;
 
-                    if (type === 'hotel') {
-                        hypAccCost = itemHarga * nights * pkg.num_rooms;
-                    } else if (type === 'split-hotel') {
-                        hypAccCost = 0;
-                        for (let n = 1; n <= nights; n++) {
-                            if (n === context.nightNum) {
-                                hypAccCost += itemHarga * pkg.num_rooms;
+                    // 1. Calculate hypothetical accommodation cost
+                    if (nights > 0) {
+                        if (hotelMode === 'same') {
+                            if (type === 'hotel') {
+                                hypAccCost = itemHarga * nights * pkg.num_rooms;
                             } else {
-                                const activeN = selectedHotelsByNight[n];
-                                hypAccCost += activeN ? activeN.cost : (pkg.hotel_harga * pkg.num_rooms);
+                                hypAccCost = selectedHotel ? selectedHotel.cost : 0;
                             }
-                        }
-                    } else if (type === 'wisata') {
-                        if (context.dayNum === 1) {
-                            hypWisCost = itemHarga * persons;
-                        }
-                    } else if (type === 'kuliner') {
-                        hypKulCost = 0;
-                        for (let d = 1; d <= duration; d++) {
-                            if (d === context.dayNum) {
-                                hypKulCost += itemHarga * persons * 3;
-                            } else {
-                                const dayPlan = selectedDays[d];
-                                if (dayPlan) {
-                                    hypKulCost += dayPlan.kuliner_harga * persons * 3;
+                        } else {
+                            for (let n = 1; n <= nights; n++) {
+                                if (type === 'split-hotel' && n === context.nightNum) {
+                                    hypAccCost += itemHarga * pkg.num_rooms;
                                 } else {
-                                    let dayItin = pkg.itinerary?.find(item => item.day === d);
-                                    hypKulCost += (dayItin ? dayItin.kuliner_harga : pkg.kuliner_harga) * persons * 3;
+                                    const activeN = selectedHotelsByNight[n];
+                                    if (activeN) {
+                                        hypAccCost += activeN.cost;
+                                    }
                                 }
                             }
                         }
                     }
 
-                    // Estimate spatial leg distances with substitution
-                    let hypTotalDistance = 0;
+                    // 2. Calculate hypothetical day costs (wisata + kuliner + distance)
                     for (let dNum = 1; dNum <= duration; dNum++) {
-                        let dPlan = selectedDays[dNum];
-
-                        if (dNum === context.dayNum) {
-                            const itemLat = item.lat || item.Latitude || 0;
-                            const itemLon = item.lon || item.Longitude || 0;
+                        let dPlan = null;
+                        if (type === 'wisata' && context.dayNum === dNum) {
                             dPlan = {
-                                wisata_lat: type === 'wisata' ? itemLat : (dPlan ? dPlan.wisata_lat : 0),
-                                wisata_lon: type === 'wisata' ? itemLon : (dPlan ? dPlan.wisata_lon : 0),
-                                kuliner_lat: type === 'kuliner' ? itemLat : (dPlan ? dPlan.kuliner_lat : 0),
-                                kuliner_lon: type === 'kuliner' ? itemLon : (dPlan ? dPlan.kuliner_lon : 0),
+                                wisata_harga: itemHarga,
+                                wisata_lat: item.lat || item.Latitude || 0,
+                                wisata_lon: item.lon || item.Longitude || 0,
+                                kuliner_harga: selectedDays[dNum] ? selectedDays[dNum].kuliner_harga : 0,
+                                kuliner_lat: selectedDays[dNum] ? selectedDays[dNum].kuliner_lat : 0,
+                                kuliner_lon: selectedDays[dNum] ? selectedDays[dNum].kuliner_lon : 0
                             };
+                        } else if (type === 'kuliner' && context.dayNum === dNum) {
+                            dPlan = {
+                                wisata_harga: selectedDays[dNum] ? selectedDays[dNum].wisata_harga : 0,
+                                wisata_lat: selectedDays[dNum] ? selectedDays[dNum].wisata_lat : 0,
+                                wisata_lon: selectedDays[dNum] ? selectedDays[dNum].wisata_lon : 0,
+                                kuliner_harga: itemHarga,
+                                kuliner_lat: item.lat || item.Latitude || 0,
+                                kuliner_lon: item.lon || item.Longitude || 0
+                            };
+                        } else {
+                            dPlan = selectedDays[dNum];
                         }
 
                         if (dPlan) {
+                            if (dNum === 1) {
+                                hypWisCost += dPlan.wisata_harga * persons;
+                            }
+                            hypKulCost += dPlan.kuliner_harga * persons * 3;
+
+                            // Distance calculation
                             let curHotel = null;
                             let nexHotel = null;
                             if (nights > 0) {
                                 if (hotelMode === 'same') {
                                     if (type === 'hotel') {
-                                        curHotel = item;
-                                        nexHotel = item;
+                                        curHotel = { lat: item.lat || item.Latitude || 0, lon: item.lon || item.Longitude || 0 };
+                                        nexHotel = curHotel;
                                     } else {
                                         curHotel = selectedHotel;
                                         nexHotel = selectedHotel;
@@ -3005,23 +2933,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Helper to predict total cost if choosing a specific option index at current step
         function predictTotalCostForOption(type, idx, curStepDef) {
-            let optAccommodationCost = 0;
-            let optTotalWisataCost = 0;
-            let optTotalKulinerCost = 0;
-            let optTotalDistance = 0;
-            let optTransportCost = 0;
-
             const persons = activeOptionPackages[0].num_persons;
             const duration = activeOptionPackages[0].duration;
             const nights = duration - 1;
 
-            // 1. Accommodation
+            let optAccommodationCost = 0;
+            let optTotalWisataCost = 0;
+            let optTotalKulinerCost = 0;
+            let optTotalDistance = 0;
+
+            // 1. Calculate accommodation cost for this prospective choice
             if (nights > 0) {
                 if (hotelMode === 'same') {
                     if (type === 'hotel') {
                         optAccommodationCost = activeOptionPackages[idx].cost_akomodasi;
                     } else {
-                        optAccommodationCost = selectedHotel ? selectedHotel.cost : activeOptionPackages[idx].cost_akomodasi;
+                        optAccommodationCost = selectedHotel ? selectedHotel.cost : 0;
                     }
                 } else {
                     for (let n = 1; n <= nights; n++) {
@@ -3031,15 +2958,13 @@ document.addEventListener('DOMContentLoaded', () => {
                             const activeN = selectedHotelsByNight[n];
                             if (activeN) {
                                 optAccommodationCost += activeN.cost;
-                            } else {
-                                optAccommodationCost += activeOptionPackages[idx].hotel_harga * activeOptionPackages[idx].num_rooms;
                             }
                         }
                     }
                 }
             }
 
-            // 2. Wisata + Kuliner + Distance
+            // 2. Calculate day costs (wisata + kuliner + distance)
             for (let dNum = 1; dNum <= duration; dNum++) {
                 let dayPlan = null;
                 if (type === 'day' && curStepDef.dayNum === dNum) {
@@ -3055,90 +2980,62 @@ document.addEventListener('DOMContentLoaded', () => {
                         kuliner_lon: pkg.kuliner_lon || 0
                     };
                     dayPlan = {
-                        wisata: dayItin.wisata || dayItin.wisata_nama || pkg.wisata_nama,
                         wisata_harga: dayItin.wisata_harga !== undefined ? dayItin.wisata_harga : pkg.wisata_harga,
                         wisata_lat: dayItin.wisata_lat || pkg.wisata_lat || 0,
                         wisata_lon: dayItin.wisata_lon || pkg.wisata_lon || 0,
-                        kuliner: dayItin.kuliner || dayItin.kuliner_nama || pkg.kuliner_nama,
                         kuliner_harga: dayItin.kuliner_harga !== undefined ? dayItin.kuliner_harga : pkg.kuliner_harga,
                         kuliner_lat: dayItin.kuliner_lat || pkg.kuliner_lat || 0,
                         kuliner_lon: dayItin.kuliner_lon || pkg.kuliner_lon || 0
                     };
                 } else {
                     dayPlan = selectedDays[dNum];
-                    if (!dayPlan) {
-                        const pkg = activeOptionPackages[idx];
-                        let dayItin = pkg.itinerary?.find(item => item.day === dNum) || {
-                            wisata: pkg.wisata_nama,
-                            wisata_harga: pkg.wisata_harga,
-                            wisata_lat: pkg.wisata_lat || 0,
-                            wisata_lon: pkg.wisata_lon || 0,
-                            kuliner: pkg.kuliner_nama,
-                            kuliner_harga: pkg.kuliner_harga,
-                            kuliner_lat: pkg.kuliner_lat || 0,
-                            kuliner_lon: pkg.kuliner_lon || 0
-                        };
-                        dayPlan = {
-                            wisata: dayItin.wisata || dayItin.wisata_nama || pkg.wisata_nama,
-                            wisata_harga: dayItin.wisata_harga !== undefined ? dayItin.wisata_harga : pkg.wisata_harga,
-                            wisata_lat: dayItin.wisata_lat || pkg.wisata_lat || 0,
-                            wisata_lon: dayItin.wisata_lon || pkg.wisata_lon || 0,
-                            kuliner: dayItin.kuliner || dayItin.kuliner_nama || pkg.kuliner_nama,
-                            kuliner_harga: dayItin.kuliner_harga !== undefined ? dayItin.kuliner_harga : pkg.kuliner_harga,
-                            kuliner_lat: dayItin.kuliner_lat || pkg.kuliner_lat || 0,
-                            kuliner_lon: dayItin.kuliner_lon || pkg.kuliner_lon || 0
-                        };
+                }
+
+                if (dayPlan) {
+                    if (dNum === 1) {
+                        optTotalWisataCost += dayPlan.wisata_harga * persons;
                     }
-                }
+                    optTotalKulinerCost += dayPlan.kuliner_harga * persons * 3;
 
-                if (dNum === 1) {
-                    optTotalWisataCost = dayPlan.wisata_harga * persons;
-                }
-                optTotalKulinerCost += dayPlan.kuliner_harga * persons * 3;
-
-                // Hotel Anchors
-                let currentHotel = null;
-                let nextHotel = null;
-                if (nights > 0) {
-                    if (hotelMode === 'same') {
-                        if (type === 'hotel') {
-                            currentHotel = { nama: activeOptionPackages[idx].hotel_nama, lat: activeOptionPackages[idx].hotel_lat || 0, lon: activeOptionPackages[idx].hotel_lon || 0 };
-                            nextHotel = currentHotel;
-                        } else {
-                            if (selectedHotel) {
-                                currentHotel = selectedHotel;
-                                nextHotel = selectedHotel;
-                            } else {
+                    // Hotel Anchors for distance calculation
+                    let currentHotel = null;
+                    let nextHotel = null;
+                    if (nights > 0) {
+                        if (hotelMode === 'same') {
+                            if (type === 'hotel') {
                                 currentHotel = { nama: activeOptionPackages[idx].hotel_nama, lat: activeOptionPackages[idx].hotel_lat || 0, lon: activeOptionPackages[idx].hotel_lon || 0 };
                                 nextHotel = currentHotel;
+                            } else {
+                                currentHotel = selectedHotel;
+                                nextHotel = selectedHotel;
                             }
+                        } else {
+                            const getHotelN = (n) => {
+                                if (type === 'split-hotel' && curStepDef.nightNum === n) {
+                                    return { nama: activeOptionPackages[idx].hotel_nama, lat: activeOptionPackages[idx].hotel_lat || 0, lon: activeOptionPackages[idx].hotel_lon || 0 };
+                                }
+                                return selectedHotelsByNight[n] || null;
+                            };
+                            currentHotel = getHotelN(dNum - 1) || getHotelN(dNum);
+                            nextHotel = getHotelN(dNum) || getHotelN(dNum - 1);
                         }
-                    } else {
-                        const getHotelN = (n) => {
-                            if (type === 'split-hotel' && curStepDef.nightNum === n) {
-                                return { nama: activeOptionPackages[idx].hotel_nama, lat: activeOptionPackages[idx].hotel_lat || 0, lon: activeOptionPackages[idx].hotel_lon || 0 };
-                            }
-                            return selectedHotelsByNight[n] || { nama: activeOptionPackages[idx].hotel_nama, lat: activeOptionPackages[idx].hotel_lat || 0, lon: activeOptionPackages[idx].hotel_lon || 0 };
-                        };
-                        currentHotel = getHotelN(dNum - 1) || getHotelN(dNum);
-                        nextHotel = getHotelN(dNum) || getHotelN(dNum - 1);
                     }
-                }
 
-                let d1 = 0, d2 = 0, d3 = 0;
-                const chLat = currentHotel ? (currentHotel.lat || currentHotel.Latitude || 0) : 0;
-                const chLon = currentHotel ? (currentHotel.lon || currentHotel.Longitude || 0) : 0;
-                const nhLat = nextHotel ? (nextHotel.lat || nextHotel.Latitude || 0) : chLat;
-                const nhLon = nextHotel ? (nextHotel.lon || nextHotel.Longitude || 0) : chLon;
+                    let d1 = 0, d2 = 0, d3 = 0;
+                    const chLat = currentHotel ? (currentHotel.lat || currentHotel.Latitude || 0) : 0;
+                    const chLon = currentHotel ? (currentHotel.lon || currentHotel.Longitude || 0) : 0;
+                    const nhLat = nextHotel ? (nextHotel.lat || nextHotel.Latitude || 0) : chLat;
+                    const nhLon = nextHotel ? (nextHotel.lon || nextHotel.Longitude || 0) : chLon;
 
-                if (duration === 1 || !currentHotel || !chLat) {
-                    d1 = haversineDist(dayPlan.kuliner_lat, dayPlan.kuliner_lon, dayPlan.wisata_lat, dayPlan.wisata_lon);
-                    optTotalDistance += d1 * 2;
-                } else {
-                    d1 = haversineDist(chLat, chLon, dayPlan.wisata_lat, dayPlan.wisata_lon);
-                    d2 = haversineDist(dayPlan.wisata_lat, dayPlan.wisata_lon, dayPlan.kuliner_lat, dayPlan.kuliner_lon);
-                    d3 = haversineDist(dayPlan.kuliner_lat, dayPlan.kuliner_lon, nhLat, nhLon);
-                    optTotalDistance += d1 + d2 + d3;
+                    if (duration === 1 || !currentHotel || !chLat) {
+                        d1 = haversineDist(dayPlan.kuliner_lat, dayPlan.kuliner_lon, dayPlan.wisata_lat, dayPlan.wisata_lon);
+                        optTotalDistance += d1 * 2;
+                    } else {
+                        d1 = haversineDist(chLat, chLon, dayPlan.wisata_lat, dayPlan.wisata_lon);
+                        d2 = haversineDist(dayPlan.wisata_lat, dayPlan.wisata_lon, dayPlan.kuliner_lat, dayPlan.kuliner_lon);
+                        d3 = haversineDist(dayPlan.kuliner_lat, dayPlan.kuliner_lon, nhLat, nhLon);
+                        optTotalDistance += d1 + d2 + d3;
+                    }
                 }
             }
 
@@ -3151,7 +3048,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 ratePerKm = 6000;
             }
 
-            optTransportCost = optTotalDistance > 0 ? Math.round(optTotalDistance * ratePerKm) : 0;
+            const optTransportCost = optTotalDistance > 0 ? Math.round(optTotalDistance * ratePerKm) : 0;
             return optAccommodationCost + optTotalWisataCost + optTotalKulinerCost + optTransportCost;
         }
 
@@ -3273,7 +3170,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 const predictedCost = predictTotalCostForOption('hotel', idx, curStepDef);
-                const isOptionOverBudget = hasBudget && hasStartedCustomizing && predictedCost > budgetLimit;
+                const isOptionOverBudget = hasBudget && predictedCost > budgetLimit;
 
                 optionsHTML += `
                     <div class="pkg-card interactive-card ${cls} ${isSelected ? 'selected' : ''}" data-type="hotel" data-idx="${idx}" style="${cardStyle}">
@@ -3391,7 +3288,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 const predictedCost = predictTotalCostForOption('split-hotel', idx, curStepDef);
-                const isOptionOverBudget = hasBudget && hasStartedCustomizing && predictedCost > budgetLimit;
+                const isOptionOverBudget = hasBudget && predictedCost > budgetLimit;
 
                 optionsHTML += `
                     <div class="pkg-card interactive-card ${cls} ${isSelected ? 'selected' : ''}" data-type="split-hotel" data-idx="${idx}" style="${cardStyle}">
@@ -3531,7 +3428,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 const predictedCost = predictTotalCostForOption('day', idx, curStepDef);
-                const isOptionOverBudget = hasBudget && hasStartedCustomizing && predictedCost > budgetLimit;
+                const isOptionOverBudget = hasBudget && predictedCost > budgetLimit;
 
                 optionsHTML += `
                     <div class="pkg-card interactive-card ${cls} ${isSelected ? 'selected' : ''}" data-type="day" data-idx="${idx}" style="${cardStyle}">
@@ -4121,11 +4018,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="panel-divider"></div>
                 <div class="selected-day-row" style="margin-bottom: 4px;">
                     <span>🚗 Transportasi (${vehDesc})</span>
-                    <span>${fmtRp(transportCost)}</span>
+                    <span>${fmtRp(transportCostVisible)}</span>
                 </div>
                 <div style="font-size:11.5px; color:var(--slate-500); font-weight:700; display:flex; align-items:center; gap:4px;">
                     <span class="material-symbols-outlined" style="font-size:14px;color:var(--teal-600)">route</span>
-                    <span>Jarak Spasial: <span style="color:var(--slate-700)">${totalDistance.toFixed(1)} km</span></span>
+                    <span>Jarak Spasial: <span style="color:var(--slate-700)">${totalDistanceVisible.toFixed(1)} km</span></span>
                 </div>
                 
                 <div class="panel-divider"></div>
