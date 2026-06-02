@@ -48,13 +48,13 @@
         height: 520px;
     }
     .gallery-main {
-        height: 100% !important;
+        height: 520px !important;
     }
     .gallery-side {
-        height: 100% !important;
+        height: 520px !important;
     }
     .gallery-sub {
-        height: 100% !important;
+        height: 252px !important;
     }
 }
 
@@ -657,6 +657,39 @@
 
 .saved-bookmark.active { background: var(--color-primary); }
 .saved-bookmark:hover { transform: scale(1.1); }
+
+.saved-preview-btn {
+    position: absolute;
+    top: 1.25rem;
+    left: 1.25rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 9999px;
+    background: rgba(255,255,255,0.18);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition-fast);
+    z-index: 5;
+}
+
+.saved-preview-btn.active {
+    background: var(--color-primary);
+    box-shadow: 0 0 12px rgba(0, 101, 101, 0.4);
+}
+
+.saved-preview-btn:hover {
+    transform: scale(1.1);
+}
+
+.active-preview-card {
+    outline: 3.5px solid var(--color-primary);
+    outline-offset: -3.5px;
+    box-shadow: 0 8px 30px rgba(0, 101, 101, 0.25) !important;
+}
 
 /* AI Rec Box */
 .rec-box {

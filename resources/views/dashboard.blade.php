@@ -14,7 +14,7 @@
     <!-- CSS -->
     <link rel="stylesheet" href="{{ asset('assets/css/global.css') }}" />
     <link rel="stylesheet" href="{{ asset('assets/css/code-2.css') }}" />
-    <link rel="stylesheet" href="{{ asset('assets/css/code-3.css') }}" />
+    <link rel="stylesheet" href="{{ asset('assets/css/code-3.css') }}?v={{ time() }}" />
 
     <!-- JS -->
     <script src="{{ asset('assets/js/code-3.js') }}" defer></script>

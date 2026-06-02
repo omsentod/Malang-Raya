@@ -116,12 +116,22 @@
         grid-template-columns: repeat(12, minmax(0, 1fr));
         height: 600px;
     }
+    .gallery-main {
+        height: 600px !important;
+    }
+    .gallery-side {
+        height: 600px !important;
+    }
+    .gallery-sub {
+        height: 288px !important;
+    }
 }
 
 .gallery-main {
     position: relative;
     overflow: hidden;
     border-radius: 0.75rem;
+    height: 420px;
 }
 
 @media (min-width: 1024px) {
@@ -196,6 +206,7 @@
     position: relative;
     overflow: hidden;
     border-radius: 0.75rem;
+    height: 200px;
 }
 
 .gallery-more {
