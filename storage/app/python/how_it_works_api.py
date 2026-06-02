@@ -98,7 +98,7 @@ def xbi_per_c(datasets, budget_anchor_map):
 
 def ratio_validation(datasets, budget_anchor_map):
     """
-    Validasi 5 skema ratio (A–E) untuk setiap dataset.
+    Validasi 5 skema ratio (A-E) untuk setiap dataset.
     Returns: dict {category: [{scheme, ratio, xbi, diversity}, ...]}
     """
     results = {}
