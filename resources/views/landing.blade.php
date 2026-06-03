@@ -444,6 +444,10 @@
                         <span class="material-symbols-outlined">map</span>
                         Buka Rute di Google Maps
                     </a>
+                    <a href="#" class="ota-modal-btn-primary" id="modal-package-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); display: none; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);">
+                        <span class="material-symbols-outlined">auto_awesome</span>
+                        Buat Paket Wisata
+                    </a>
                     <button class="ota-modal-btn-secondary" id="modal-save-btn" onclick="savePlaceToggle()" aria-label="Save place">
                         <span class="material-symbols-outlined" id="modal-save-icon">bookmark</span>
                     </button>
@@ -821,6 +825,18 @@
             // Maps route link
             const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.Nama_Tempat + " Malang")}`;
             document.getElementById('modal-gmaps-link').href = mapsUrl;
+
+            // Package button visibility and href
+            const packageBtn = document.getElementById('modal-package-btn');
+            if (packageBtn) {
+                if (item.Kategori === 'Wisata') {
+                    packageBtn.style.display = 'inline-flex';
+                    packageBtn.href = `/recommender?workflow=destination&dest_id=${item.Id_Tempat}&dest_name=${encodeURIComponent(item.Nama_Tempat)}`;
+                } else {
+                    packageBtn.style.display = 'none';
+                    packageBtn.href = '#';
+                }
+            }
 
             // Check bookmark status
             const savedPlacesKey = typeof window.getSavedPlacesKey === 'function' ? window.getSavedPlacesKey() : 'saved_places';

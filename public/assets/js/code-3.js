@@ -632,6 +632,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.Nama_Tempat + " Malang")}`;
         document.getElementById('modal-gmaps-link').href = mapsUrl;
 
+        // Package button visibility and href
+        const packageBtn = document.getElementById('modal-package-btn');
+        if (packageBtn) {
+            if (item.Kategori === 'Wisata') {
+                packageBtn.style.display = 'inline-flex';
+                packageBtn.href = `/recommender?workflow=destination&dest_id=${item.Id_Tempat}&dest_name=${encodeURIComponent(item.Nama_Tempat)}`;
+            } else {
+                packageBtn.style.display = 'none';
+                packageBtn.href = '#';
+            }
+        }
+
         // Check bookmark icon
         const savedPlacesKey = typeof window.getSavedPlacesKey === 'function' ? window.getSavedPlacesKey() : 'saved_places';
         const saved = JSON.parse(localStorage.getItem(savedPlacesKey) || '[]');

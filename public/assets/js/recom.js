@@ -4335,4 +4335,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initial load UI sync
     updateBookmarkUI();
+
+    // Handle URL parameters for pre-filled destination-first workflow
+    const urlParams = new URLSearchParams(window.location.search);
+    const paramWorkflow = urlParams.get('workflow');
+    const paramDestId = urlParams.get('dest_id');
+    const paramDestName = urlParams.get('dest_name');
+
+    if (paramWorkflow === 'destination' && paramDestId) {
+        // Trigger click on destination tab
+        document.getElementById('tab-destination')?.click();
+
+        // Populate search input and hidden id input
+        const destInp = document.getElementById('d-dest-search-input');
+        const destIdInp = document.getElementById('d-dest-id');
+        if (destInp) {
+            destInp.value = paramDestName ? decodeURIComponent(paramDestName) : '';
+        }
+        if (destIdInp) {
+            destIdInp.value = paramDestId;
+        }
+
+        // Scroll to form card
+        const formCard = document.getElementById('main-card');
+        if (formCard) {
+            setTimeout(() => {
+                formCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 300);
+        }
+    }
 });

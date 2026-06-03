@@ -570,6 +570,10 @@
                         <span class="material-symbols-outlined">map</span>
                         Buka Rute di Google Maps
                     </a>
+                    <a href="#" class="ota-modal-btn-primary" id="modal-package-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); display: none; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);">
+                        <span class="material-symbols-outlined">auto_awesome</span>
+                        Buat Paket Wisata
+                    </a>
                     <button class="ota-modal-btn-secondary" id="modal-save-btn" onclick="savePlaceToggle()" aria-label="Save place">
                         <span class="material-symbols-outlined" id="modal-save-icon">bookmark</span>
                     </button>
