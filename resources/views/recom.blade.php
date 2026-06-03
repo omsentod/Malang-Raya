@@ -278,7 +278,7 @@
                                     pointer-events: none;
                                     font-size: 20px;
                                 ">search</span>
-                                <input type="text" class="form-input" id="d-dest-search-input" placeholder="museum angkut" autocomplete="off" required style="width: 100%; box-sizing: border-box; padding-left: 42px;" />
+                                <input type="text" class="form-input" id="d-dest-search-input" placeholder="misal : Museum Angkut" autocomplete="off" required style="width: 100%; box-sizing: border-box; padding-left: 42px;" />
                             </div>
                             <input type="hidden" id="d-dest-id" name="dest_id" required />
                             <div class="search-autocomplete-dropdown" id="d-dest-autocomplete-dropdown" style="
