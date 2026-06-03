@@ -263,7 +263,7 @@
                     </div>
                     <div class="card-body">
                         <h3 class="card-title" style="color:#fff;">Sudah Tahu Mau ke Mana?</h3>
-                        <p class="card-desc" style="color:rgba(255,255,255,0.75);">Berikan daftar destinasi impian Anda, dan biarkan AI kami merancang rute perjalanan terefisien di Malang Raya.</p>
+                        <p class="card-desc" style="color:rgba(255,255,255,0.75);">Berikan daftar destinasi impian Anda, dan biarkan sistem FCM merancang rute perjalanan terefisien di Malang Raya.</p>
                     </div>
                     <a href="/recommender" class="btn-card-white">
                         Input Destinasi
@@ -301,7 +301,7 @@
                         <ul class="stats-list">
                             <li class="stats-list-item">
                                 <span class="material-symbols-outlined list-icon">check_circle</span>
-                                <span>12.4k+ Rekomendasi AI Berhasil Dibuat</span>
+                                <span>12.4k+ Rekomendasi FCM Berhasil Dibuat</span>
                             </li>
                             <li class="stats-list-item">
                                 <span class="material-symbols-outlined list-icon">check_circle</span>
@@ -356,7 +356,7 @@
             <div class="cta-inner reveal">
                 <div class="cta-text">
                     <h2 class="cta-title">Siap Merencanakan Perjalanan?</h2>
-                    <p class="cta-desc">Masukkan budget Anda dan biarkan AI kami bekerja dalam hitungan detik.</p>
+                    <p class="cta-desc">Masukkan budget Anda dan biarkan sistem FCM bekerja dalam hitungan detik.</p>
                 </div>
                 <a href="/recommender" class="btn-teal">
                     Mulai Sekarang
@@ -841,7 +841,8 @@
             // Check bookmark status
             const savedPlacesKey = typeof window.getSavedPlacesKey === 'function' ? window.getSavedPlacesKey() : 'saved_places';
             const saved = JSON.parse(localStorage.getItem(savedPlacesKey) || '[]');
-            const isSaved = saved.some(id => id === item.Id_Tempat);
+            const uniqueId = `${item.Kategori}_${item.Id_Tempat}`;
+            const isSaved = saved.some(id => id === uniqueId || id === item.Id_Tempat);
             const saveIcon = document.getElementById('modal-save-icon');
             if (saveIcon) {
                 saveIcon.textContent = isSaved ? 'bookmark_added' : 'bookmark';
@@ -948,7 +949,8 @@
             if (!activePlace) return;
             const savedPlacesKey = typeof window.getSavedPlacesKey === 'function' ? window.getSavedPlacesKey() : 'saved_places';
             const saved = JSON.parse(localStorage.getItem(savedPlacesKey) || '[]');
-            const index = saved.indexOf(activePlace.Id_Tempat);
+            const uniqueId = `${activePlace.Kategori}_${activePlace.Id_Tempat}`;
+            const index = saved.findIndex(id => id === uniqueId || id === activePlace.Id_Tempat);
             const saveIcon = document.getElementById('modal-save-icon');
 
             if (index > -1) {
@@ -956,7 +958,7 @@
                 saveIcon.textContent = 'bookmark';
                 saveIcon.style.color = 'inherit';
             } else {
-                saved.push(activePlace.Id_Tempat);
+                saved.push(uniqueId);
                 saveIcon.textContent = 'bookmark_added';
                 saveIcon.style.color = 'var(--color-primary)';
             }

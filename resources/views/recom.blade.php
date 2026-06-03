@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Sistem Rekomendasi Paket Wisata Malang Raya — pilih workflow sesuai kebutuhanmu." />
-    <title>Rekomendasi Wisata — Malang Raya AI</title>
+    <title>Rekomendasi Wisata — Malang Raya FCM</title>
     <link rel="icon" type="image/png" href="{{ asset('assets/GAMBAR/logo-tree.png') }}" />
 
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -93,7 +93,7 @@
                         <div class="form-card-icon"><span class="material-symbols-outlined">calculate</span></div>
                         <div>
                             <div class="form-card-title">Budget-First Workflow</div>
-                            <div class="form-card-sub">Masukkan total anggaran → AI menemukan paket Hemat / Balanced / Premium</div>
+                            <div class="form-card-sub">Masukkan total anggaran → FCM menemukan paket Hemat / Balanced / Premium</div>
                         </div>
                     </div>
                     <div class="wf-info-box">
@@ -160,7 +160,7 @@
                                 <option value="mobil">Mobil Standard (GoCar — Maks. 4 orang)</option>
                                 <option value="mobil_xl">Mobil XL (GoCar XL — Maks. 6 orang)</option>
                             </select>
-                            <span class="form-hint">Pilih kustomisasi moda transportasi atau biarkan otomatis dioptimalkan AI</span>
+                            <span class="form-hint">Pilih kustomisasi moda transportasi atau biarkan otomatis dioptimalkan FCM</span>
                             <div id="b-capacity-warning" class="budget-warning-box" style="display:none;"></div>
                         </div>
 
@@ -255,7 +255,7 @@
                         </div>
                         <div>
                             <div class="form-card-title">Destination-First Workflow</div>
-                            <div class="form-card-sub">Kunci 1 destinasi wisata → AI optimalkan hotel & kuliner pendukungnya</div>
+                            <div class="form-card-sub">Kunci 1 destinasi wisata → FCM optimalkan hotel & kuliner pendukungnya</div>
                         </div>
                     </div>
                     <div class="wf-info-box" style="background:#fffbeb;border-color:#fde68a;color:#b45309">
@@ -331,7 +331,7 @@
                                 <option value="mobil">Mobil Standard (GoCar — Maks. 4 orang)</option>
                                 <option value="mobil_xl">Mobil XL (GoCar XL — Maks. 6 orang)</option>
                             </select>
-                            <span class="form-hint">Pilih kustomisasi moda transportasi atau biarkan otomatis dioptimalkan AI</span>
+                            <span class="form-hint">Pilih kustomisasi moda transportasi atau biarkan otomatis dioptimalkan FCM</span>
                             <div id="d-capacity-warning" class="budget-warning-box" style="display:none;"></div>
                         </div>
 
@@ -379,7 +379,7 @@
                 <!-- ── LOADING ── -->
                 <div class="loading-overlay" id="loading-overlay">
                     <div class="loading-ring"></div>
-                    <div class="loading-title">AI Sedang Menganalisis...</div>
+                    <div class="loading-title">FCM Sedang Menganalisis...</div>
                     <p style="font-size:13px;color:var(--slate-500)">Fuzzy C-Means Clustering sedang bekerja</p>
                     <div class="loading-steps">
                         <div class="loading-step active" id="ls-1">
@@ -427,7 +427,7 @@
                     <div class="mode-toggle-container" id="mode-toggle-container" style="display: none;">
                         <button class="mode-btn active" id="mode-btn-auto">
                             <span class="material-symbols-outlined">auto_awesome</span>
-                            <span>Mode Otomatis (Paket AI)</span>
+                            <span>Mode Otomatis (Paket FCM)</span>
                         </button>
                         <button class="mode-btn" id="mode-btn-custom">
                             <span class="material-symbols-outlined">architecture</span>
@@ -462,7 +462,7 @@
                 <p class="g-footer-copy">© 2026 Sistem Rekomendasi Wisata. Intelligence by FCM Clustering.</p>
             </div>
             <div class="g-footer-links">
-                <a class="g-footer-link" href="/how-it-works">Cara Kerja AI</a>
+                <a class="g-footer-link" href="/how-it-works">Cara Kerja FCM</a>
                 <a class="g-footer-link" href="/directory">Directory</a>
             </div>
         </div>

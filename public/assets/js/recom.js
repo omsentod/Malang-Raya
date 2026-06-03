@@ -30,6 +30,270 @@ document.addEventListener('DOMContentLoaded', () => {
     let allOptions = [];
     let searchIndex = [];
 
+    // Helper to turn native select dropdowns into beautiful custom dropdowns
+    function initializeCustomSelects() {
+        function getOptionGraphic(val, text) {
+            const textLower = text.toLowerCase();
+            const valLower = String(val).toLowerCase();
+            
+            // Otomatis / AI
+            if (valLower === '' && textLower.includes('otomatis')) {
+                return `
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;">
+  <rect width="24" height="24" rx="6" fill="url(#ai-grad)" />
+  <path d="M12 6L13.5 9.5L17 11L13.5 12.5L12 16L10.5 12.5L7 11L10.5 9.5L12 6Z" fill="white"/>
+  <path d="M6 16L6.75 17.75L8.5 18.5L6.75 19.25L6 21L5.25 19.25L3.5 18.5L5.25 17.75L6 16Z" fill="white" opacity="0.8"/>
+  <path d="M18 4L18.5 5.5L20 6L18.5 6.5L18 8L17.5 6.5L16 6L17.5 5.5L18 4Z" fill="white" opacity="0.8"/>
+  <defs>
+    <linearGradient id="ai-grad" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#06b6d4"/>
+      <stop offset="1" stop-color="#0d9488"/>
+    </linearGradient>
+  </defs>
+</svg>`;
+            }
+            // Motor
+            if (valLower === 'motor' || textLower.includes('motor')) {
+                return `
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;">
+  <rect width="24" height="24" rx="6" fill="url(#motor-grad)" />
+  <path d="M19 12H17.56L15.34 8.67C15.01 8.18 14.45 7.88 13.86 7.88H10.5V6.5C10.5 5.95 10.05 5.5 9.5 5.5C8.95 5.5 8.5 5.95 8.5 6.5V7.88H5C3.9 7.88 3 8.78 3 9.88V12C3 13.1 3.9 14 5 14H6.18C6.6 15.17 7.7 16 9 16C10.3 16 11.4 15.17 11.82 14H15.18C15.6 15.17 16.7 16 18 16C19.3 16 20.4 15.17 20.82 14H21C21.55 14 22 13.55 22 13C22 12.45 21.55 12 21 12H19ZM9 14.5C8.17 14.5 7.5 13.83 7.5 13C7.5 12.17 8.17 11.5 9 11.5C9.83 11.5 10.5 12.17 10.5 13C10.5 13.83 9.83 14.5 9 14.5ZM18 14.5C17.17 14.5 16.5 13.83 16.5 13C16.5 12.17 17.17 11.5 18 11.5C18.83 11.5 19.5 12.17 19.5 13C19.5 13.83 18.83 14.5 18 14.5Z" fill="white"/>
+  <defs>
+    <linearGradient id="motor-grad" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#10b981"/>
+      <stop offset="1" stop-color="#047857"/>
+    </linearGradient>
+  </defs>
+</svg>`;
+            }
+            // Mobil Standard
+            if (valLower === 'mobil' || (textLower.includes('gocar') && !textLower.includes('xl')) || textLower.includes('standard')) {
+                return `
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;">
+  <rect width="24" height="24" rx="6" fill="url(#car-grad)" />
+  <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5H6.5C5.84 5 5.29 5.42 5.08 6.01L3 12V19C3 19.55 3.45 20 4 20H5C5.55 20 6 19.55 6 19V18H18V19C18 19.55 18.45 20 19 20H20C20.55 20 21 19.55 21 19V12L18.92 6.01ZM6.5 16C5.67 16 5 15.33 5 14.5C5 13.67 5.67 13 6.5 13C7.33 13 8 13.67 8 14.5C8 15.33 7.33 16 6.5 16ZM17.5 16C16.67 16 16 15.33 16 14.5C16 13.67 16.67 13 17.5 13C18.33 13 19 13.67 19 14.5C19 15.33 18.33 16 17.5 16ZM5 11L6.5 6.5H17.5L19 11H5Z" fill="white"/>
+  <defs>
+    <linearGradient id="car-grad" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#f59e0b"/>
+      <stop offset="1" stop-color="#d97706"/>
+    </linearGradient>
+  </defs>
+</svg>`;
+            }
+            // Mobil XL
+            if (valLower === 'mobil_xl' || textLower.includes('xl') || textLower.includes('gocar xl')) {
+                return `
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;">
+  <rect width="24" height="24" rx="6" fill="url(#car-xl-grad)" />
+  <path d="M17 5H7C5.9 5 5 5.9 5 7V17C5 17.55 5.45 18 6 18H7C7.55 18 8 17.55 8 17V16H16V17C16 17.55 16.45 18 17 18H18C18.55 18 19 17.55 19 17V7C19 5.9 18.1 5 17 5ZM8.5 14C7.67 14 7 13.33 7 12.5C7 11.67 7.67 11 8.5 11C9.33 11 10 11.67 10 12.5C10 13.33 9.33 14 8.5 14ZM15.5 14C14.67 14 14 13.33 14 12.5C14 11.67 14.67 11 15.5 11C16.33 11 17 11.67 17 12.5C17 13.33 16.33 14 15.5 14ZM6.5 9H17.5V6.5H6.5V9Z" fill="white"/>
+  <defs>
+    <linearGradient id="car-xl-grad" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8b5cf6"/>
+      <stop offset="1" stop-color="#6d28d9"/>
+    </linearGradient>
+  </defs>
+</svg>`;
+            }
+            // Same Hotel
+            if (valLower === 'same' || textLower.includes('sama') || textLower.includes('stay') || textLower.includes('same')) {
+                return `
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;">
+  <rect width="24" height="24" rx="6" fill="url(#hotel-same-grad)" />
+  <path d="M7 13H9V15H7V13ZM7 9H9V11H7V9ZM7 5H9V7H7V5ZM11 13H13V15H11V13ZM11 9H13V11H11V9ZM11 5H13V7H11V5ZM15 13H17V15H15V13ZM15 9H17V11H15V9ZM15 5H17V7H15V5ZM19 3H5C3.9 3 3 3.9 3 5V19C3 19.55 3.45 20 4 20H20C20.55 20 21 19.55 21 19V5C21 3.9 20.1 3 19 3ZM19 18H5V5H19V18Z" fill="white"/>
+  <defs>
+    <linearGradient id="hotel-same-grad" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#06b6d4"/>
+      <stop offset="1" stop-color="#0891b2"/>
+    </linearGradient>
+  </defs>
+</svg>`;
+            }
+            // Split Hotel
+            if (valLower === 'split' || textLower.includes('pindah') || textLower.includes('split')) {
+                return `
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;">
+  <rect width="24" height="24" rx="6" fill="url(#hotel-split-grad)" />
+  <path d="M19 8l-4 4h3c0 3.31-2.69 6-6 6-1.01 0-1.97-.25-2.8-.7l-1.46 1.46C8.97 19.54 10.43 20 12 20c4.42 0 8-3.58 8-8h3l-4-4zM6 12c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.7l1.46-1.46C15.03 4.46 13.57 4 12 4c-4.42 0-8 3.58-8 8H1l4 4 4-4H6z" fill="white"/>
+  <defs>
+    <linearGradient id="hotel-split-grad" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ec4899"/>
+      <stop offset="1" stop-color="#db2777"/>
+    </linearGradient>
+  </defs>
+</svg>`;
+            }
+            return '';
+        }
+
+        document.querySelectorAll('select.form-input-select').forEach(selectEl => {
+            if (selectEl.dataset.customized || selectEl.id === 'ai-alternatives-select') return;
+            selectEl.dataset.customized = 'true';
+            
+            selectEl.style.display = 'none';
+            
+            const container = document.createElement('div');
+            container.className = 'custom-select-dropdown-container';
+            container.style.cssText = 'position: relative; width: 100%;';
+            
+            const options = Array.from(selectEl.options);
+            const activeOption = selectEl.options[selectEl.selectedIndex] || selectEl.options[0];
+            const selectedLabel = activeOption ? activeOption.text : '';
+            const activeGraphic = activeOption ? getOptionGraphic(activeOption.value, activeOption.text) : '';
+            
+            let menuItemsHTML = options.map((opt, i) => {
+                const isSelected = selectEl.selectedIndex === i;
+                const optGraphic = getOptionGraphic(opt.value, opt.text);
+                return `
+                    <button type="button" class="custom-select-item ${isSelected ? 'active' : ''}" data-value="${opt.value}" style="
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-between;
+                        width: 100%;
+                        padding: 10px 14px;
+                        font-size: 13px;
+                        font-weight: 750;
+                        color: ${isSelected ? 'var(--teal-700)' : 'var(--slate-600)'};
+                        background: ${isSelected ? 'rgba(20, 184, 166, 0.08)' : 'transparent'};
+                        border-radius: 10px;
+                        border: none;
+                        cursor: pointer;
+                        transition: all 0.15s ease;
+                        text-align: left;
+                        margin-bottom: 2px;
+                        font-family: inherit;
+                    ">
+                        <div style="display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1;">
+                            ${optGraphic ? optGraphic : ''}
+                            <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${opt.text}</span>
+                        </div>
+                        ${isSelected ? '<span class="material-symbols-outlined" style="font-size: 16px; color: var(--teal-600); flex-shrink: 0;">check_circle</span>' : ''}
+                    </button>
+                `;
+            }).join('');
+            
+            container.innerHTML = `
+                <button type="button" class="custom-select-trigger" style="
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    width: 100%;
+                    padding: 12px 16px;
+                    font-size: 14px;
+                    font-weight: 700;
+                    color: var(--slate-700);
+                    background: var(--slate-50);
+                    border: 1.5px solid var(--slate-200);
+                    border-radius: 12px;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    text-align: left;
+                    font-family: inherit;
+                ">
+                    <div style="display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1;">
+                        <span class="trigger-prefix-icon" style="display:flex; align-items:center; flex-shrink:0;">
+                            ${activeGraphic ? activeGraphic : ''}
+                        </span>
+                        <span class="custom-select-trigger-text" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${selectedLabel}</span>
+                    </div>
+                    <span class="material-symbols-outlined select-arrow-icon" style="color: var(--slate-400); font-size: 18px; transition: transform 0.2s;">expand_more</span>
+                </button>
+                
+                <div class="custom-select-menu" style="
+                    position: absolute;
+                    top: calc(100% + 6px);
+                    left: 0;
+                    right: 0;
+                    background: rgba(255, 255, 255, 0.98);
+                    backdrop-filter: blur(20px);
+                    -webkit-backdrop-filter: blur(20px);
+                    border: 1.5px solid var(--slate-200);
+                    border-radius: 14px;
+                    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.1);
+                    z-index: 1500;
+                    display: none;
+                    flex-direction: column;
+                    padding: 6px;
+                    box-sizing: border-box;
+                ">
+                    ${menuItemsHTML}
+                </div>
+            `;
+            
+            selectEl.parentNode.insertBefore(container, selectEl.nextSibling);
+            
+            const triggerBtn = container.querySelector('.custom-select-trigger');
+            const menuList = container.querySelector('.custom-select-menu');
+            const arrowIcon = triggerBtn.querySelector('.select-arrow-icon');
+            
+            triggerBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const isOpen = menuList.classList.contains('open');
+                
+                // Close other open custom select menus
+                document.querySelectorAll('.custom-select-menu').forEach(m => {
+                    if (m !== menuList) m.classList.remove('open');
+                });
+                document.querySelectorAll('.select-arrow-icon').forEach(a => {
+                    if (a !== arrowIcon) a.style.transform = 'rotate(0deg)';
+                });
+                
+                if (isOpen) {
+                    menuList.classList.remove('open');
+                    if (arrowIcon) arrowIcon.style.transform = 'rotate(0deg)';
+                } else {
+                    menuList.classList.add('open');
+                    if (arrowIcon) arrowIcon.style.transform = 'rotate(180deg)';
+                }
+            });
+            
+            menuList.querySelectorAll('.custom-select-item').forEach((itemEl, idx) => {
+                itemEl.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    menuList.classList.remove('open');
+                    if (arrowIcon) arrowIcon.style.transform = 'rotate(0deg)';
+                    
+                    container.querySelector('.custom-select-trigger-text').textContent = itemEl.querySelector('span').textContent;
+                    
+                    // Update trigger icon
+                    const triggerIcon = triggerBtn.querySelector('.trigger-prefix-icon');
+                    const optionIcon = itemEl.querySelector('svg');
+                    if (triggerIcon) {
+                        triggerIcon.innerHTML = optionIcon ? optionIcon.outerHTML : '';
+                    }
+                    
+                    menuList.querySelectorAll('.custom-select-item').forEach(btn => {
+                        btn.classList.remove('active');
+                        btn.style.color = 'var(--slate-600)';
+                        btn.style.background = 'transparent';
+                        const checkIcon = btn.querySelector('.material-symbols-outlined');
+                        checkIcon?.remove();
+                    });
+                    itemEl.classList.add('active');
+                    itemEl.style.color = 'var(--teal-700)';
+                    itemEl.style.background = 'rgba(20, 184, 166, 0.08)';
+                    
+                    const checkSpan = document.createElement('span');
+                    checkSpan.className = 'material-symbols-outlined';
+                    checkSpan.style.cssText = 'font-size: 16px; color: var(--teal-600); flex-shrink: 0;';
+                    checkSpan.textContent = 'check_circle';
+                    itemEl.appendChild(checkSpan);
+                    
+                    selectEl.selectedIndex = idx;
+                    selectEl.dispatchEvent(new Event('change'));
+                });
+            });
+        });
+        
+        // Document click to close all custom select menus
+        document.addEventListener('click', () => {
+            document.querySelectorAll('.custom-select-menu').forEach(m => m.classList.remove('open'));
+            document.querySelectorAll('.select-arrow-icon').forEach(a => a.style.transform = 'rotate(0deg)');
+        });
+    }
+
+    // Initialize custom selects immediately on load
+    initializeCustomSelects();
+
     // Asynchronously fetch search index
     fetch('/assets/search_index.json')
         .then(res => res.json())
@@ -1284,64 +1548,210 @@ document.addEventListener('DOMContentLoaded', () => {
                 visibleOptions = options.slice(0, 5);
             }
 
+            const activeOpt = options.find(opt => opt.active) || options[0];
+            const activeFirstPkg = activeOpt.packages && activeOpt.packages[0];
+            const activeWName = activeFirstPkg ? activeFirstPkg.wisata_nama : '';
+            const activeWFolder = activeWName ? activeWName.trim().replace(/ /g, '_') : '';
+            const activeImgUrl = activeWFolder ? `/assets/GAMBAR/wisata/${activeWFolder}/${activeWFolder}-1.jpg` : '';
+
             let dropdownHTML = `
-                <div class="custom-select-wrapper" style="max-width: 380px; margin-top: 8px; margin-bottom: 8px;">
-                    <select class="custom-select-element" id="ai-alternatives-select" style="padding: 10px 40px 10px 14px; font-size: 13px;">
+                <div class="custom-select-dropdown-container" style="position: relative; max-width: 380px; width: 100%; margin-top: 8px; margin-bottom: 8px; z-index: 50;">
+                    <button type="button" class="custom-select-trigger" id="ai-alternatives-trigger" style="
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        width: 100%;
+                        padding: 8px 14px;
+                        font-size: 13.5px;
+                        font-weight: 800;
+                        color: var(--slate-800);
+                        background: #fff;
+                        border: 1.5px solid var(--slate-200);
+                        border-radius: 12px;
+                        cursor: pointer;
+                        transition: all 0.2s ease;
+                        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+                        text-align: left;
+                    ">
+                        <div style="display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1;">
+                            <div class="suggestion-thumb-wrap" style="width: 38px; height: 38px; border-radius: 6px; overflow: hidden; flex-shrink: 0; background: var(--slate-100); border: 1px solid var(--slate-200);">
+                                <img class="suggestion-thumb" id="ai-alternatives-trigger-img" src="${activeImgUrl}" alt="${escapeHtmlAttr(activeWName)}" onerror="handleImgErrorRecom(this, 'landscape')" style="width: 100%; height: 100%; object-fit: cover;" />
+                            </div>
+                            <div style="display: flex; flex-direction: column; min-width: 0; flex: 1;">
+                                <span class="custom-select-trigger-text" style="font-size: 13px; font-weight: 800; color: var(--slate-800);">Opsi Alternatif ${activeOpt.option_index}</span>
+                                <span class="custom-select-trigger-sub" style="font-size: 11px; color: var(--slate-500); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px;">
+                                    📍 ${activeWName || 'Wisata'}
+                                </span>
+                            </div>
+                        </div>
+                        <span class="material-symbols-outlined select-arrow-icon" style="color: var(--slate-400); font-size: 18px; transition: transform 0.2s; margin-left: 8px;">expand_more</span>
+                    </button>
+                    
+                    <div class="custom-select-menu" id="ai-alternatives-menu" style="
+                        position: absolute;
+                        top: calc(100% + 6px);
+                        left: 0;
+                        right: 0;
+                        background: rgba(255, 255, 255, 0.98);
+                        backdrop-filter: blur(20px);
+                        -webkit-backdrop-filter: blur(20px);
+                        border: 1.5px solid var(--slate-200);
+                        border-radius: 14px;
+                        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.1);
+                        z-index: 1500;
+                        display: none;
+                        flex-direction: column;
+                        overflow-y: auto;
+                        max-height: 250px;
+                        padding: 6px;
+                        box-sizing: border-box;
+                    ">
             `;
 
             dropdownHTML += visibleOptions.map((opt, i) => {
                 const isSelected = opt.active;
-                // Proximity display fallback if not present
-                const proximityVal = opt.proximity !== undefined ? opt.proximity : (1.0 - i * 0.05);
+                const firstPkg = opt.packages && opt.packages[0];
+                const wName = firstPkg ? firstPkg.wisata_nama : '';
+                const wFolder = wName ? wName.trim().replace(/ /g, '_') : '';
+                const imgUrl = wFolder ? `/assets/GAMBAR/wisata/${wFolder}/${wFolder}-1.jpg` : '';
                 return `
-                    <option value="${i}" ${isSelected ? 'selected' : ''}>
-                        Opsi Alternatif ${opt.option_index} — Kecocokan ${Math.round(proximityVal * 100)}%
-                    </option>
+                        <button type="button" class="custom-select-item ${isSelected ? 'active' : ''}" data-idx="${i}" style="
+                            display: flex;
+                            align-items: center;
+                            justify-content: space-between;
+                            width: 100%;
+                            padding: 10px 14px;
+                            font-size: 13px;
+                            font-weight: 700;
+                            color: ${isSelected ? 'var(--teal-700)' : 'var(--slate-600)'};
+                            background: ${isSelected ? 'rgba(20, 184, 166, 0.08)' : 'transparent'};
+                            border-radius: 10px;
+                            border: none;
+                            cursor: pointer;
+                            transition: all 0.15s ease;
+                            text-align: left;
+                            margin-bottom: 2px;
+                        ">
+                            <div style="display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1;">
+                                <div class="suggestion-thumb-wrap" style="width: 42px; height: 42px; border-radius: 8px; overflow: hidden; flex-shrink: 0; background: var(--slate-100); border: 1px solid var(--slate-200);">
+                                    <img class="suggestion-thumb" src="${imgUrl}" alt="${escapeHtmlAttr(wName)}" onerror="handleImgErrorRecom(this, 'landscape')" style="width: 100%; height: 100%; object-fit: cover;" />
+                                </div>
+                                <div style="display: flex; flex-direction: column; min-width: 0; flex: 1;">
+                                    <span style="font-size: 13px; font-weight: 800; color: ${isSelected ? 'var(--teal-700)' : 'var(--slate-700)'};">Opsi Alternatif ${opt.option_index}</span>
+                                    <span style="font-size: 11px; color: var(--slate-500); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px;">
+                                        📍 ${wName || 'Wisata'}
+                                    </span>
+                                </div>
+                            </div>
+                            ${isSelected ? '<span class="material-symbols-outlined" style="font-size: 16px; color: var(--teal-600); margin-left: 8px;">check_circle</span>' : ''}
+                        </button>
                 `;
             }).join('');
 
             if (needsViewAll && !isShowingAll) {
-                dropdownHTML += `<option value="__view_all__">🔍 Lihat Semua (${options.length} Opsi)...</option>`;
+                dropdownHTML += `
+                        <button type="button" class="custom-select-item view-all-trigger" style="
+                            display: flex;
+                            align-items: center;
+                            gap: 8px;
+                            width: 100%;
+                            padding: 10px 14px;
+                            font-size: 13px;
+                            font-weight: 700;
+                            color: var(--teal-600);
+                            background: transparent;
+                            border-radius: 10px;
+                            border: none;
+                            cursor: pointer;
+                            transition: all 0.15s ease;
+                            text-align: left;
+                            margin-top: 4px;
+                            border-top: 1px solid var(--slate-100);
+                        ">
+                            <span class="material-symbols-outlined" style="font-size: 16px;">search</span>
+                            <span>Lihat Semua (${options.length} Opsi)...</span>
+                        </button>
+                `;
             }
 
             dropdownHTML += `
-                    </select>
-                    <span class="material-symbols-outlined select-arrow" style="right: 14px; top: 50%; transform: translateY(-50%); font-size: 18px;">unfold_more</span>
+                    </div>
                 </div>
             `;
 
             tabsEl.innerHTML = dropdownHTML;
             tabsContainer.style.display = 'flex';
 
-            // Attach event listener
-            const selectEl = document.getElementById('ai-alternatives-select');
-            selectEl?.addEventListener('change', () => {
-                const val = selectEl.value;
-                if (val === '__view_all__') {
-                    showingAllAIAlternatives = true;
-                    showResults(options, workflowLabel);
-                    // Automatically focus select dropdown
-                    document.getElementById('ai-alternatives-select')?.focus();
-                    return;
+            // Attach event listeners for custom select
+            const triggerBtn = document.getElementById('ai-alternatives-trigger');
+            const menuList = document.getElementById('ai-alternatives-menu');
+            const arrowIcon = triggerBtn?.querySelector('.select-arrow-icon');
+
+            triggerBtn?.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const isOpen = menuList.classList.contains('open');
+                
+                // Close other open custom select menus
+                document.querySelectorAll('.custom-select-menu').forEach(m => {
+                    if (m !== menuList) m.classList.remove('open');
+                });
+                
+                if (isOpen) {
+                    menuList.classList.remove('open');
+                    if (arrowIcon) arrowIcon.style.transform = 'rotate(0deg)';
+                } else {
+                    menuList.classList.add('open');
+                    if (arrowIcon) arrowIcon.style.transform = 'rotate(180deg)';
                 }
+            });
 
-                const idx = parseInt(val);
-                // Mark active option
-                options.forEach((opt, i) => opt.active = (i === idx));
+            // Close menu on clicking outside
+            document.addEventListener('click', () => {
+                if (menuList) menuList.classList.remove('open');
+                if (arrowIcon) arrowIcon.style.transform = 'rotate(0deg)';
+            });
 
-                const selPackages = options[idx].packages;
-                const dur = selPackages[0]?.duration || 1;
+            menuList?.querySelectorAll('.custom-select-item').forEach(itemEl => {
+                itemEl.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    menuList.classList.remove('open');
+                    if (arrowIcon) arrowIcon.style.transform = 'rotate(0deg)';
 
-                if (dur > 1) {
-                    const isCustom = document.getElementById('mode-btn-custom')?.classList.contains('active');
-                    if (isCustom) {
-                        initPlannerWizard(selPackages);
+                    if (itemEl.classList.contains('view-all-trigger')) {
+                        showingAllAIAlternatives = true;
+                        showResults(options, workflowLabel);
+                        // Auto-open menu again to show all options
+                        setTimeout(() => {
+                            const m = document.getElementById('ai-alternatives-menu');
+                            const t = document.getElementById('ai-alternatives-trigger');
+                            if (m) m.classList.add('open');
+                            if (t) {
+                                const arr = t.querySelector('.select-arrow-icon');
+                                if (arr) arr.style.transform = 'rotate(180deg)';
+                            }
+                        }, 50);
+                        return;
+                    }
+
+                    const idx = parseInt(itemEl.dataset.idx);
+                    options.forEach((opt, i) => opt.active = (i === idx));
+
+                    showResults(options, workflowLabel);
+
+                    const selPackages = options[idx].packages;
+                    const dur = selPackages[0]?.duration || 1;
+
+                    if (dur > 1) {
+                        const isCustom = document.getElementById('mode-btn-custom')?.classList.contains('active');
+                        if (isCustom) {
+                            initPlannerWizard(selPackages);
+                        } else {
+                            renderPackages(selPackages);
+                        }
                     } else {
                         renderPackages(selPackages);
                     }
-                } else {
-                    renderPackages(selPackages);
-                }
+                });
             });
         } else if (tabsContainer) {
             tabsContainer.style.display = 'none';
@@ -1375,9 +1785,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 const tabsCont = document.getElementById('options-tabs-container');
                 if (tabsCont) tabsCont.style.display = 'flex';
 
-                const activeTab = document.querySelector('.opt-tab.active');
-                const idx = activeTab ? parseInt(activeTab.dataset.idx) : 0;
-                renderPackages(allOptions[idx]?.packages || initialPackages);
+                const idx = allOptions.findIndex(opt => opt.active);
+                const activeIdx = idx !== -1 ? idx : 0;
+                renderPackages(allOptions[activeIdx]?.packages || initialPackages);
             });
 
             // Click Mode Custom
@@ -1392,9 +1802,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 const tabsCont = document.getElementById('options-tabs-container');
                 if (tabsCont) tabsCont.style.display = 'none';
 
-                const activeTab = document.querySelector('.opt-tab.active');
-                const idx = activeTab ? parseInt(activeTab.dataset.idx) : 0;
-                initPlannerWizard(allOptions[idx]?.packages || initialPackages);
+                const idx = allOptions.findIndex(opt => opt.active);
+                const activeIdx = idx !== -1 ? idx : 0;
+                initPlannerWizard(allOptions[activeIdx]?.packages || initialPackages);
             });
         } else {
             if (modeToggle) modeToggle.style.display = 'none';
@@ -1774,7 +2184,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (pkg.itinerary && pkg.itinerary.length > 0) {
                 html += `
                 <div style="font-weight: 800; font-size: 15px; color: var(--slate-800); margin: 24px 0 12px; border-bottom: 1.5px solid var(--slate-100); padding-bottom: 6px;">
-                    📅 Rencana Perjalanan Harian (Variasi Klaster AI)
+                    📅 Rencana Perjalanan Harian (Variasi Klaster FCM)
                 </div>
                 <div class="ota-itinerary-list" style="display:flex; flex-direction:column; gap:10px; margin-bottom: 24px;">
                     ${pkg.itinerary.map(day => `

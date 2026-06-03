@@ -817,7 +817,8 @@
             // Check bookmark
             const savedPlacesKey = typeof window.getSavedPlacesKey === 'function' ? window.getSavedPlacesKey() : 'saved_places';
             const saved = JSON.parse(localStorage.getItem(savedPlacesKey) || '[]');
-            const isSaved = saved.some(id => id === item.Id_Tempat);
+            const uniqueId = `${item.Kategori}_${item.Id_Tempat}`;
+            const isSaved = saved.some(id => id === uniqueId || id === item.Id_Tempat);
             const saveIcon = document.getElementById('modal-save-icon');
             if (saveIcon) {
                 saveIcon.textContent = isSaved ? 'bookmark_added' : 'bookmark';
@@ -912,7 +913,8 @@
             if (!activePlace) return;
             const savedPlacesKey = typeof window.getSavedPlacesKey === 'function' ? window.getSavedPlacesKey() : 'saved_places';
             const saved = JSON.parse(localStorage.getItem(savedPlacesKey) || '[]');
-            const index = saved.indexOf(activePlace.Id_Tempat);
+            const uniqueId = `${activePlace.Kategori}_${activePlace.Id_Tempat}`;
+            const index = saved.findIndex(id => id === uniqueId || id === activePlace.Id_Tempat);
             const saveIcon = document.getElementById('modal-save-icon');
 
             if (index > -1) {
@@ -920,7 +922,7 @@
                 saveIcon.textContent = 'bookmark';
                 saveIcon.style.color = 'inherit';
             } else {
-                saved.push(activePlace.Id_Tempat);
+                saved.push(uniqueId);
                 saveIcon.textContent = 'bookmark_added';
                 saveIcon.style.color = 'var(--color-primary)';
             }

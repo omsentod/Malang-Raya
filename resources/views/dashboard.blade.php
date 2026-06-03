@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Dashboard wisata Malang Raya — lihat destinasi tersimpan, rekomendasi AI, dan alokasi budget perjalanan Anda." />
+    <meta name="description" content="Dashboard wisata Malang Raya — lihat destinasi tersimpan, rekomendasi FCM, dan alokasi budget perjalanan Anda." />
     <title>Saved — Malang Raya Tourism</title>
     <link rel="icon" type="image/png" href="{{ asset('assets/GAMBAR/logo-tree.png') }}" />
 
@@ -148,11 +148,14 @@
                         </div>
 
                         <div class="booking-actions">
-                            <button class="btn-book">Book Now</button>
-                            <button class="btn-save">
-                                <span class="material-symbols-outlined">bookmark</span>
-                                Save to My Plan
+                            <button class="btn-book">
+                                <span class="material-symbols-outlined">map</span>
+                                Open Google Maps
                             </button>
+                            <a href="#" class="btn-save" id="bento-package-btn" style="display: none; text-decoration: none; background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);">
+                                <span class="material-symbols-outlined">auto_awesome</span>
+                                Buat Paket Wisata
+                            </a>
                         </div>
 
                         <div class="ai-suggestion">
@@ -160,7 +163,7 @@
                                 <span class="material-symbols-outlined">auto_awesome</span>
                             </div>
                             <p class="ai-text">
-                                AI kami menyarankan kunjungan saat <strong>Golden Hour (16:30)</strong> untuk pengalaman teh terbaik di teras bersejarah.
+                                Sistem FCM menyarankan kunjungan saat <strong>Golden Hour (16:30)</strong> untuk pengalaman teh terbaik di teras bersejarah.
                             </p>
                         </div>
                     </div>
@@ -276,7 +279,7 @@
                         <div class="rec-inner">
                             <div class="rec-head">
                                 <span class="material-symbols-outlined">psychology</span>
-                                <span class="rec-label">AI Recommendation Engine</span>
+                                <span class="rec-label">FCM Recommendation Engine</span>
                             </div>
                             <h3 class="rec-title" id="rec-engine-title">
                                 Karena Anda menyukai <span class="rec-highlight text-glow">The Shalimar</span>, kami sarankan:
