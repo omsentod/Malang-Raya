@@ -46,6 +46,15 @@
             box-shadow: var(--shadow-sm);
         }
 
+        @media (max-width: 1023px) {
+            .filter-sidebar {
+                position: relative !important;
+                top: 0 !important;
+                height: auto !important;
+                margin-bottom: 0;
+            }
+        }
+
         .filter-section {
             margin-bottom: 2rem;
         }
@@ -467,26 +476,6 @@
 
     <!-- ===================== JAVASCRIPT DIRECTORY ENGINE ===================== -->
     <script>
-        // 1. MOBILE NAVBAR HAMBURGER TOGGLE
-        const hamburger = document.getElementById('hamburger-btn');
-        const mobileMenu = document.getElementById('mobile-menu');
-        if (hamburger && mobileMenu) {
-            hamburger.addEventListener('click', () => {
-                mobileMenu.classList.toggle('open');
-                const icon = hamburger.querySelector('.material-symbols-outlined');
-                icon.textContent = mobileMenu.classList.contains('open') ? 'close' : 'menu';
-            });
-        }
-
-        // Scroll shadow navbar
-        const navbar = document.querySelector('.g-navbar');
-        if (navbar) {
-            window.addEventListener('scroll', () => {
-                if (window.scrollY > 60) navbar.style.boxShadow = '0 4px 24px rgba(0,0,0,0.1)';
-                else navbar.style.boxShadow = '';
-            }, { passive: true });
-        }
-
         // 2. IMAGE FALLBACK ERROR HANDLER
         window.handleImgError = function(el) {
             if (el.dataset.fallbackTriggered) return;

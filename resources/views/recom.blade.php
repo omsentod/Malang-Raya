@@ -268,7 +268,18 @@
                                 <span class="material-symbols-outlined">location_on</span>
                                 Cari Destinasi Wisata <span class="req">*</span>
                             </label>
-                            <input type="text" class="form-input" id="d-dest-search-input" placeholder="Ketik nama wisata (contoh: Jatim Park)..." autocomplete="off" required style="width: 100%; box-sizing: border-box;" />
+                            <div class="search-input-wrapper" style="position: relative; width: 100%;">
+                                <span class="material-symbols-outlined" style="
+                                    position: absolute;
+                                    left: 14px;
+                                    top: 50%;
+                                    transform: translateY(-50%);
+                                    color: #94a3b8;
+                                    pointer-events: none;
+                                    font-size: 20px;
+                                ">search</span>
+                                <input type="text" class="form-input" id="d-dest-search-input" placeholder="museum angkut" autocomplete="off" required style="width: 100%; box-sizing: border-box; padding-left: 42px;" />
+                            </div>
                             <input type="hidden" id="d-dest-id" name="dest_id" required />
                             <div class="search-autocomplete-dropdown" id="d-dest-autocomplete-dropdown" style="
                                 position: absolute;
@@ -343,7 +354,7 @@
                             </label>
                             <div class="ota-slider-container">
                                 <div class="ota-slider-header" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px;">
-                                    <span class="ota-slider-val" id="d-budget-val">Tanpa Batasan Anggaran (Kondisi A)</span>
+                                    <span class="ota-slider-val" id="d-budget-val">Tanpa Batasan Anggaran </span>
                                     <div class="manual-input-wrapper">
                                         <span class="manual-currency">Rp</span>
                                         <input type="number" id="d-budget-manual" class="budget-manual-input" placeholder="Input manual" />

@@ -1518,3 +1518,13 @@
         font-size: 12px;
     }
 }
+
+/* Autocomplete dropdown alignment fix for Destination-First search input */
+#d-dest-autocomplete-dropdown {
+    width: 100% !important;
+    max-width: 100% !important;
+    left: 0 !important;
+    right: 0 !important;
+    transform: translateY(4px) !important;
+    box-sizing: border-box !important;
+}

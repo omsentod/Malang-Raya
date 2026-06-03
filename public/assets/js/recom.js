@@ -900,7 +900,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const isNoBudget = curVal < dMin;
             const valEl = document.getElementById('d-budget-val');
-            if (valEl) valEl.textContent = isNoBudget ? "Tanpa Batasan Anggaran (Kondisi A)" : fmtRp(curVal);
+            if (valEl) valEl.textContent = isNoBudget ? "Tanpa Batasan Anggaran " : fmtRp(curVal);
 
             const minLbl = document.getElementById('d-budget-min-label');
             if (minLbl) minLbl.textContent = "Tanpa Budget / Min: " + fmtRp(dMin);
@@ -940,7 +940,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const valEl = document.getElementById('d-budget-val');
         if (valEl) {
             if (val < dMin) {
-                valEl.textContent = "Tanpa Batasan Anggaran (Kondisi A)";
+                valEl.textContent = "Tanpa Batasan Anggaran ";
             } else {
                 valEl.textContent = fmtRp(val);
             }
@@ -1053,7 +1053,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const dMin = calculateScaledMinBudget(dPersons, dDuration);
                 slider.value = dMin - 10000;
                 const valEl = document.getElementById('d-budget-val');
-                if (valEl) valEl.textContent = "Tanpa Batasan Anggaran (Kondisi A)";
+                if (valEl) valEl.textContent = "Tanpa Batasan Anggaran ";
                 onBudgetChange();
                 return;
             }
