@@ -102,5 +102,5 @@ SAMPLE_BUDGETS = [500_000, 1_000_000, 2_000_000, 5_000_000]
 # PARAMETER REKOMENDASI
 # ============================================================
 MAX_PACKAGES_DISPLAY = 3   # Jumlah paket yang ditampilkan
-MEALS_PER_DAY = 3          # Asumsi makan 3x sehari
+MEALS_PER_DAY = 2          # Asumsi makan 2x sehari
 MAX_PERSONS_PER_ROOM = 2   # Kapasitas kamar hotel

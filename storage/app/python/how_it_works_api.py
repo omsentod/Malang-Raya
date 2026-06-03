@@ -179,7 +179,7 @@ def main():
         import math
         num_rooms = math.ceil(args.persons / 2)
         nights = args.duration - 1 if args.duration > 1 else 1
-        MEALS_PER_DAY = 3
+        MEALS_PER_DAY = 2
         
         # Alokasi budget sesuai skripsi versi revisi di recommender.py
         if args.duration == 1:

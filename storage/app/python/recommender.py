@@ -31,6 +31,31 @@ def haversine_road_distance(lat1, lon1, lat2, lon2):
     Menyelaraskan estimasi jarak offline dengan uji_gabungan.py secara akademis.
     """
     return haversine_distance(lat1, lon1, lat2, lon2) * 1.3
+
+
+def find_k_malam(k_siang, kuliner_list, anchor_lat, anchor_lon):
+    """
+    Mencari tempat makan kedua (Makan Malam) dari kuliner_list yang berbeda dari k_siang,
+    dan lokasinya paling dekat dengan anchor (hotel / wisata).
+    """
+    best_k_malam = None
+    min_dist = float('inf')
+    k_siang_name = k_siang.get("Nama_Tempat", "")
+    for candidate in kuliner_list:
+        cand_name = candidate.get("Nama_Tempat", "")
+        if cand_name == k_siang_name:
+            continue
+        c_lat = candidate.get("Latitude", 0)
+        c_lon = candidate.get("Longitude", 0)
+        dist = haversine_road_distance(anchor_lat, anchor_lon, c_lat, c_lon)
+        if dist < min_dist:
+            min_dist = dist
+            best_k_malam = candidate
+            
+    # Fallback jika tidak ada kandidat lain yang berbeda (misalnya list hanya berisi 1 item)
+    if best_k_malam is None:
+        best_k_malam = k_siang
+    return best_k_malam
 # ============================================================
 # 1. ALOKASI BUDGET PER KOMPONEN
 # ============================================================
@@ -275,18 +300,25 @@ def generate_packages(total_budget, num_persons, duration, datasets,
                     # B. Hitung Biaya Wisata
                     cost_wisata = w["Estimasi_Harga"] * num_persons
                     
-                    # C. Hitung Biaya Kuliner (3x sehari)
-                    cost_kuliner = k["Estimasi_Harga"] * num_persons * MEALS_PER_DAY * duration
+                    # C. Cari kuliner malam (Makan 2) dan hitung biaya kuliner
+                    anchor_lat = h.get("Latitude", 0) if duration > 1 else w.get("Latitude", 0)
+                    anchor_lon = h.get("Longitude", 0) if duration > 1 else w.get("Longitude", 0)
+                    k_malam = find_k_malam(k, kuliner_list, anchor_lat, anchor_lon)
+                    cost_kuliner = (k["Estimasi_Harga"] + k_malam["Estimasi_Harga"]) * num_persons * duration
                     
-                    # D. Jarak Spasial Rute Melingkar (Haversine)
+                    # D. Jarak Spasial Rute Custom (Haversine)
                     if duration == 1:
+                        # Rute: Makan Siang -> Wisata -> Makan Malam
                         d1 = haversine_road_distance(k["Latitude"], k["Longitude"], w["Latitude"], w["Longitude"])
-                        total_dist = d1 * 2
+                        d2 = haversine_road_distance(w["Latitude"], w["Longitude"], k_malam["Latitude"], k_malam["Longitude"])
+                        total_dist = d1 + d2
                     else:
-                        d1 = haversine_road_distance(h["Latitude"], h["Longitude"], w["Latitude"], w["Longitude"])
-                        d2 = haversine_road_distance(w["Latitude"], w["Longitude"], k["Latitude"], k["Longitude"])
-                        d3 = haversine_road_distance(k["Latitude"], k["Longitude"], h["Latitude"], h["Longitude"])
-                        total_dist = d1 + d2 + d3
+                        # Rute: Makan Siang -> Wisata -> Hotel -> Makan Malam -> Hotel
+                        d1 = haversine_road_distance(k["Latitude"], k["Longitude"], w["Latitude"], w["Longitude"])
+                        d2 = haversine_road_distance(w["Latitude"], w["Longitude"], h["Latitude"], h["Longitude"])
+                        d3 = haversine_road_distance(h["Latitude"], h["Longitude"], k_malam["Latitude"], k_malam["Longitude"])
+                        d4 = haversine_road_distance(k_malam["Latitude"], k_malam["Longitude"], h["Latitude"], h["Longitude"])
+                        total_dist = d1 + d2 + d3 + d4
                         
                     # E. Tarif Transportasi Flat Gojek Skripsi
                     if num_persons <= 1:
@@ -310,6 +342,7 @@ def generate_packages(total_budget, num_persons, duration, datasets,
                             "hotel": h,
                             "wisata": w,
                             "kuliner": k,
+                            "kuliner_malam": k_malam,
                             "cost_hotel": cost_hotel,
                             "cost_wisata": cost_wisata,
                             "cost_kuliner": cost_kuliner,
@@ -357,16 +390,24 @@ def generate_packages(total_budget, num_persons, duration, datasets,
                         else:
                             cost_hotel = 0
                         cost_wisata = w["Estimasi_Harga"] * num_persons
-                        cost_kuliner = k["Estimasi_Harga"] * num_persons * MEALS_PER_DAY * duration
+                        
+                        anchor_lat = h.get("Latitude", 0) if duration > 1 else w.get("Latitude", 0)
+                        anchor_lon = h.get("Longitude", 0) if duration > 1 else w.get("Longitude", 0)
+                        k_malam = find_k_malam(k, kuliner_list, anchor_lat, anchor_lon)
+                        cost_kuliner = (k["Estimasi_Harga"] + k_malam["Estimasi_Harga"]) * num_persons * duration
                         
                         if duration == 1:
+                            # Rute: Makan Siang -> Wisata -> Makan Malam
                             d1 = haversine_road_distance(k["Latitude"], k["Longitude"], w["Latitude"], w["Longitude"])
-                            total_dist = d1 * 2
+                            d2 = haversine_road_distance(w["Latitude"], w["Longitude"], k_malam["Latitude"], k_malam["Longitude"])
+                            total_dist = d1 + d2
                         else:
-                            d1 = haversine_road_distance(h["Latitude"], h["Longitude"], w["Latitude"], w["Longitude"])
-                            d2 = haversine_road_distance(w["Latitude"], w["Longitude"], k["Latitude"], k["Longitude"])
-                            d3 = haversine_road_distance(k["Latitude"], k["Longitude"], h["Latitude"], h["Longitude"])
-                            total_dist = d1 + d2 + d3
+                            # Rute: Makan Siang -> Wisata -> Hotel -> Makan Malam -> Hotel
+                            d1 = haversine_road_distance(k["Latitude"], k["Longitude"], w["Latitude"], w["Longitude"])
+                            d2 = haversine_road_distance(w["Latitude"], w["Longitude"], h["Latitude"], h["Longitude"])
+                            d3 = haversine_road_distance(h["Latitude"], h["Longitude"], k_malam["Latitude"], k_malam["Longitude"])
+                            d4 = haversine_road_distance(k_malam["Latitude"], k_malam["Longitude"], h["Latitude"], h["Longitude"])
+                            total_dist = d1 + d2 + d3 + d4
                             
                         if num_persons <= 1:
                             rate_per_km = 2250
@@ -387,6 +428,7 @@ def generate_packages(total_budget, num_persons, duration, datasets,
                                 "hotel": h,
                                 "wisata": w,
                                 "kuliner": k,
+                                "kuliner_malam": k_malam,
                                 "cost_hotel": cost_hotel,
                                 "cost_wisata": cost_wisata,
                                 "cost_kuliner": cost_kuliner,
@@ -426,44 +468,60 @@ def generate_packages(total_budget, num_persons, duration, datasets,
             w_item = selected["wisata"]
             k_item = selected["kuliner"]
             
+            k_malam_item = selected["kuliner_malam"]
+            scale_factor = (selected["cost_transport"] / selected["total_dist"]) if selected["total_dist"] > 0 else 0
+            
             if duration == 1:
+                dist1 = haversine_road_distance(k_item["Latitude"], k_item["Longitude"], w_item["Latitude"], w_item["Longitude"])
+                dist2 = haversine_road_distance(w_item["Latitude"], w_item["Longitude"], k_malam_item["Latitude"], k_malam_item["Longitude"])
                 legs_detail = [
                     {
-                        "from": "Kuliner (Basecamp)",
+                        "from": "Makan Siang",
                         "to": "Wisata",
-                        "distance_km": round(selected["total_dist"] / 2, 2),
-                        "cost": round(selected["cost_transport"] / 2),
+                        "distance_km": round(dist1, 2),
+                        "cost": round(dist1 * scale_factor),
                         "vehicle": selected["transport_desc"]
                     },
                     {
                         "from": "Wisata",
-                        "to": "Kuliner (Basecamp)",
-                        "distance_km": round(selected["total_dist"] / 2, 2),
-                        "cost": round(selected["cost_transport"] / 2),
+                        "to": "Makan Malam",
+                        "distance_km": round(dist2, 2),
+                        "cost": round(dist2 * scale_factor),
                         "vehicle": selected["transport_desc"]
                     }
                 ]
             else:
+                dist1 = haversine_road_distance(k_item["Latitude"], k_item["Longitude"], w_item["Latitude"], w_item["Longitude"])
+                dist2 = haversine_road_distance(w_item["Latitude"], w_item["Longitude"], h_item["Latitude"], h_item["Longitude"])
+                dist3 = haversine_road_distance(h_item["Latitude"], h_item["Longitude"], k_malam_item["Latitude"], k_malam_item["Longitude"])
+                dist4 = haversine_road_distance(k_malam_item["Latitude"], k_malam_item["Longitude"], h_item["Latitude"], h_item["Longitude"])
                 legs_detail = [
                     {
-                        "from": "Hotel",
+                        "from": "Makan Siang",
                         "to": "Wisata",
-                        "distance_km": round(selected["total_dist"] / 3, 2),
-                        "cost": round(selected["cost_transport"] / 3),
+                        "distance_km": round(dist1, 2),
+                        "cost": round(dist1 * scale_factor),
                         "vehicle": selected["transport_desc"]
                     },
                     {
                         "from": "Wisata",
-                        "to": "Kuliner",
-                        "distance_km": round(selected["total_dist"] / 3, 2),
-                        "cost": round(selected["cost_transport"] / 3),
+                        "to": "Hotel",
+                        "distance_km": round(dist2, 2),
+                        "cost": round(dist2 * scale_factor),
                         "vehicle": selected["transport_desc"]
                     },
                     {
-                        "from": "Kuliner",
+                        "from": "Hotel",
+                        "to": "Makan Malam",
+                        "distance_km": round(dist3, 2),
+                        "cost": round(dist3 * scale_factor),
+                        "vehicle": selected["transport_desc"]
+                    },
+                    {
+                        "from": "Makan Malam",
                         "to": "Hotel",
-                        "distance_km": round(selected["total_dist"] / 3, 2),
-                        "cost": round(selected["cost_transport"] / 3),
+                        "distance_km": round(dist4, 2),
+                        "cost": round(dist4 * scale_factor),
                         "vehicle": selected["transport_desc"]
                     }
                 ]
@@ -482,6 +540,10 @@ def generate_packages(total_budget, num_persons, duration, datasets,
                 "kuliner_harga": k_item["Estimasi_Harga"],
                 "kuliner_lat": k_item.get("Latitude", 0),
                 "kuliner_lon": k_item.get("Longitude", 0),
+                "kuliner_malam_nama": k_malam_item["Nama_Tempat"],
+                "kuliner_malam_harga": k_malam_item["Estimasi_Harga"],
+                "kuliner_malam_lat": k_malam_item.get("Latitude", 0),
+                "kuliner_malam_lon": k_malam_item.get("Longitude", 0),
                 "cost_akomodasi": selected["cost_hotel"],
                 "cost_hotel": selected["cost_hotel"],
                 "cost_wisata": selected["cost_wisata"],
@@ -505,7 +567,6 @@ def generate_packages(total_budget, num_persons, duration, datasets,
             # --- RENCANA PERJALANAN HARIAN DINAMIS (DAY-BY-DAY ITINERARY VARIATION) ---
             if duration > 1:
                 itinerary = []
-                # Rangkai wisata & makan alternatif dari klaster yang sama agar user tidak ke tempat yang sama terus
                 wisata_in_c = candidates["wisata"][i]
                 kuliner_in_c = candidates["kuliner"][i]
                 
@@ -521,11 +582,13 @@ def generate_packages(total_budget, num_persons, duration, datasets,
                     hotel_seq = [h_item] * nights
 
                 for d in range(1, duration + 1):
-                    # Ambil variasi bergeser dari list kandidat klaster
                     w_var = wisata_in_c[d % len(wisata_in_c)]
                     k_var = kuliner_in_c[d % len(kuliner_in_c)]
                     
-                    # Hotel for night (d) is hotel_seq[d-1] if d <= nights else "Checkout"
+                    day_anchor_lat = hotel_seq[d-1].get("Latitude", 0) if d <= nights else w_var.get("Latitude", 0)
+                    day_anchor_lon = hotel_seq[d-1].get("Longitude", 0) if d <= nights else w_var.get("Longitude", 0)
+                    k_malam_var = find_k_malam(k_var, kuliner_in_c, day_anchor_lat, day_anchor_lon)
+                    
                     if d <= nights:
                         day_hotel_name = hotel_seq[d-1].get("Nama_Tempat", "")
                         day_hotel_harga = hotel_seq[d-1].get("Estimasi_Harga", 0)
@@ -543,12 +606,33 @@ def generate_packages(total_budget, num_persons, duration, datasets,
                         "kuliner_harga": k_var.get("Estimasi_Harga", 0),
                         "kuliner_lat": k_var.get("Latitude", 0),
                         "kuliner_lon": k_var.get("Longitude", 0),
+                        "kuliner_malam": k_malam_var["Nama_Tempat"],
+                        "kuliner_malam_harga": k_malam_var.get("Estimasi_Harga", 0),
+                        "kuliner_malam_lat": k_malam_var.get("Latitude", 0),
+                        "kuliner_malam_lon": k_malam_var.get("Longitude", 0),
                         "hotel": day_hotel_name,
                         "hotel_harga": day_hotel_harga
                     })
                 pkg_formatted["itinerary"] = itinerary
             else:
-                pkg_formatted["itinerary"] = []
+                k_malam_var = find_k_malam(k_item, candidates["kuliner"][i], w_item.get("Latitude", 0), w_item.get("Longitude", 0))
+                pkg_formatted["itinerary"] = [{
+                    "day": 1,
+                    "wisata": w_item["Nama_Tempat"],
+                    "wisata_harga": w_item.get("Estimasi_Harga", 0),
+                    "wisata_lat": w_item.get("Latitude", 0),
+                    "wisata_lon": w_item.get("Longitude", 0),
+                    "kuliner": k_item["Nama_Tempat"],
+                    "kuliner_harga": k_item.get("Estimasi_Harga", 0),
+                    "kuliner_lat": k_item.get("Latitude", 0),
+                    "kuliner_lon": k_item.get("Longitude", 0),
+                    "kuliner_malam": k_malam_var["Nama_Tempat"],
+                    "kuliner_malam_harga": k_malam_var.get("Estimasi_Harga", 0),
+                    "kuliner_malam_lat": k_malam_var.get("Latitude", 0),
+                    "kuliner_malam_lon": k_malam_var.get("Longitude", 0),
+                    "hotel": "Checkout",
+                    "hotel_harga": 0
+                }]
 
             packages_for_option.append(pkg_formatted)
 
@@ -587,8 +671,8 @@ def generate_packages(total_budget, num_persons, duration, datasets,
                 print(f"  🏨 Akomodasi: Tanpa Akomodasi (One Day Trip)")
             print(f"  🎯 Wisata  : {pkg['wisata_nama']}")
             print(f"               Rp {pkg['wisata_harga']:,.0f}/orang × {pkg['num_persons']} orang = Rp {pkg['cost_wisata']:,.0f}")
-            print(f"  🍜 Kuliner : {pkg['kuliner_nama']}")
-            print(f"               Rp {pkg['kuliner_harga']:,.0f}/orang × {pkg['num_persons']} orang × 3 makan × {pkg['duration']} hari = Rp {pkg['cost_kuliner']:,.0f}")
+            print(f"  🍜 Kuliner : {pkg['kuliner_nama']} & {pkg['kuliner_malam_nama']}")
+            print(f"               (Rp {pkg['kuliner_harga']:,.0f} + Rp {pkg['kuliner_malam_harga']:,.0f})/orang × {pkg['num_persons']} orang × {pkg['duration']} hari = Rp {pkg['cost_kuliner']:,.0f}")
             print(f"  🚗 Transport: Rp {pkg['cost_transport']:,.0f} ({pkg['transport_detail']['total_distance_km']:.2f} km via {pkg['transport_detail']['legs'][0]['vehicle']})")
             
             # Print transparent daily subtotals if multi-day
@@ -603,12 +687,12 @@ def generate_packages(total_budget, num_persons, duration, datasets,
                     has_hotel = day.get("hotel") and day.get("hotel") != 'Checkout'
                     hotel_cost = day.get("hotel_harga", 0) * pkg["num_rooms"] if has_hotel else 0
                     wisata_cost = day.get("wisata_harga", 0) * pkg["num_persons"]
-                    kuliner_cost = day.get("kuliner_harga", 0) * pkg["num_persons"] * 3
+                    kuliner_cost = (day.get("kuliner_harga", 0) + day.get("kuliner_malam_harga", 0)) * pkg["num_persons"]
                     transport_cost = round(pkg["cost_transport"] / pkg["duration"])
                     day_subtotal = hotel_cost + wisata_cost + kuliner_cost + transport_cost
                     
                     hotel_str = f"Hotel: {day.get('hotel')}{pindah_str} (Rp {day.get('hotel_harga', 0):,.0f})" if has_hotel else "Checkout"
-                    print(f"    • Hari {d}: {hotel_str} | Wisata: {day.get('wisata')} (Rp {day.get('wisata_harga', 0):,.0f}) | Kuliner: {day.get('kuliner')} (Rp {day.get('kuliner_harga', 0):,.0f})")
+                    print(f"    • Hari {d}: {hotel_str} | Wisata: {day.get('wisata')} (Rp {day.get('wisata_harga', 0):,.0f}) | Kuliner: {day.get('kuliner')} & {day.get('kuliner_malam')}")
                     print(f"              Kalkulasi: Akomodasi Rp {hotel_cost:,.0f} + Wisata Rp {wisata_cost:,.0f} + Kuliner Rp {kuliner_cost:,.0f} + Transport Rp {transport_cost:,.0f} = Subtotal Rp {day_subtotal:,.0f}")
             
             print(f"  {'─'*50}")
@@ -712,18 +796,25 @@ def generate_flexible_exploration_packages(num_persons, duration, datasets,
                     # B. Hitung Biaya Wisata
                     cost_wisata = w["Estimasi_Harga"] * num_persons
                     
-                    # C. Hitung Biaya Kuliner (3x sehari)
-                    cost_kuliner = k["Estimasi_Harga"] * num_persons * MEALS_PER_DAY * duration
+                    # C. Cari kuliner malam (Makan 2) dan hitung biaya kuliner
+                    anchor_lat = h.get("Latitude", 0) if duration > 1 else w.get("Latitude", 0)
+                    anchor_lon = h.get("Longitude", 0) if duration > 1 else w.get("Longitude", 0)
+                    k_malam = find_k_malam(k, kuliner_list, anchor_lat, anchor_lon)
+                    cost_kuliner = (k["Estimasi_Harga"] + k_malam["Estimasi_Harga"]) * num_persons * duration
                     
-                    # D. Jarak Spasial Rute Melingkar (Haversine)
+                    # D. Jarak Spasial Rute Custom (Haversine)
                     if duration == 1:
+                        # Rute: Makan Siang -> Wisata -> Makan Malam
                         d1 = haversine_road_distance(k["Latitude"], k["Longitude"], w["Latitude"], w["Longitude"])
-                        total_dist = d1 * 2
+                        d2 = haversine_road_distance(w["Latitude"], w["Longitude"], k_malam["Latitude"], k_malam["Longitude"])
+                        total_dist = d1 + d2
                     else:
-                        d1 = haversine_road_distance(h["Latitude"], h["Longitude"], w["Latitude"], w["Longitude"])
-                        d2 = haversine_road_distance(w["Latitude"], w["Longitude"], k["Latitude"], k["Longitude"])
-                        d3 = haversine_road_distance(k["Latitude"], k["Longitude"], h["Latitude"], h["Longitude"])
-                        total_dist = d1 + d2 + d3
+                        # Rute: Makan Siang -> Wisata -> Hotel -> Makan Malam -> Hotel
+                        d1 = haversine_road_distance(k["Latitude"], k["Longitude"], w["Latitude"], w["Longitude"])
+                        d2 = haversine_road_distance(w["Latitude"], w["Longitude"], h["Latitude"], h["Longitude"])
+                        d3 = haversine_road_distance(h["Latitude"], h["Longitude"], k_malam["Latitude"], k_malam["Longitude"])
+                        d4 = haversine_road_distance(k_malam["Latitude"], k_malam["Longitude"], h["Latitude"], h["Longitude"])
+                        total_dist = d1 + d2 + d3 + d4
                         
                     # E. Tarif Transportasi Flat Gojek Skripsi
                     if num_persons <= 1:
@@ -745,6 +836,7 @@ def generate_flexible_exploration_packages(num_persons, duration, datasets,
                         "hotel": h,
                         "wisata": w,
                         "kuliner": k,
+                        "kuliner_malam": k_malam,
                         "cost_hotel": cost_hotel,
                         "cost_wisata": cost_wisata,
                         "cost_kuliner": cost_kuliner,
@@ -801,41 +893,55 @@ def generate_flexible_exploration_packages(num_persons, duration, datasets,
             h_item = selected["hotel"]
             w_item = selected["wisata"]
             k_item = selected["kuliner"]
+            k_malam_item = selected["kuliner_malam"]
+            scale_factor = (selected["cost_transport"] / selected["total_dist"]) if selected["total_dist"] > 0 else 0
             
             if duration == 1:
+                dist1 = haversine_road_distance(k_item["Latitude"], k_item["Longitude"], w_item["Latitude"], w_item["Longitude"])
+                dist2 = haversine_road_distance(w_item["Latitude"], w_item["Longitude"], k_malam_item["Latitude"], k_malam_item["Longitude"])
                 legs_detail = [
                     {
-                        "from": "Kuliner (Basecamp)",
+                        "from": "Makan Siang",
                         "to": "Wisata",
-                        "distance_km": round(selected["total_dist"] / 2, 2),
-                        "cost": round(selected["cost_transport"] / 2),
+                        "distance_km": round(dist1, 2),
+                        "cost": round(dist1 * scale_factor),
                     },
                     {
                         "from": "Wisata",
-                        "to": "Kuliner (Basecamp)",
-                        "distance_km": round(selected["total_dist"] / 2, 2),
-                        "cost": round(selected["cost_transport"] / 2),
+                        "to": "Makan Malam",
+                        "distance_km": round(dist2, 2),
+                        "cost": round(dist2 * scale_factor),
                     }
                 ]
             else:
+                dist1 = haversine_road_distance(k_item["Latitude"], k_item["Longitude"], w_item["Latitude"], w_item["Longitude"])
+                dist2 = haversine_road_distance(w_item["Latitude"], w_item["Longitude"], h_item["Latitude"], h_item["Longitude"])
+                dist3 = haversine_road_distance(h_item["Latitude"], h_item["Longitude"], k_malam_item["Latitude"], k_malam_item["Longitude"])
+                dist4 = haversine_road_distance(k_malam_item["Latitude"], k_malam_item["Longitude"], h_item["Latitude"], h_item["Longitude"])
                 legs_detail = [
                     {
-                        "from": "Akomodasi (Hotel)",
+                        "from": "Makan Siang",
                         "to": "Wisata",
-                        "distance_km": round(haversine_road_distance(h_item["Latitude"], h_item["Longitude"], w_item["Latitude"], w_item["Longitude"]), 2),
-                        "cost": round(haversine_road_distance(h_item["Latitude"], h_item["Longitude"], w_item["Latitude"], w_item["Longitude"]) * (selected["cost_transport"] / selected["total_dist"])) if selected["total_dist"] > 0 else 0,
+                        "distance_km": round(dist1, 2),
+                        "cost": round(dist1 * scale_factor),
                     },
                     {
                         "from": "Wisata",
-                        "to": "Kuliner",
-                        "distance_km": round(haversine_road_distance(w_item["Latitude"], w_item["Longitude"], k_item["Latitude"], k_item["Longitude"]), 2),
-                        "cost": round(haversine_road_distance(w_item["Latitude"], w_item["Longitude"], k_item["Latitude"], k_item["Longitude"]) * (selected["cost_transport"] / selected["total_dist"])) if selected["total_dist"] > 0 else 0,
+                        "to": "Hotel",
+                        "distance_km": round(dist2, 2),
+                        "cost": round(dist2 * scale_factor),
                     },
                     {
-                        "from": "Kuliner",
-                        "to": "Akomodasi (Hotel)",
-                        "distance_km": round(haversine_road_distance(k_item["Latitude"], k_item["Longitude"], h_item["Latitude"], h_item["Longitude"]), 2),
-                        "cost": round(haversine_road_distance(k_item["Latitude"], k_item["Longitude"], h_item["Latitude"], h_item["Longitude"]) * (selected["cost_transport"] / selected["total_dist"])) if selected["total_dist"] > 0 else 0,
+                        "from": "Hotel",
+                        "to": "Makan Malam",
+                        "distance_km": round(dist3, 2),
+                        "cost": round(dist3 * scale_factor),
+                    },
+                    {
+                        "from": "Makan Malam",
+                        "to": "Hotel",
+                        "distance_km": round(dist4, 2),
+                        "cost": round(dist4 * scale_factor),
                     }
                 ]
             
@@ -866,6 +972,12 @@ def generate_flexible_exploration_packages(num_persons, duration, datasets,
                 "kuliner_rating": k_item.get("Rating", 0.0),
                 "kuliner_lat": k_item.get("Latitude", 0.0),
                 "kuliner_lon": k_item.get("Longitude", 0.0),
+                
+                "kuliner_malam_nama": k_malam_item.get("Nama_Tempat", "N/A"),
+                "kuliner_malam_harga": k_malam_item.get("Estimasi_Harga", 0),
+                "kuliner_malam_rating": k_malam_item.get("Rating", 0.0),
+                "kuliner_malam_lat": k_malam_item.get("Latitude", 0.0),
+                "kuliner_malam_lon": k_malam_item.get("Longitude", 0.0),
                 
                 "total_cost": selected["total_cost"],
                 "cost_hotel": selected["cost_hotel"],
@@ -898,6 +1010,11 @@ def generate_flexible_exploration_packages(num_persons, duration, datasets,
                 for d in range(1, duration + 1):
                     w_var = w_list[(d + opt_idx) % len(w_list)]
                     k_var = k_list[(d + opt_idx) % len(k_list)]
+                    
+                    day_anchor_lat = hotel_seq[d-1].get("Latitude", 0) if d <= nights else w_var.get("Latitude", 0)
+                    day_anchor_lon = hotel_seq[d-1].get("Longitude", 0) if d <= nights else w_var.get("Longitude", 0)
+                    k_malam_var = find_k_malam(k_var, k_list, day_anchor_lat, day_anchor_lon)
+                    
                     if d <= nights:
                         day_hotel_name = hotel_seq[d-1].get("Nama_Tempat", "")
                         day_hotel_harga = hotel_seq[d-1].get("Estimasi_Harga", 0)
@@ -914,12 +1031,33 @@ def generate_flexible_exploration_packages(num_persons, duration, datasets,
                         "kuliner_harga": k_var.get("Estimasi_Harga", 0),
                         "kuliner_lat": k_var.get("Latitude", 0),
                         "kuliner_lon": k_var.get("Longitude", 0),
+                        "kuliner_malam": k_malam_var["Nama_Tempat"],
+                        "kuliner_malam_harga": k_malam_var.get("Estimasi_Harga", 0),
+                        "kuliner_malam_lat": k_malam_var.get("Latitude", 0),
+                        "kuliner_malam_lon": k_malam_var.get("Longitude", 0),
                         "hotel": day_hotel_name,
                         "hotel_harga": day_hotel_harga
                     })
                 pkg_formatted["itinerary"] = itinerary
             else:
-                pkg_formatted["itinerary"] = []
+                k_malam_var = find_k_malam(k_item, candidates["kuliner"][i], w_item.get("Latitude", 0), w_item.get("Longitude", 0))
+                pkg_formatted["itinerary"] = [{
+                    "day": 1,
+                    "wisata": w_item["Nama_Tempat"],
+                    "wisata_harga": w_item.get("Estimasi_Harga", 0),
+                    "wisata_lat": w_item.get("Latitude", 0),
+                    "wisata_lon": w_item.get("Longitude", 0),
+                    "kuliner": k_item["Nama_Tempat"],
+                    "kuliner_harga": k_item.get("Estimasi_Harga", 0),
+                    "kuliner_lat": k_item.get("Latitude", 0),
+                    "kuliner_lon": k_item.get("Longitude", 0),
+                    "kuliner_malam": k_malam_var["Nama_Tempat"],
+                    "kuliner_malam_harga": k_malam_var.get("Estimasi_Harga", 0),
+                    "kuliner_malam_lat": k_malam_var.get("Latitude", 0),
+                    "kuliner_malam_lon": k_malam_var.get("Longitude", 0),
+                    "hotel": "Checkout",
+                    "hotel_harga": 0
+                }]
 
             packages_for_option.append(pkg_formatted)
 
@@ -1124,18 +1262,25 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
                 # B. Hitung Biaya Wisata
                 cost_wisata = best_wisata["Estimasi_Harga"] * num_persons
                 
-                # C. Hitung Biaya Kuliner (3x sehari)
-                cost_kuliner = k["Estimasi_Harga"] * num_persons * MEALS_PER_DAY * duration
+                # C. Cari kuliner malam (Makan 2) dan hitung biaya kuliner
+                anchor_lat = h.get("Latitude", 0) if duration > 1 else best_wisata.get("Latitude", 0)
+                anchor_lon = h.get("Longitude", 0) if duration > 1 else best_wisata.get("Longitude", 0)
+                k_malam = find_k_malam(k, kuliner_list, anchor_lat, anchor_lon)
+                cost_kuliner = (k["Estimasi_Harga"] + k_malam["Estimasi_Harga"]) * num_persons * duration
                 
-                # D. Jarak Spasial Rute Melingkar (Haversine)
+                # D. Jarak Spasial Rute Custom (Haversine)
                 if duration == 1:
+                    # Rute: Makan Siang -> Wisata -> Makan Malam
                     d1 = haversine_road_distance(k["Latitude"], k["Longitude"], best_wisata["Latitude"], best_wisata["Longitude"])
-                    total_dist = d1 * 2
+                    d2 = haversine_road_distance(best_wisata["Latitude"], best_wisata["Longitude"], k_malam["Latitude"], k_malam["Longitude"])
+                    total_dist = d1 + d2
                 else:
-                    d1 = haversine_road_distance(h["Latitude"], h["Longitude"], best_wisata["Latitude"], best_wisata["Longitude"])
-                    d2 = haversine_road_distance(best_wisata["Latitude"], best_wisata["Longitude"], k["Latitude"], k["Longitude"])
-                    d3 = haversine_road_distance(k["Latitude"], k["Longitude"], h["Latitude"], h["Longitude"])
-                    total_dist = d1 + d2 + d3
+                    # Rute: Makan Siang -> Wisata -> Hotel -> Makan Malam -> Hotel
+                    d1 = haversine_road_distance(k["Latitude"], k["Longitude"], best_wisata["Latitude"], best_wisata["Longitude"])
+                    d2 = haversine_road_distance(best_wisata["Latitude"], best_wisata["Longitude"], h["Latitude"], h["Longitude"])
+                    d3 = haversine_road_distance(h["Latitude"], h["Longitude"], k_malam["Latitude"], k_malam["Longitude"])
+                    d4 = haversine_road_distance(k_malam["Latitude"], k_malam["Longitude"], h["Latitude"], h["Longitude"])
+                    total_dist = d1 + d2 + d3 + d4
                     
                 # E. Tarif Transportasi Flat Gojek
                 if num_persons <= 1:
@@ -1159,6 +1304,7 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
                         "hotel": h,
                         "wisata": best_wisata,
                         "kuliner": k,
+                        "kuliner_malam": k_malam,
                         "cost_hotel": cost_hotel,
                         "cost_wisata": cost_wisata,
                         "cost_kuliner": cost_kuliner,
@@ -1204,16 +1350,24 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
                     else:
                         cost_hotel = 0
                     cost_wisata = best_wisata["Estimasi_Harga"] * num_persons
-                    cost_kuliner = k["Estimasi_Harga"] * num_persons * MEALS_PER_DAY * duration
+                    # C. Cari kuliner malam (Makan 2) dan hitung biaya kuliner
+                    anchor_lat = h.get("Latitude", 0) if duration > 1 else best_wisata.get("Latitude", 0)
+                    anchor_lon = h.get("Longitude", 0) if duration > 1 else best_wisata.get("Longitude", 0)
+                    k_malam = find_k_malam(k, kuliner_list, anchor_lat, anchor_lon)
+                    cost_kuliner = (k["Estimasi_Harga"] + k_malam["Estimasi_Harga"]) * num_persons * duration
                     
                     if duration == 1:
+                        # Rute: Makan Siang -> Wisata -> Makan Malam
                         d1 = haversine_road_distance(k["Latitude"], k["Longitude"], best_wisata["Latitude"], best_wisata["Longitude"])
-                        total_dist = d1 * 2
+                        d2 = haversine_road_distance(best_wisata["Latitude"], best_wisata["Longitude"], k_malam["Latitude"], k_malam["Longitude"])
+                        total_dist = d1 + d2
                     else:
-                        d1 = haversine_road_distance(h["Latitude"], h["Longitude"], best_wisata["Latitude"], best_wisata["Longitude"])
-                        d2 = haversine_road_distance(best_wisata["Latitude"], best_wisata["Longitude"], k["Latitude"], k["Longitude"])
-                        d3 = haversine_road_distance(k["Latitude"], k["Longitude"], h["Latitude"], h["Longitude"])
-                        total_dist = d1 + d2 + d3
+                        # Rute: Makan Siang -> Wisata -> Hotel -> Makan Malam -> Hotel
+                        d1 = haversine_road_distance(k["Latitude"], k["Longitude"], best_wisata["Latitude"], best_wisata["Longitude"])
+                        d2 = haversine_road_distance(best_wisata["Latitude"], best_wisata["Longitude"], h["Latitude"], h["Longitude"])
+                        d3 = haversine_road_distance(h["Latitude"], h["Longitude"], k_malam["Latitude"], k_malam["Longitude"])
+                        d4 = haversine_road_distance(k_malam["Latitude"], k_malam["Longitude"], h["Latitude"], h["Longitude"])
+                        total_dist = d1 + d2 + d3 + d4
                         
                     if num_persons <= 1:
                         rate_per_km = 2250
@@ -1234,6 +1388,7 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
                             "hotel": h,
                             "wisata": best_wisata,
                             "kuliner": k,
+                            "kuliner_malam": k_malam,
                             "cost_hotel": cost_hotel,
                             "cost_wisata": cost_wisata,
                             "cost_kuliner": cost_kuliner,
@@ -1272,40 +1427,55 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
             w_item = selected["wisata"]
             k_item = selected["kuliner"]
             
+            k_malam_item = selected["kuliner_malam"]
+            scale_factor = (selected["cost_transport"] / selected["total_dist"]) if selected["total_dist"] > 0 else 0
+            
             if duration == 1:
+                dist1 = haversine_road_distance(k_item["Latitude"], k_item["Longitude"], w_item["Latitude"], w_item["Longitude"])
+                dist2 = haversine_road_distance(w_item["Latitude"], w_item["Longitude"], k_malam_item["Latitude"], k_malam_item["Longitude"])
                 legs_detail = [
                     {
-                        "from": "Kuliner (Basecamp)",
+                        "from": "Makan Siang",
                         "to": "Wisata",
-                        "distance_km": round(selected["total_dist"] / 2, 2),
-                        "cost": round(selected["cost_transport"] / 2),
+                        "distance_km": round(dist1, 2),
+                        "cost": round(dist1 * scale_factor),
                     },
                     {
                         "from": "Wisata",
-                        "to": "Kuliner (Basecamp)",
-                        "distance_km": round(selected["total_dist"] / 2, 2),
-                        "cost": round(selected["cost_transport"] / 2),
+                        "to": "Makan Malam",
+                        "distance_km": round(dist2, 2),
+                        "cost": round(dist2 * scale_factor),
                     }
                 ]
             else:
+                dist1 = haversine_road_distance(k_item["Latitude"], k_item["Longitude"], w_item["Latitude"], w_item["Longitude"])
+                dist2 = haversine_road_distance(w_item["Latitude"], w_item["Longitude"], h_item["Latitude"], h_item["Longitude"])
+                dist3 = haversine_road_distance(h_item["Latitude"], h_item["Longitude"], k_malam_item["Latitude"], k_malam_item["Longitude"])
+                dist4 = haversine_road_distance(k_malam_item["Latitude"], k_malam_item["Longitude"], h_item["Latitude"], h_item["Longitude"])
                 legs_detail = [
                     {
-                        "from": "Akomodasi (Hotel)",
+                        "from": "Makan Siang",
                         "to": "Wisata",
-                        "distance_km": round(haversine_road_distance(h_item["Latitude"], h_item["Longitude"], w_item["Latitude"], w_item["Longitude"]), 2),
-                        "cost": round(haversine_road_distance(h_item["Latitude"], h_item["Longitude"], w_item["Latitude"], w_item["Longitude"]) * (selected["cost_transport"] / selected["total_dist"])) if selected["total_dist"] > 0 else 0,
+                        "distance_km": round(dist1, 2),
+                        "cost": round(dist1 * scale_factor),
                     },
                     {
                         "from": "Wisata",
-                        "to": "Kuliner",
-                        "distance_km": round(haversine_road_distance(w_item["Latitude"], w_item["Longitude"], k_item["Latitude"], k_item["Longitude"]), 2),
-                        "cost": round(haversine_road_distance(w_item["Latitude"], w_item["Longitude"], k_item["Latitude"], k_item["Longitude"]) * (selected["cost_transport"] / selected["total_dist"])) if selected["total_dist"] > 0 else 0,
+                        "to": "Hotel",
+                        "distance_km": round(dist2, 2),
+                        "cost": round(dist2 * scale_factor),
                     },
                     {
-                        "from": "Kuliner",
-                        "to": "Akomodasi (Hotel)",
-                        "distance_km": round(haversine_road_distance(k_item["Latitude"], k_item["Longitude"], h_item["Latitude"], h_item["Longitude"]), 2),
-                        "cost": round(haversine_road_distance(k_item["Latitude"], k_item["Longitude"], h_item["Latitude"], h_item["Longitude"]) * (selected["cost_transport"] / selected["total_dist"])) if selected["total_dist"] > 0 else 0,
+                        "from": "Hotel",
+                        "to": "Makan Malam",
+                        "distance_km": round(dist3, 2),
+                        "cost": round(dist3 * scale_factor),
+                    },
+                    {
+                        "from": "Makan Malam",
+                        "to": "Hotel",
+                        "distance_km": round(dist4, 2),
+                        "cost": round(dist4 * scale_factor),
                     }
                 ]
             
@@ -1336,6 +1506,12 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
                 "kuliner_rating": k_item.get("Rating", 0.0),
                 "kuliner_lat": k_item.get("Latitude", 0.0),
                 "kuliner_lon": k_item.get("Longitude", 0.0),
+                
+                "kuliner_malam_nama": k_malam_item.get("Nama_Tempat", "N/A"),
+                "kuliner_malam_harga": k_malam_item.get("Estimasi_Harga", 0),
+                "kuliner_malam_rating": k_malam_item.get("Rating", 0.0),
+                "kuliner_malam_lat": k_malam_item.get("Latitude", 0.0),
+                "kuliner_malam_lon": k_malam_item.get("Longitude", 0.0),
                 
                 "total_cost": selected["total_cost"],
                 "cost_hotel": selected["cost_hotel"],
@@ -1380,6 +1556,10 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
                         w_var = w_list[d % len(w_list)]
                     k_var = k_list[d % len(k_list)]
                     
+                    day_anchor_lat = hotel_seq[d-1].get("Latitude", 0) if d <= nights else w_var.get("Latitude", 0)
+                    day_anchor_lon = hotel_seq[d-1].get("Longitude", 0) if d <= nights else w_var.get("Longitude", 0)
+                    k_malam_var = find_k_malam(k_var, k_list, day_anchor_lat, day_anchor_lon)
+                    
                     # Hotel for night (d) is hotel_seq[d-1] if d <= nights else "Checkout"
                     if d <= nights:
                         day_hotel_name = hotel_seq[d-1].get("Nama_Tempat", "")
@@ -1398,12 +1578,33 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
                         "kuliner_harga": k_var.get("Estimasi_Harga", 0),
                         "kuliner_lat": k_var.get("Latitude", 0),
                         "kuliner_lon": k_var.get("Longitude", 0),
+                        "kuliner_malam": k_malam_var["Nama_Tempat"],
+                        "kuliner_malam_harga": k_malam_var.get("Estimasi_Harga", 0),
+                        "kuliner_malam_lat": k_malam_var.get("Latitude", 0),
+                        "kuliner_malam_lon": k_malam_var.get("Longitude", 0),
                         "hotel": day_hotel_name,
                         "hotel_harga": day_hotel_harga
                     })
                 pkg_formatted["itinerary"] = itinerary
             else:
-                pkg_formatted["itinerary"] = []
+                k_malam_var = find_k_malam(k_item, candidates["kuliner"][i], w_item.get("Latitude", 0), w_item.get("Longitude", 0))
+                pkg_formatted["itinerary"] = [{
+                    "day": 1,
+                    "wisata": w_item["Nama_Tempat"],
+                    "wisata_harga": w_item.get("Estimasi_Harga", 0),
+                    "wisata_lat": w_item.get("Latitude", 0),
+                    "wisata_lon": w_item.get("Longitude", 0),
+                    "kuliner": k_item["Nama_Tempat"],
+                    "kuliner_harga": k_item.get("Estimasi_Harga", 0),
+                    "kuliner_lat": k_item.get("Latitude", 0),
+                    "kuliner_lon": k_item.get("Longitude", 0),
+                    "kuliner_malam": k_malam_var["Nama_Tempat"],
+                    "kuliner_malam_harga": k_malam_var.get("Estimasi_Harga", 0),
+                    "kuliner_malam_lat": k_malam_var.get("Latitude", 0),
+                    "kuliner_malam_lon": k_malam_var.get("Longitude", 0),
+                    "hotel": "Checkout",
+                    "hotel_harga": 0
+                }]
 
             packages_for_option.append(pkg_formatted)
 
@@ -1498,7 +1699,7 @@ def export_to_excel_recom(options_list, workflow, budget, persons, duration):
                     has_hotel = day.get("hotel") and day.get("hotel") != 'Checkout'
                     hotel_cost = day.get("hotel_harga", 0) * pkg.get("num_rooms", 1) if has_hotel else 0
                     wisata_cost = day.get("wisata_harga", 0) * pkg.get("num_persons", persons)
-                    kuliner_cost = day.get("kuliner_harga", 0) * pkg.get("num_persons", persons) * 3
+                    kuliner_cost = (day.get("kuliner_harga", 0) + day.get("kuliner_malam_harga", 0)) * pkg.get("num_persons", persons)
                     transport_cost = round(pkg.get("cost_transport", 0) / pkg.get("duration", 1))
                     day_subtotal = hotel_cost + wisata_cost + kuliner_cost + transport_cost
                     row_dict[f"Harga Harian (Hari {d})"] = day_subtotal
