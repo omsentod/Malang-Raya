@@ -356,7 +356,12 @@ document.getElementById('run-btn').addEventListener('click', async () => {
         renderXBI(data.xbi_per_c);
         renderRatio(data.ratio_validation);
         renderClustering(data.clustering_result);
-        renderPackages(data.packages, budget);
+        
+        let pkgs = [];
+        if (data.packages && data.packages.length > 0) {
+            pkgs = data.packages[0].packages || [];
+        }
+        renderPackages(pkgs, budget);
 
         // open all sections
         ['sec-1', 'sec-2', 'sec-3', 'sec-4', 'sec-5', 'sec-6'].forEach(id => {

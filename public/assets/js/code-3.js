@@ -194,8 +194,18 @@ document.addEventListener('DOMContentLoaded', () => {
         if (bentoSection) {
             if (places.length > 0) {
                 bentoSection.style.display = 'block';
-                const latestPlace = places[0]; // Render the latest saved place in bento box
-                renderBentoBoxDetails(latestPlace);
+                
+                // Get user-specific active preview ID
+                const previewKey = window.currentUser ? 'mraya_preview_id_' + window.currentUser.id : 'mraya_preview_id_guest';
+                let activePreviewId = localStorage.getItem(previewKey);
+                
+                // Find chosen place in bookmarks
+                let chosenPlace = places.find(item => item.Id_Tempat === activePreviewId);
+                if (!chosenPlace) {
+                    chosenPlace = places[0]; // Fallback to first saved place
+                }
+                
+                renderBentoBoxDetails(chosenPlace);
             } else {
                 bentoSection.style.display = 'none'; // Hide bento details if nothing is bookmarked
             }
@@ -222,8 +232,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 const img = item.Gambar && item.Gambar.length > 0 ? item.Gambar[0] : 'https://lh3.googleusercontent.com/aida-public/AB6AXuAVaNEszJuD9BPaw-6ZNUZ8bF3kddFP3uY5bYtMggIeUsA948ziuMoZ4agiRwOCc9OLM5QuWv27aeOmLthubH8zjZDm8lbfFyo5lQO7RNXZCBNz7MRvFoTPW7dce9pmUX6he4SWq-4cfNpQrxwDUa1c5-Eya_edzJcNFWIdWDqs5HFnYesaakGMnVEfY7euiVJrHutsUhEqY9dDbD-xkH3Mc-PTMLAq34QDdOipGhsndemVHqUN0Hv6jQzc25K2K8D9ZxeHhGJc';
                 const hasImg = item.Gambar && item.Gambar.length > 0;
                 
+                // Get user-specific active preview ID
+                const previewKey = window.currentUser ? 'mraya_preview_id_' + window.currentUser.id : 'mraya_preview_id_guest';
+                let activePreviewId = localStorage.getItem(previewKey);
+                if (!activePreviewId && places[0]) {
+                    activePreviewId = places[0].Id_Tempat; // Default to first saved place
+                }
+                const isCurrentPreview = (item.Id_Tempat === activePreviewId);
+                
                 const card = document.createElement('div');
-                card.className = 'saved-card';
+                card.className = `saved-card ${isCurrentPreview ? 'active-preview-card' : ''}`;
                 card.style.cursor = 'pointer';
                 card.innerHTML = `
                     <img class="saved-img" alt="${escapeHtmlAttr(item.Nama_Tempat)}" src="${img}" onerror="handleImgError(this)" />
@@ -233,6 +251,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         <h4 class="saved-name">${item.Nama_Tempat}</h4>
                         <p class="saved-loc">${item.Kategori}</p>
                     </div>
+                    <button class="saved-preview-btn ${isCurrentPreview ? 'active' : ''}" title="${isCurrentPreview ? 'Pratinjau Aktif' : 'Tampilkan di Pratinjau'}">
+                        <span class="material-symbols-outlined" style="font-size: 20px;">${isCurrentPreview ? 'visibility' : 'visibility_off'}</span>
+                    </button>
                     <button class="saved-bookmark active" aria-label="Hapus Bookmark">
                         <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">bookmark</span>
                     </button>
@@ -240,8 +261,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Card body click opens Detail Modal
                 card.addEventListener('click', (e) => {
-                    if (e.target.closest('.saved-bookmark')) return; // Avoid triggering on bookmark delete
+                    if (e.target.closest('.saved-bookmark') || e.target.closest('.saved-preview-btn')) return; // Avoid triggering on buttons
                     openOtaDetail(item);
+                });
+
+                // Preview button listener
+                card.querySelector('.saved-preview-btn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const previewKey = window.currentUser ? 'mraya_preview_id_' + window.currentUser.id : 'mraya_preview_id_guest';
+                    localStorage.setItem(previewKey, item.Id_Tempat);
+                    renderDashboard(); // Re-render to update gallery and active class instantly
                 });
 
                 // Bookmark delete button listener
@@ -250,6 +279,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     savedPlaces = savedPlaces.filter(id => id !== item.Id_Tempat);
                     const savedPlacesKey = typeof window.getSavedPlacesKey === 'function' ? window.getSavedPlacesKey() : 'saved_places';
                     localStorage.setItem(savedPlacesKey, JSON.stringify(savedPlaces));
+                    
+                    // Clear active preview if deleted
+                    const previewKey = window.currentUser ? 'mraya_preview_id_' + window.currentUser.id : 'mraya_preview_id_guest';
+                    if (localStorage.getItem(previewKey) === item.Id_Tempat) {
+                        localStorage.removeItem(previewKey);
+                    }
+                    
                     updateNavbarBookmarkBadge();
                     renderDashboard(); // Re-render dashboard lists instantly
                 });
@@ -596,6 +632,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.Nama_Tempat + " Malang")}`;
         document.getElementById('modal-gmaps-link').href = mapsUrl;
 
+        // Package button visibility and href
+        const packageBtn = document.getElementById('modal-package-btn');
+        if (packageBtn) {
+            if (item.Kategori === 'Wisata') {
+                packageBtn.style.display = 'inline-flex';
+                packageBtn.href = `/recommender?workflow=destination&dest_id=${item.Id_Tempat}&dest_name=${encodeURIComponent(item.Nama_Tempat)}`;
+            } else {
+                packageBtn.style.display = 'none';
+                packageBtn.href = '#';
+            }
+        }
+
         // Check bookmark icon
         const savedPlacesKey = typeof window.getSavedPlacesKey === 'function' ? window.getSavedPlacesKey() : 'saved_places';
         const saved = JSON.parse(localStorage.getItem(savedPlacesKey) || '[]');
@@ -789,37 +837,40 @@ document.addEventListener('DOMContentLoaded', () => {
         const notes = JSON.parse(localStorage.getItem(noteKey) || '[]');
         if (notes.length === 0) {
             notesList.innerHTML = `
-                <div style="text-align:center; padding:30px 10px; border:1px dashed var(--color-slate-200); border-radius:12px;">
-                    <span class="material-symbols-outlined" style="font-size:32px; color:var(--color-slate-300); margin-bottom:8px;">assignment_late</span>
-                    <p style="margin:0; font-size:13px; color:var(--color-slate-400); font-weight:600;">Belum ada catatan perjalanan.</p>
+                <div class="empty-results" style="border-radius:16px; background:rgba(255,255,255,0.7); border:1px dashed var(--color-surface-container-high); padding:3rem 1.5rem; text-align:center;">
+                    <span class="material-symbols-outlined" style="font-size:3rem; color:var(--color-slate-300); margin-bottom:0.75rem;">assignment_late</span>
+                    <h4 style="font-family:var(--font-headline); font-size:1.15rem; font-weight:800; color:var(--color-slate-700); margin-bottom:0.25rem;">Belum ada catatan</h4>
+                    <p style="color:var(--color-slate-400); font-size:0.8125rem; margin:0;">Tambahkan daftar rencana, barang bawaan, atau kuliner impian Anda di atas.</p>
                 </div>
             `;
             return;
         }
 
         notesList.innerHTML = notes.map(note => `
-            <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; background:#f8fafc; border:1px solid var(--color-slate-200); border-radius:12px; padding:12px 16px; transition:all 0.2s;">
-                <label style="display:flex; align-items:center; gap:10px; flex:1; cursor:pointer;">
-                    <input type="checkbox" class="note-check-btn" data-id="${note.id}" ${note.completed ? 'checked' : ''} style="accent-color:var(--color-primary); width:18px; height:18px;" />
-                    <span style="font-size:13.5px; font-weight:600; color:${note.completed ? 'var(--color-slate-400)' : 'var(--color-slate-700)'}; text-decoration:${note.completed ? 'line-through' : 'none'}; text-align:left; line-height:1.4;">
-                        ${escapeHtml(note.text)}
-                    </span>
-                </label>
-                <button class="note-delete-btn" data-id="${note.id}" title="Hapus Catatan" style="color:var(--color-slate-400); cursor:pointer; background:none; border:none; transition:color 0.15s; outline:none; box-shadow:none;">
-                    <span class="material-symbols-outlined" style="font-size:18px;">delete</span>
+            <div class="note-card ${note.completed ? 'completed' : ''}">
+                <div class="note-content">
+                    <div class="note-checkbox ${note.completed ? 'checked' : ''}" data-id="${note.id}">
+                        ${note.completed ? '<span class="material-symbols-outlined">check</span>' : ''}
+                    </div>
+                    <span class="note-text">${escapeHtml(note.text)}</span>
+                </div>
+                <button class="btn-delete-note note-delete-btn" data-id="${note.id}" title="Hapus Catatan">
+                    <span class="material-symbols-outlined" style="font-size:20px;">delete</span>
                 </button>
             </div>
         `).join('');
 
-        // Bind check action
-        notesList.querySelectorAll('.note-check-btn').forEach(input => {
-            input.addEventListener('change', () => {
-                const id = parseInt(input.dataset.id);
+        // Bind check action to the custom checkbox and card click
+        notesList.querySelectorAll('.note-content').forEach(element => {
+            element.style.cursor = 'pointer';
+            element.addEventListener('click', () => {
+                const checkbox = element.querySelector('.note-checkbox');
+                const id = parseInt(checkbox.dataset.id);
                 const noteKey = typeof window.getTravelNotesKey === 'function' ? window.getTravelNotesKey() : 'travel_notes';
                 const currentNotes = JSON.parse(localStorage.getItem(noteKey) || '[]');
                 const note = currentNotes.find(n => n.id === id);
                 if (note) {
-                    note.completed = input.checked;
+                    note.completed = !note.completed;
                     localStorage.setItem(noteKey, JSON.stringify(currentNotes));
                     renderTravelNotes();
                 }
@@ -828,7 +879,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Bind delete action
         notesList.querySelectorAll('.note-delete-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
                 const id = parseInt(btn.dataset.id);
                 const noteKey = typeof window.getTravelNotesKey === 'function' ? window.getTravelNotesKey() : 'travel_notes';
                 let currentNotes = JSON.parse(localStorage.getItem(noteKey) || '[]');

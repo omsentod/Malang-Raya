@@ -1,0 +1,7 @@
+node_modules
+vendor
+storage
+public/build
+public/vendor
+.env
+*.min.js

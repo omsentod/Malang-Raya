@@ -12,8 +12,6 @@ beserta evaluasi menggunakan Xie-Beni Index sesuai rumus di skripsi:
 import numpy as np
 # pyrefly: ignore [missing-source-for-stubs]
 import pandas as pd
-# pyrefly: ignore [missing-import]
-import skfuzzy as fuzz
 
 from config import (
     DATASET_WISATA, DATASET_HOTEL, DATASET_MAKAN,

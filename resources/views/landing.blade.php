@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Jelajahi destinasi wisata Malang Raya yang dikurasi menggunakan kecerdasan Fuzzy C-Means Clustering. Temukan wisata, hotel, dan kuliner terbaik sesuai budget Anda." />
     <title>Malang Raya — Jelajahi Secara Personal</title>
+    <link rel="icon" type="image/png" href="{{ asset('assets/GAMBAR/logo-tree.png') }}" />
 
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -24,7 +25,7 @@
         <nav class="g-navbar light" id="main-navbar">
             <div class="g-navbar-inner">
                 <!-- Brand -->
-                <a class="g-nav-brand" href="/">Malang Raya</a>
+                <a class="g-nav-brand" href="/"><img src="{{ asset('assets/GAMBAR/logo-tree.png') }}" alt="Logo" />Malang Raya</a>
 
                 <!-- Center Links -->
                 <div class="g-nav-center">
@@ -59,11 +60,6 @@
             <a class="g-mobile-link" href="/recommender">Explore</a>
             <a class="g-mobile-link" href="/how-it-works">How It Works</a>
             <a class="g-mobile-link" href="/directory">Directory</a>
-            <button class="g-mobile-bookmark-btn" id="mobile-nav-bookmark-btn">
-                <span class="material-symbols-outlined">bookmarks</span>
-                <span>Rencana Perjalanan Saya</span>
-                <span class="bookmark-badge-count" id="mobile-bookmark-badge-count">0</span>
-            </button>
         </div>
     </div>
 
@@ -448,6 +444,10 @@
                         <span class="material-symbols-outlined">map</span>
                         Buka Rute di Google Maps
                     </a>
+                    <a href="#" class="ota-modal-btn-primary" id="modal-package-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); display: none; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);">
+                        <span class="material-symbols-outlined">auto_awesome</span>
+                        Buat Paket Wisata
+                    </a>
                     <button class="ota-modal-btn-secondary" id="modal-save-btn" onclick="savePlaceToggle()" aria-label="Save place">
                         <span class="material-symbols-outlined" id="modal-save-icon">bookmark</span>
                     </button>
@@ -825,6 +825,18 @@
             // Maps route link
             const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.Nama_Tempat + " Malang")}`;
             document.getElementById('modal-gmaps-link').href = mapsUrl;
+
+            // Package button visibility and href
+            const packageBtn = document.getElementById('modal-package-btn');
+            if (packageBtn) {
+                if (item.Kategori === 'Wisata') {
+                    packageBtn.style.display = 'inline-flex';
+                    packageBtn.href = `/recommender?workflow=destination&dest_id=${item.Id_Tempat}&dest_name=${encodeURIComponent(item.Nama_Tempat)}`;
+                } else {
+                    packageBtn.style.display = 'none';
+                    packageBtn.href = '#';
+                }
+            }
 
             // Check bookmark status
             const savedPlacesKey = typeof window.getSavedPlacesKey === 'function' ? window.getSavedPlacesKey() : 'saved_places';

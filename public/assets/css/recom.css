@@ -1480,3 +1480,41 @@
 .custom-action-btn .material-symbols-outlined {
     font-size: 16px;
 }
+
+/* ─── ADDED MOBILE RESPONSIVENESS OVERRIDES ─── */
+@media (max-width: 900px) {
+    .planner-summary-panel {
+        position: relative;
+        top: 0 !important;
+        margin-top: 24px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+    }
+}
+
+@media (max-width: 600px) {
+    .options-tabs-container {
+        padding: 16px 16px 4px;
+    }
+    .options-tabs {
+        width: 100%;
+        gap: 6px;
+    }
+    .opt-tab {
+        flex: 1;
+        padding: 8px 12px;
+        font-size: 12px;
+        justify-content: center;
+    }
+    .planner-wizard-container {
+        padding: 16px;
+        gap: 16px;
+    }
+    .planner-stepper {
+        padding: 8px 12px;
+        border-radius: 12px;
+    }
+    .stepper-step {
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+}

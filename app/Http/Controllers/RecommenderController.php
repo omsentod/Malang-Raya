@@ -29,9 +29,6 @@ class RecommenderController extends Controller
         return view('recom', compact('wisataList'));
     }
 
-    /**
-     * API: Jalankan algoritma rekomendasi (Budget / Flexible / Destination)
-     */
     public function calculate(Request $request)
     {
         $validated = $request->validate([
@@ -160,26 +157,28 @@ class RecommenderController extends Controller
      */
     private function getWisataList(): array
     {
-        $args = [
-            $this->pythonBinary(),
-            '-c',
-            'import pandas as pd, json; df=pd.read_excel("wisata_clean.xlsx"); print(json.dumps(df[["Id_Tempat","Nama_Tempat"]].to_dict("records"), ensure_ascii=False))'
-        ];
-        $process = new Process($args);
-        $process->setWorkingDirectory($this->workingDir());
-        $process->setEnv([
-            'OPENBLAS_NUM_THREADS' => '1',
-            'MKL_NUM_THREADS' => '1',
-            'OMP_NUM_THREADS' => '1',
-            'NUMEXPR_NUM_THREADS' => '1',
-            'VECLIB_MAXIMUM_THREADS' => '1',
-        ]);
-        $process->setTimeout(30);
-        try {
-            $process->mustRun();
-            return json_decode($process->getOutput(), true) ?? [];
-        } catch (\Exception $e) {
-            return [];
-        }
+        return cache()->remember('wisata_list_dropdown', 86400, function () {
+            $args = [
+                $this->pythonBinary(),
+                '-c',
+                'import pandas as pd, json; df=pd.read_excel("wisata_clean.xlsx"); print(json.dumps(df[["Id_Tempat","Nama_Tempat"]].to_dict("records"), ensure_ascii=False))'
+            ];
+            $process = new Process($args);
+            $process->setWorkingDirectory($this->workingDir());
+            $process->setEnv([
+                'OPENBLAS_NUM_THREADS' => '1',
+                'MKL_NUM_THREADS' => '1',
+                'OMP_NUM_THREADS' => '1',
+                'NUMEXPR_NUM_THREADS' => '1',
+                'VECLIB_MAXIMUM_THREADS' => '1',
+            ]);
+            $process->setTimeout(30);
+            try {
+                $process->mustRun();
+                return json_decode($process->getOutput(), true) ?? [];
+            } catch (\Exception $e) {
+                return [];
+            }
+        });
     }
 }
