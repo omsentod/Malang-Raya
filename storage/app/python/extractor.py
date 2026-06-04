@@ -36,7 +36,8 @@ def process_file(blade_path, css_path, js_path, css_asset_path, js_asset_path):
         f.write(content)
     print(f'Updated {blade_path}')
 
-base_dir = '/Users/macbookpro/Documents/GITHUB/rekomendasi-wisata-app'
+# Determine base_dir relative to this script (located in storage/app/python)
+base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 
 # Process recom.blade.php
 process_file(

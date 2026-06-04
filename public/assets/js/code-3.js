@@ -167,7 +167,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Resolve places detail objects
-        const places = savedPlaces.map(id => searchIndex.find(item => item.Id_Tempat === id)).filter(Boolean);
+        const places = savedPlaces.map(savedId => {
+            if (typeof savedId === 'string' && savedId.includes('_')) {
+                const [cat, id] = savedId.split('_');
+                return searchIndex.find(item => item.Id_Tempat === id && item.Kategori === cat);
+            } else {
+                // Legacy fallback: default to Kategori === 'Wisata' or match any
+                return searchIndex.find(item => item.Id_Tempat === String(savedId) && item.Kategori === 'Wisata') || 
+                       searchIndex.find(item => item.Id_Tempat === String(savedId));
+            }
+        }).filter(Boolean);
 
         // 1. UPDATE USER ACCOUNT INFO DYNAMICALLY
         const totalDestinationsCount = places.length;
@@ -200,7 +209,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 let activePreviewId = localStorage.getItem(previewKey);
                 
                 // Find chosen place in bookmarks
-                let chosenPlace = places.find(item => item.Id_Tempat === activePreviewId);
+                let chosenPlace = places.find(item => `${item.Kategori}_${item.Id_Tempat}` === activePreviewId || item.Id_Tempat === activePreviewId);
                 if (!chosenPlace) {
                     chosenPlace = places[0]; // Fallback to first saved place
                 }
@@ -235,10 +244,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Get user-specific active preview ID
                 const previewKey = window.currentUser ? 'mraya_preview_id_' + window.currentUser.id : 'mraya_preview_id_guest';
                 let activePreviewId = localStorage.getItem(previewKey);
+                const uniqueId = `${item.Kategori}_${item.Id_Tempat}`;
                 if (!activePreviewId && places[0]) {
-                    activePreviewId = places[0].Id_Tempat; // Default to first saved place
+                    activePreviewId = `${places[0].Kategori}_${places[0].Id_Tempat}`; // Default to first saved place
                 }
-                const isCurrentPreview = (item.Id_Tempat === activePreviewId);
+                const isCurrentPreview = (uniqueId === activePreviewId || item.Id_Tempat === activePreviewId);
                 
                 const card = document.createElement('div');
                 card.className = `saved-card ${isCurrentPreview ? 'active-preview-card' : ''}`;
@@ -269,20 +279,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 card.querySelector('.saved-preview-btn').addEventListener('click', (e) => {
                     e.stopPropagation();
                     const previewKey = window.currentUser ? 'mraya_preview_id_' + window.currentUser.id : 'mraya_preview_id_guest';
-                    localStorage.setItem(previewKey, item.Id_Tempat);
+                    localStorage.setItem(previewKey, uniqueId);
                     renderDashboard(); // Re-render to update gallery and active class instantly
                 });
 
                 // Bookmark delete button listener
                 card.querySelector('.saved-bookmark').addEventListener('click', (e) => {
                     e.stopPropagation();
-                    savedPlaces = savedPlaces.filter(id => id !== item.Id_Tempat);
+                    savedPlaces = savedPlaces.filter(id => id !== uniqueId && id !== item.Id_Tempat);
                     const savedPlacesKey = typeof window.getSavedPlacesKey === 'function' ? window.getSavedPlacesKey() : 'saved_places';
                     localStorage.setItem(savedPlacesKey, JSON.stringify(savedPlaces));
                     
                     // Clear active preview if deleted
                     const previewKey = window.currentUser ? 'mraya_preview_id_' + window.currentUser.id : 'mraya_preview_id_guest';
-                    if (localStorage.getItem(previewKey) === item.Id_Tempat) {
+                    const activePreview = localStorage.getItem(previewKey);
+                    if (activePreview === uniqueId || activePreview === item.Id_Tempat) {
                         localStorage.removeItem(previewKey);
                     }
                     
@@ -399,6 +410,23 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
+        // Dynamic map iframe generation based on place name query
+        const mapContainer = document.querySelector('.location-map');
+        if (mapContainer) {
+            const q = encodeURIComponent(item.Nama_Tempat + " Malang");
+            mapContainer.innerHTML = `
+                <iframe 
+                    class="map-iframe" 
+                    src="https://maps.google.com/maps?q=${q}&hl=id&z=15&t=&ie=UTF8&iwloc=&output=embed" 
+                    width="100%" 
+                    height="100%" 
+                    style="border:0;" 
+                    allowfullscreen="" 
+                    loading="lazy">
+                </iframe>
+            `;
+        }
+
         // Set up about/experience description based on data
         const descEl = document.querySelector('.content-section-desc');
         if (descEl) {
@@ -437,16 +465,16 @@ document.addEventListener('DOMContentLoaded', () => {
             btnBook.onclick = () => window.open(mapsUrl, '_blank');
         }
 
-        // Side Details remove bookmark button action
-        const btnSave = document.querySelector('.btn-save');
-        if (btnSave) {
-            btnSave.onclick = () => {
-                savedPlaces = savedPlaces.filter(id => id !== item.Id_Tempat);
-                const savedPlacesKey = typeof window.getSavedPlacesKey === 'function' ? window.getSavedPlacesKey() : 'saved_places';
-                localStorage.setItem(savedPlacesKey, JSON.stringify(savedPlaces));
-                updateNavbarBookmarkBadge();
-                renderDashboard();
-            };
+        // Side Details "Buat Paket Wisata" button action
+        const bentoPackageBtn = document.getElementById('bento-package-btn');
+        if (bentoPackageBtn) {
+            if (item.Kategori === 'Wisata') {
+                bentoPackageBtn.style.display = 'flex';
+                bentoPackageBtn.href = `/recommender?workflow=destination&dest_id=${item.Id_Tempat}&dest_name=${encodeURIComponent(item.Nama_Tempat)}`;
+            } else {
+                bentoPackageBtn.style.display = 'none';
+                bentoPackageBtn.href = '#';
+            }
         }
 
         // Make Gallery click open Slideshow detail modal
@@ -647,7 +675,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Check bookmark icon
         const savedPlacesKey = typeof window.getSavedPlacesKey === 'function' ? window.getSavedPlacesKey() : 'saved_places';
         const saved = JSON.parse(localStorage.getItem(savedPlacesKey) || '[]');
-        const isSaved = saved.some(id => id === item.Id_Tempat);
+        const uniqueId = `${item.Kategori}_${item.Id_Tempat}`;
+        const isSaved = saved.some(id => id === uniqueId || id === item.Id_Tempat);
         const saveIcon = document.getElementById('modal-save-icon');
         if (saveIcon) {
             saveIcon.textContent = isSaved ? 'bookmark_added' : 'bookmark';
@@ -742,17 +771,28 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!activePlace) return;
         const savedPlacesKey = typeof window.getSavedPlacesKey === 'function' ? window.getSavedPlacesKey() : 'saved_places';
         const saved = JSON.parse(localStorage.getItem(savedPlacesKey) || '[]');
-        const index = saved.indexOf(activePlace.Id_Tempat);
+        const uniqueId = `${activePlace.Kategori}_${activePlace.Id_Tempat}`;
+        const index = saved.findIndex(id => id === uniqueId || id === activePlace.Id_Tempat);
         const saveIcon = document.getElementById('modal-save-icon');
 
         if (index > -1) {
             saved.splice(index, 1);
-            saveIcon.textContent = 'bookmark';
-            saveIcon.style.color = 'inherit';
+            if (saveIcon) {
+                saveIcon.textContent = 'bookmark';
+                saveIcon.style.color = 'inherit';
+            }
+            // Clear active preview if deleted
+            const previewKey = window.currentUser ? 'mraya_preview_id_' + window.currentUser.id : 'mraya_preview_id_guest';
+            const activePreview = localStorage.getItem(previewKey);
+            if (activePreview === uniqueId || activePreview === activePlace.Id_Tempat) {
+                localStorage.removeItem(previewKey);
+            }
         } else {
-            saved.push(activePlace.Id_Tempat);
-            saveIcon.textContent = 'bookmark_added';
-            saveIcon.style.color = 'var(--color-primary)';
+            saved.push(uniqueId);
+            if (saveIcon) {
+                saveIcon.textContent = 'bookmark_added';
+                saveIcon.style.color = 'var(--color-primary)';
+            }
         }
         localStorage.setItem(savedPlacesKey, JSON.stringify(saved));
         updateNavbarBookmarkBadge();

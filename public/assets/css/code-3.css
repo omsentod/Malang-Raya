@@ -339,6 +339,10 @@
     font-size: 1rem;
     transition: var(--transition-fast);
     box-shadow: 0 4px 16px rgba(0,101,101,0.28);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
 }
 
 .btn-book:hover {
@@ -540,6 +544,7 @@
     display: flex;
     flex-direction: column;
     gap: 2.5rem;
+    min-width: 0;
 }
 
 
@@ -609,6 +614,7 @@
     position: absolute;
     bottom: 1.5rem;
     left: 1.5rem;
+    right: 1.5rem;
     color: #fff;
 }
 
@@ -630,6 +636,8 @@
     font-weight: 700;
     font-family: var(--font-headline);
     line-height: 1.25;
+    word-break: break-word;
+    overflow-wrap: break-word;
 }
 
 .saved-loc {
@@ -793,6 +801,7 @@
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+    min-width: 0;
 }
 
 .sidebar-widget {
@@ -828,6 +837,8 @@
     font-weight: 600;
     margin-bottom: 0.5rem;
     color: var(--color-on-surface-variant);
+    flex-wrap: wrap;
+    gap: 0.25rem;
 }
 
 .budget-amount { color: var(--color-on-surface); }
@@ -859,6 +870,8 @@
     font-size: 0.875rem;
     font-weight: 700;
     color: var(--color-on-surface-variant);
+    flex-wrap: wrap;
+    gap: 0.25rem;
 }
 
 .budget-total-val {
@@ -886,6 +899,13 @@
     color: var(--color-on-surface-variant);
     cursor: pointer;
     transition: var(--transition-fast);
+    min-width: 0;
+}
+.recent-item span:last-child {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .recent-item:hover {
@@ -1039,6 +1059,7 @@
     align-items: center;
     gap: 0.75rem;
     flex: 1;
+    min-width: 0;
 }
 .note-text {
     font-size: 0.9375rem;
@@ -1046,6 +1067,8 @@
     font-weight: 600;
     transition: all 0.2s;
     line-height: 1.4;
+    word-break: break-word;
+    overflow-wrap: break-word;
 }
 
 .note-card.completed {
@@ -1270,5 +1293,225 @@
     background: var(--color-primary-container);
     transform: translateY(-1px);
     box-shadow: 0 6px 20px rgba(0, 101, 101, 0.35);
+}
+
+/* ==================================================
+   RESPONSIVE STYLES (Mobile & Tablet Refinements)
+   ================================================== */
+
+@media (max-width: 768px) {
+    .place-container,
+    .dash-container {
+        padding: 0 1.25rem !important;
+    }
+    
+    .dash-header {
+        padding: 1.5rem !important;
+        gap: 1.5rem !important;
+        margin-bottom: 2rem !important;
+    }
+    
+    .dash-avatar-wrap {
+        width: 4.5rem !important;
+        height: 4.5rem !important;
+    }
+    
+    .dash-name {
+        font-size: 1.625rem !important;
+    }
+    
+    .dash-panel-card {
+        padding: 1.5rem !important;
+        margin: 0 0.25rem !important;
+    }
+    
+    .booking-card {
+        padding: 1.5rem !important;
+    }
+    
+    .gallery-main {
+        height: 280px !important;
+    }
+    .gallery-info {
+        bottom: 1.25rem !important;
+        left: 1.25rem !important;
+    }
+    .gallery-side {
+        height: auto !important;
+    }
+    .gallery-sub {
+        height: 140px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .place-container,
+    .dash-container {
+        padding: 0 1rem !important;
+    }
+    
+    .dash-header {
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center !important;
+        padding: 1.25rem !important;
+    }
+    
+    .dash-profile {
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center !important;
+        gap: 1rem !important;
+    }
+    
+    .dash-role {
+        justify-content: center !important;
+    }
+    
+    .dash-stats-row {
+        width: 100% !important;
+        justify-content: center !important;
+        gap: 0.5rem !important;
+    }
+    
+    .dash-stat-pill {
+        flex: 1 !important;
+        min-width: 6.5rem !important;
+        padding: 0.75rem 0.5rem !important;
+    }
+    
+    .dash-tabs-nav {
+        gap: 0.5rem !important;
+        margin-bottom: 1.5rem !important;
+    }
+    
+    .dash-tab-btn {
+        padding: 0.625rem 0.875rem !important;
+        font-size: 0.85rem !important;
+        flex-shrink: 0 !important;
+    }
+    
+    .dash-panel-card {
+        padding: 1.25rem !important;
+        border-radius: var(--radius-lg) !important;
+        margin: 0 !important;
+    }
+    
+    .dash-panel-title {
+        font-size: 1.25rem !important;
+    }
+    
+    .note-form {
+        flex-direction: column !important;
+        gap: 0.75rem !important;
+    }
+    
+    .btn-add-note {
+        width: 100% !important;
+        padding: 0.875rem !important;
+    }
+    
+    .note-card {
+        padding: 1rem !important;
+    }
+    
+    .note-text {
+        font-size: 0.875rem !important;
+        word-break: break-word !important;
+    }
+    
+    .avatar-grid {
+        gap: 0.75rem !important;
+        justify-content: center !important;
+        padding: 1rem !important;
+    }
+    
+    .guest-panel {
+        padding: 2.5rem 1.25rem !important;
+        margin: 1.5rem auto !important;
+    }
+    
+    .gallery-bento {
+        margin-top: 1.5rem !important;
+    }
+    
+    .gallery-main {
+        height: 220px !important;
+    }
+    
+    .gallery-side {
+        grid-template-columns: 1fr 1fr !important;
+        grid-template-rows: 1fr !important;
+    }
+    
+    .gallery-sub {
+        height: 100px !important;
+    }
+    
+    .amenities-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 0.75rem !important;
+    }
+    
+    .amenity-card {
+        padding: 1rem !important;
+    }
+    
+    .booking-card {
+        padding: 1.25rem !important;
+    }
+    
+    .rec-box {
+        padding: 1.5rem !important;
+    }
+    
+    .rec-title {
+        font-size: 1.25rem !important;
+        margin-bottom: 1.25rem !important;
+    }
+
+    .saved-info {
+        bottom: 1rem !important;
+        left: 1rem !important;
+        right: 1rem !important;
+    }
+    .saved-name {
+        font-size: 0.95rem !important;
+    }
+    .saved-loc {
+        font-size: 0.75rem !important;
+    }
+    .saved-bookmark {
+        top: 0.75rem !important;
+        right: 0.75rem !important;
+        width: 2.25rem !important;
+        height: 2.25rem !important;
+    }
+    .saved-bookmark .material-symbols-outlined {
+        font-size: 1.125rem !important;
+    }
+    .saved-preview-btn {
+        top: 0.75rem !important;
+        left: 0.75rem !important;
+        width: 2.25rem !important;
+        height: 2.25rem !important;
+    }
+    .saved-preview-btn .material-symbols-outlined {
+        font-size: 1.125rem !important;
+    }
+    .rec-scroll {
+        -webkit-overflow-scrolling: touch !important;
+    }
+    .dash-tabs-nav {
+        -webkit-overflow-scrolling: touch !important;
+    }
+    .dash-name {
+        word-break: break-word !important;
+        overflow-wrap: break-word !important;
+    }
+    .dash-role {
+        word-break: break-word !important;
+        overflow-wrap: break-word !important;
+    }
 }
 
