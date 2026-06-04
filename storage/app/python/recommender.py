@@ -2742,8 +2742,233 @@ def export_to_excel_recom(options_list, workflow, budget, persons, duration):
     # 4. Simpan ke Excel menggunakan pandas
     if rows:
         df = pd.DataFrame(rows)
+        
+        detail_rows = []
+        for opt in options_list:
+            opt_idx = opt["option_index"]
+            for pkg in opt["packages"]:
+                kelas = pkg.get("kategori", "N/A").upper()
+                opt_label = f"Opsi {opt_idx} - {kelas}"
+                
+                num_persons = pkg.get("num_persons", persons)
+                num_rooms = pkg.get("num_rooms", 0)
+                nights = pkg.get("nights", 0)
+                duration = pkg.get("duration", duration)
+                
+                # Day-by-day Itinerary
+                itin = pkg.get("itinerary", [])
+                legs = pkg.get("transport_detail", {}).get("legs", [])
+                
+                detail_rows.append({
+                    "Opsi & Kelas": opt_label,
+                    "Hari": "SEMUA HARI",
+                    "Item / Aktivitas": f"=== DETAIL ITINERARY {opt_label} ===",
+                    "Detail / Nama Tempat": "-",
+                    "Biaya (Rp)": 0,
+                    "Keterangan": f"Durasi {duration} Hari, {num_persons} Orang"
+                })
+                
+                for d_num in range(1, duration + 1):
+                    day_label = f"Hari {d_num}"
+                    
+                    day_dict = {}
+                    if d_num - 1 < len(itin):
+                        day_dict = itin[d_num - 1]
+                    
+                    detail_rows.append({
+                        "Opsi & Kelas": opt_label,
+                        "Hari": day_label,
+                        "Item / Aktivitas": f"REKOMENDASI HARI {d_num}",
+                        "Detail / Nama Tempat": "",
+                        "Biaya (Rp)": 0,
+                        "Keterangan": ""
+                    })
+                    
+                    h_name = day_dict.get("hotel", "Checkout")
+                    h_harga = day_dict.get("hotel_harga", 0)
+                    detail_rows.append({
+                        "Opsi & Kelas": opt_label,
+                        "Hari": day_label,
+                        "Item / Aktivitas": "Hotel",
+                        "Detail / Nama Tempat": h_name,
+                        "Biaya (Rp)": h_harga,
+                        "Keterangan": "/malam (Status: Checkout)" if h_name == "Checkout" else f"/malam (Status: Menginap)"
+                    })
+                    
+                    w_name = day_dict.get("wisata", "N/A")
+                    w_harga = day_dict.get("wisata_harga", 0)
+                    detail_rows.append({
+                        "Opsi & Kelas": opt_label,
+                        "Hari": day_label,
+                        "Item / Aktivitas": "Wisata",
+                        "Detail / Nama Tempat": w_name,
+                        "Biaya (Rp)": w_harga,
+                        "Keterangan": "/orang"
+                    })
+                    
+                    kp_name = day_dict.get("kuliner_pagi", "N/A")
+                    kp_harga = day_dict.get("kuliner_pagi_harga", 0)
+                    detail_rows.append({
+                        "Opsi & Kelas": opt_label,
+                        "Hari": day_label,
+                        "Item / Aktivitas": "Makan Pagi",
+                        "Detail / Nama Tempat": kp_name,
+                        "Biaya (Rp)": kp_harga,
+                        "Keterangan": "/orang"
+                    })
+                    
+                    ks_name = day_dict.get("kuliner", "N/A")
+                    ks_harga = day_dict.get("kuliner_harga", 0)
+                    detail_rows.append({
+                        "Opsi & Kelas": opt_label,
+                        "Hari": day_label,
+                        "Item / Aktivitas": "Makan Siang",
+                        "Detail / Nama Tempat": ks_name,
+                        "Biaya (Rp)": ks_harga,
+                        "Keterangan": "/orang"
+                    })
+                    
+                    if d_num < duration:
+                        km_name = day_dict.get("kuliner_malam", "N/A")
+                        km_harga = day_dict.get("kuliner_malam_harga", 0)
+                        detail_rows.append({
+                            "Opsi & Kelas": opt_label,
+                            "Hari": day_label,
+                            "Item / Aktivitas": "Makan Malam",
+                            "Detail / Nama Tempat": km_name,
+                            "Biaya (Rp)": km_harga,
+                            "Keterangan": "/orang"
+                        })
+                    
+                    h_cost_day = h_harga * num_rooms if h_name != "Checkout" else 0
+                    detail_rows.append({
+                        "Opsi & Kelas": opt_label,
+                        "Hari": day_label,
+                        "Item / Aktivitas": f"• Kamar Hotel ({nights if h_name != 'Checkout' else 0} Malam)" if h_name == "Checkout" else f"• Kamar Hotel (1 Malam)",
+                        "Detail / Nama Tempat": "",
+                        "Biaya (Rp)": h_cost_day,
+                        "Keterangan": ""
+                    })
+                    
+                    w_cost_day = w_harga * num_persons
+                    detail_rows.append({
+                        "Opsi & Kelas": opt_label,
+                        "Hari": day_label,
+                        "Item / Aktivitas": f"• Tiket Wisata ({num_persons} Orang) (Hari {d_num})",
+                        "Detail / Nama Tempat": "",
+                        "Biaya (Rp)": w_cost_day,
+                        "Keterangan": ""
+                    })
+                    
+                    meals_count = 3 if d_num < duration else 2
+                    k_cost_day = (kp_harga + ks_harga + (day_dict.get("kuliner_malam_harga", 0) if d_num < duration else 0)) * num_persons
+                    detail_rows.append({
+                        "Opsi & Kelas": opt_label,
+                        "Hari": day_label,
+                        "Item / Aktivitas": f"• Kuliner ({num_persons} Orang × {meals_count}x Makan)",
+                        "Detail / Nama Tempat": "",
+                        "Biaya (Rp)": k_cost_day,
+                        "Keterangan": ""
+                    })
+                    
+                    day_legs = []
+                    for leg in legs:
+                        l_from = leg.get("from", "")
+                        l_to = leg.get("to", "")
+                        if f"Hari {d_num}" in l_from or f"Hari {d_num}" in l_to:
+                            day_legs.append(leg)
+                    
+                    for leg in day_legs:
+                        l_from = leg.get("from", "")
+                        l_to = leg.get("to", "")
+                        dist = leg.get("distance_km", 0)
+                        cost = leg.get("cost", 0)
+                        veh = leg.get("vehicle", "Motor")
+                        detail_rows.append({
+                            "Opsi & Kelas": opt_label,
+                            "Hari": day_label,
+                            "Item / Aktivitas": f"{l_from}→{l_to} ({dist} km)",
+                            "Detail / Nama Tempat": "",
+                            "Biaya (Rp)": cost,
+                            "Keterangan": veh
+                        })
+                    
+                    t_cost_day = sum(leg.get("cost", 0) for leg in day_legs)
+                    detail_rows.append({
+                        "Opsi & Kelas": opt_label,
+                        "Hari": day_label,
+                        "Item / Aktivitas": f"• Transportasi ({'Motor' if num_persons <= 1 else 'Mobil'})",
+                        "Detail / Nama Tempat": "",
+                        "Biaya (Rp)": t_cost_day,
+                        "Keterangan": ""
+                    })
+                    
+                    day_subtotal = h_cost_day + w_cost_day + k_cost_day + t_cost_day
+                    detail_rows.append({
+                        "Opsi & Kelas": opt_label,
+                        "Hari": day_label,
+                        "Item / Aktivitas": f"Subtotal Hari {d_num}:",
+                        "Detail / Nama Tempat": "",
+                        "Biaya (Rp)": day_subtotal,
+                        "Keterangan": ""
+                    })
+                
+                detail_rows.append({
+                    "Opsi & Kelas": opt_label,
+                    "Hari": "RINGKASAN",
+                    "Item / Aktivitas": "🏨 Akomodasi (1 malam × 1 kamar)" if nights == 1 and num_rooms == 1 else f"🏨 Akomodasi ({nights} malam × {num_rooms} kamar)",
+                    "Detail / Nama Tempat": "",
+                    "Biaya (Rp)": pkg.get("cost_akomodasi", 0),
+                    "Keterangan": pkg.get("hotel_nama", "")
+                })
+                
+                detail_rows.append({
+                    "Opsi & Kelas": opt_label,
+                    "Hari": "RINGKASAN",
+                    "Item / Aktivitas": f"🎯 Tiket Wisata ({num_persons} orang)",
+                    "Detail / Nama Tempat": "",
+                    "Biaya (Rp)": pkg.get("cost_wisata", 0),
+                    "Keterangan": pkg.get("wisata_nama", "")
+                })
+                
+                total_meals = (duration - 1) * 3 + 2 if duration > 1 else 2
+                detail_rows.append({
+                    "Opsi & Kelas": opt_label,
+                    "Hari": "RINGKASAN",
+                    "Item / Aktivitas": f"🍜 Kuliner ({num_persons} orang × {total_meals} makan)",
+                    "Detail / Nama Tempat": "",
+                    "Biaya (Rp)": pkg.get("cost_kuliner", 0),
+                    "Keterangan": ""
+                })
+                
+                veh_desc = pkg.get("transport_detail", {}).get("vehicle", "Motor")
+                detail_rows.append({
+                    "Opsi & Kelas": opt_label,
+                    "Hari": "RINGKASAN",
+                    "Item / Aktivitas": f"🚗 Transportasi ({veh_desc})",
+                    "Detail / Nama Tempat": "",
+                    "Biaya (Rp)": pkg.get("cost_transport", 0),
+                    "Keterangan": f"Total Jarak: {pkg.get('transport_detail', {}).get('total_distance_km', 0)} km"
+                })
+                
+                detail_rows.append({
+                    "Opsi & Kelas": opt_label,
+                    "Hari": "RINGKASAN",
+                    "Item / Aktivitas": "TOTAL BIAYA PAKET",
+                    "Detail / Nama Tempat": "",
+                    "Biaya (Rp)": pkg.get("total_cost", 0),
+                    "Keterangan": "Estimasi Total"
+                })
+                
+                detail_rows.append({
+                    "Opsi & Kelas": "", "Hari": "", "Item / Aktivitas": "", "Detail / Nama Tempat": "", "Biaya (Rp)": "", "Keterangan": ""
+                })
+                
+        df_detail = pd.DataFrame(detail_rows)
+        
         with pd.ExcelWriter(filepath, engine='openpyxl') as writer:
             df.to_excel(writer, sheet_name="Rekomendasi Paket", index=False)
+            df_detail.to_excel(writer, sheet_name="Detail Itinerary & Biaya", index=False)
             
             global LAST_CLUSTERED
             if LAST_CLUSTERED is not None:
