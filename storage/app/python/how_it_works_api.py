@@ -179,8 +179,6 @@ def main():
         import math
         num_rooms = math.ceil(args.persons / 2)
         nights = args.duration - 1 if args.duration > 1 else 1
-        MEALS_PER_DAY = 2
-        
         # Alokasi budget sesuai skripsi versi revisi di recommender.py
         if args.duration == 1:
             budget_alloc = {
@@ -189,10 +187,11 @@ def main():
                 "kuliner": args.budget * (20.0 / 60.0),
                 "transportasi": args.budget * (25.0 / 60.0),
             }
+            total_meals = 2
             budget_anchor_map = {
                 "hotel": (args.budget * 0.40) / (1 * num_rooms),
                 "wisata": budget_alloc["wisata"] / args.persons,
-                "kuliner": budget_alloc["kuliner"] / (args.persons * MEALS_PER_DAY * args.duration),
+                "kuliner": budget_alloc["kuliner"] / (args.persons * total_meals),
             }
         else:
             budget_alloc = {
@@ -201,10 +200,11 @@ def main():
                 "kuliner": args.budget * 0.20,
                 "transportasi": args.budget * 0.25,
             }
+            total_meals = 3 * (args.duration - 1) + 2
             budget_anchor_map = {
                 "hotel": budget_alloc["akomodasi"] / (nights * num_rooms),
                 "wisata": budget_alloc["wisata"] / args.persons,
-                "kuliner": budget_alloc["kuliner"] / (args.persons * MEALS_PER_DAY * args.duration),
+                "kuliner": budget_alloc["kuliner"] / (args.persons * total_meals),
             }
 
         # Langkah 1: Statistik dataset
