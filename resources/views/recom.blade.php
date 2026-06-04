@@ -8,7 +8,7 @@
     <link rel="icon" type="image/png" href="{{ asset('assets/GAMBAR/logo-tree.png') }}" />
 
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=block" rel="stylesheet" />
     <link rel="stylesheet" href="{{ asset('assets/css/global.css') }}" />
     <link rel="stylesheet" href="{{ asset('assets/css/code-2.css') }}" />
 
@@ -17,6 +17,7 @@
     <link rel="stylesheet" href="{{ asset('assets/css/recom.css') }}" />
 </head>
 <body>
+    @include('preloader')
 
     <!-- ===================== NAVBAR ===================== -->
     <div class="g-nav-wrapper" id="main-nav-wrapper">
@@ -503,9 +504,6 @@
         </div>
     </div>
 
-    <script>
-        window.wisataCatalog = {!! json_encode($wisataList) !!};
-    </script>
 <script src="{{ asset('assets/js/recom.js') }}"></script>
 @include('auth-modal-and-dropdown')
 </body>

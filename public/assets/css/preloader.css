@@ -1,0 +1,90 @@
+.global-preloader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: #ffffff;
+    z-index: 999999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.45s ease, filter 0.45s ease;
+}
+
+.global-preloader.fade-out {
+    opacity: 0;
+    visibility: hidden;
+    filter: blur(16px);
+}
+
+.preloader-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.logo-fill-container {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    margin-bottom: 1.5rem;
+}
+
+.logo-silhouette {
+    width: 100px;
+    height: 100px;
+    filter: grayscale(1) opacity(0.12);
+    position: absolute;
+    top: 0;
+    left: 0;
+    user-select: none;
+    pointer-events: none;
+}
+
+.logo-fill-mask {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100px;
+    height: 0%; /* Dynamic from 0% to 100% */
+    overflow: hidden;
+    transition: height 0.08s ease;
+    pointer-events: none;
+}
+
+.logo-colored {
+    width: 100px;
+    height: 100px;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    max-width: none;
+    user-select: none;
+    pointer-events: none;
+}
+
+.preloader-text-wrap {
+    text-align: center;
+}
+
+.preloader-pct {
+    font-family: 'Manrope', sans-serif;
+    font-size: 1.75rem;
+    font-weight: 900;
+    color: #006565; /* Teal primary theme color */
+    margin-bottom: 0.25rem;
+    letter-spacing: -0.02em;
+}
+
+.preloader-status {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #94a3b8; /* Slate 400 */
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
