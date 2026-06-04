@@ -1132,7 +1132,22 @@ def generate_packages(total_budget, num_persons, duration, datasets,
                 if h_name and h_name != "Checkout":
                     total_hotel += float(day_dict.get("hotel_harga") or 0.0) * float(num_rooms)
             cost_h = total_hotel
-            cost_w = float(selected["cost_wisata"])
+
+            # Recalculate total wisata cost dynamically based on actual daily itinerary
+            total_wisata = 0.0
+            wisata_names = []
+            for day in itinerary_list:
+                day_dict = cast(dict, day)
+                w_name = day_dict.get("wisata")
+                w_price = float(day_dict.get("wisata_harga") or 0.0)
+                total_wisata += w_price * float(num_persons)
+                if w_name and w_name != "N/A":
+                    if w_name not in wisata_names:
+                        wisata_names.append(w_name)
+            cost_w = total_wisata
+            pkg_formatted["cost_wisata"] = cost_w
+            pkg_formatted["wisata_nama"] = " & ".join(wisata_names) if wisata_names else "N/A"
+
             cost_k = total_kuliner
             cost_t = float(pkg_formatted["cost_transport"])
 
@@ -1798,7 +1813,22 @@ def generate_flexible_exploration_packages(num_persons, duration, datasets,
                 if h_name and h_name != "Checkout":
                     total_hotel += float(day_dict.get("hotel_harga") or 0.0) * float(num_rooms)
             cost_h = total_hotel
-            cost_w = float(selected["cost_wisata"])
+
+            # Recalculate total wisata cost dynamically based on actual daily itinerary
+            total_wisata = 0.0
+            wisata_names = []
+            for day in itinerary_list:
+                day_dict = cast(dict, day)
+                w_name = day_dict.get("wisata")
+                w_price = float(day_dict.get("wisata_harga") or 0.0)
+                total_wisata += w_price * float(num_persons)
+                if w_name and w_name != "N/A":
+                    if w_name not in wisata_names:
+                        wisata_names.append(w_name)
+            cost_w = total_wisata
+            pkg_formatted["cost_wisata"] = cost_w
+            pkg_formatted["wisata_nama"] = " & ".join(wisata_names) if wisata_names else "N/A"
+
             cost_k = total_kuliner
             cost_t = float(pkg_formatted["cost_transport"])
 
@@ -2623,7 +2653,22 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
                 if h_name and h_name != "Checkout":
                     total_hotel += float(day_dict.get("hotel_harga") or 0.0) * float(num_rooms)
             cost_h = total_hotel
-            cost_w = float(selected["cost_wisata"])
+
+            # Recalculate total wisata cost dynamically based on actual daily itinerary
+            total_wisata = 0.0
+            wisata_names = []
+            for day in itinerary_list:
+                day_dict = cast(dict, day)
+                w_name = day_dict.get("wisata")
+                w_price = float(day_dict.get("wisata_harga") or 0.0)
+                total_wisata += w_price * float(num_persons)
+                if w_name and w_name != "N/A":
+                    if w_name not in wisata_names:
+                        wisata_names.append(w_name)
+            cost_w = total_wisata
+            pkg_formatted["cost_wisata"] = cost_w
+            pkg_formatted["wisata_nama"] = " & ".join(wisata_names) if wisata_names else "N/A"
+
             cost_k = total_kuliner
             cost_t = float(pkg_formatted["cost_transport"])
 
