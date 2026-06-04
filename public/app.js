@@ -32,7 +32,7 @@ function calculateDistance(lat1, lng1, lat2, lng2) {
         Math.sin(dLng / 2) *
         Math.sin(dLng / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return (R * c).toFixed(1);
+    return (R * c * 1.45).toFixed(1);
 }
 
 // Page Renderers

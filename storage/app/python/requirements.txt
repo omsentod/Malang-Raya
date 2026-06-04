@@ -3,4 +3,5 @@ pandas
 openpyxl
 python-dotenv
 requests
+types-requests
 matplotlib

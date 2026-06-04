@@ -30,6 +30,71 @@ document.addEventListener('DOMContentLoaded', () => {
     let allOptions = [];
     let searchIndex = [];
 
+    // Helper: Resolve real names of places to strip generic labels and get correct locations
+    const resolveRealName = (label, pkg) => {
+        if (!label) return "";
+        const dayMatch = label.match(/\(Hari (\d+)\)/i);
+        const dayNum = dayMatch ? parseInt(dayMatch[1]) : 1;
+        const dayItin = pkg.itinerary?.find(d => d.day === dayNum);
+        const cleanLabel = label.replace(/\s*\(Hari \d+\)/gi, '').trim().toLowerCase();
+        
+        if (cleanLabel.includes('wisata')) {
+            return dayItin ? dayItin.wisata : pkg.wisata_nama;
+        }
+        if (cleanLabel.includes('makan pagi') || cleanLabel.includes('pagi')) {
+            return (dayItin && dayItin.kuliner_pagi !== 'N/A') ? dayItin.kuliner_pagi : (pkg.kuliner_pagi_nama || 'Kopi Lonceng');
+        }
+        if (cleanLabel.includes('makan siang') || cleanLabel.includes('siang') || cleanLabel.includes('kuliner')) {
+            return dayItin ? dayItin.kuliner : pkg.kuliner_nama;
+        }
+        if (cleanLabel.includes('makan malam') || cleanLabel.includes('malam')) {
+            return (dayItin && dayItin.kuliner_malam !== 'N/A') ? dayItin.kuliner_malam : (pkg.kuliner_malam_nama || '');
+        }
+        if (cleanLabel.includes('hotel') || cleanLabel.includes('akomodasi')) {
+            if (dayItin && dayItin.hotel && dayItin.hotel !== 'Checkout') {
+                return dayItin.hotel;
+            }
+            return pkg.hotel_nama_real || pkg.hotel_nama || "";
+        }
+        return label;
+    };
+
+    // Helper: Resolve coordinates of places to get exact lat,lon
+    const resolveCoords = (label, pkg) => {
+        if (!label) return "";
+        const dayMatch = label.match(/\(Hari (\d+)\)/i);
+        const dayNum = dayMatch ? parseInt(dayMatch[1]) : 1;
+        const dayItin = pkg.itinerary?.find(d => d.day === dayNum);
+        const cleanLabel = label.replace(/\s*\(Hari \d+\)/gi, '').trim().toLowerCase();
+        
+        let lat = 0, lon = 0;
+        if (cleanLabel.includes('wisata')) {
+            lat = dayItin ? (dayItin.wisata_lat || 0) : (pkg.wisata_lat || 0);
+            lon = dayItin ? (dayItin.wisata_lon || 0) : (pkg.wisata_lon || 0);
+        } else if (cleanLabel.includes('makan pagi') || cleanLabel.includes('pagi')) {
+            lat = dayItin ? (dayItin.kuliner_pagi_lat || 0) : (pkg.kuliner_pagi_lat || 0);
+            lon = dayItin ? (dayItin.kuliner_pagi_lon || 0) : (pkg.kuliner_pagi_lon || 0);
+        } else if (cleanLabel.includes('makan siang') || cleanLabel.includes('siang') || cleanLabel.includes('kuliner')) {
+            lat = dayItin ? (dayItin.kuliner_lat || 0) : (pkg.kuliner_lat || 0);
+            lon = dayItin ? (dayItin.kuliner_lon || 0) : (pkg.kuliner_lon || 0);
+        } else if (cleanLabel.includes('makan malam') || cleanLabel.includes('malam')) {
+            lat = dayItin ? (dayItin.kuliner_malam_lat || 0) : (pkg.kuliner_malam_lat || 0);
+            lon = dayItin ? (dayItin.kuliner_malam_lon || 0) : (pkg.kuliner_malam_lon || 0);
+        } else if (cleanLabel.includes('hotel') || cleanLabel.includes('akomodasi')) {
+            if (dayItin && dayItin.hotel && dayItin.hotel !== 'Checkout') {
+                lat = dayItin.hotel_lat || pkg.hotel_lat || 0;
+                lon = dayItin.hotel_lon || pkg.hotel_lon || 0;
+            } else {
+                lat = pkg.hotel_lat || 0;
+                lon = pkg.hotel_lon || 0;
+            }
+        }
+        if (lat && lon) {
+            return `${lat},${lon}`;
+        }
+        return "";
+    };
+
     // Helper to turn native select dropdowns into beautiful custom dropdowns
     function initializeCustomSelects() {
         function getOptionGraphic(val, text) {
@@ -1254,8 +1319,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const minKuliner = 13250 * persons * mealsPerPerson;
         const minTransport = Math.round(2.5 * ratePerKm * duration);
 
-        // Return the sum of absolute component minimums (actual database cheapest package price)
-        return minHotel + minWisata + minKuliner + minTransport;
+        const totalMin = minHotel + minWisata + minKuliner + minTransport;
+        // Kelipatan 10.000 terdekat ke atas agar slider bernilai bersih bulat
+        return Math.ceil(totalMin / 10000) * 10000;
     }
 
     function updateBudgetSliders() {
@@ -2312,7 +2378,17 @@ document.addEventListener('DOMContentLoaded', () => {
                         cost: pkg.cost_akomodasi,
                         className: (pkg.kategori || 'Hemat').toLowerCase()
                     } : null,
-                    days: days
+                    days: days,
+                    legs: (pkg.transport_detail?.legs || []).map(l => ({
+                        from: resolveRealName(l.from, pkg),
+                        to: resolveRealName(l.to, pkg),
+                        from_coords: resolveCoords(l.from, pkg),
+                        to_coords: resolveCoords(l.to, pkg),
+                        distance: l.distance_km
+                    })),
+                    totalDistance: pkg.transport_detail?.total_distance_km || 0,
+                    transportCost: pkg.cost_transport || 0,
+                    vehDesc: pkg.transport_detail?.legs?.[0]?.vehicle || 'Otomatis'
                 };
                 bookmarkList.unshift(newPlan);
                 localStorage.setItem('mraya_bookmarks', JSON.stringify(bookmarkList));
@@ -2333,120 +2409,315 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!modal || !body) return;
 
         const legs = pkg.transport_detail?.legs || [];
+        const isOneDay = pkg.nights === 0 || pkg.cost_akomodasi === 0 || pkg.duration === 1;
+        const getFolder = name => name ? name.trim().replace(/ /g, '_') : '';
 
-        if (legs.length === 0) {
-            body.innerHTML = `<div style="text-align:center;padding:40px;color:var(--slate-500)">Data rute tidak tersedia untuk paket ini.</div>`;
+        // Extract ordered route points (hanya hapus duplikat berurutan untuk menjaga rute pulang-pergi hotel)
+        const uniqueRealNames = [];
+        const uniqueRealCoords = [];
+        if (legs.length > 0) {
+            const realNames = legs.map(leg => resolveRealName(leg.from, pkg));
+            const realCoords = legs.map(leg => resolveCoords(leg.from, pkg));
+            realNames.push(resolveRealName(legs[legs.length - 1].to, pkg));
+            realCoords.push(resolveCoords(legs[legs.length - 1].to, pkg));
+
+            realNames.forEach((name, idx) => {
+                const cleanName = name ? name.trim() : "";
+                const coord = realCoords[idx];
+                if (cleanName && cleanName !== 'N/A' && cleanName !== 'Checkout' && coord) {
+                    if (uniqueRealNames.length === 0 || uniqueRealNames[uniqueRealNames.length - 1] !== cleanName) {
+                        uniqueRealNames.push(cleanName);
+                        uniqueRealCoords.push(coord);
+                    }
+                }
+            });
         } else {
-            const kmFolder = getFolder(pkg.kuliner_malam_nama);
-            if (!isOneDay) {
-                html += `
-                <div style="display:flex; gap:8px; margin-bottom:20px;">
-                    <div style="flex:1; height:80px; border-radius:10px; overflow:hidden; position:relative; border:1px solid var(--slate-200);">
-                        <img src="/assets/GAMBAR/hotel/${hFolder}/${hFolder}-1.jpg" style="width:100%; height:100%; object-fit:cover;" onerror="handleImgErrorRecom(this, 'hotel')" />
-                    </div>
-                    <div style="flex:1; height:80px; border-radius:10px; overflow:hidden; position:relative; border:1px solid var(--slate-200);">
-                        <img src="/assets/GAMBAR/wisata/${wFolder}/${wFolder}-1.jpg" style="width:100%; height:100%; object-fit:cover;" onerror="handleImgErrorRecom(this, 'landscape')" />
-                    </div>
-                    <div style="flex:1; height:80px; border-radius:10px; overflow:hidden; position:relative; border:1px solid var(--slate-200);" title="Makan Siang">
-                        <img src="/assets/GAMBAR/makan/${kFolder}/${kFolder}-1.jpg" style="width:100%; height:100%; object-fit:cover;" onerror="handleImgErrorRecom(this, 'restaurant')" />
-                    </div>
-                    <div style="flex:1; height:80px; border-radius:10px; overflow:hidden; position:relative; border:1px solid var(--slate-200);" title="Makan Malam">
-                        <img src="/assets/GAMBAR/makan/${kmFolder}/${kmFolder}-1.jpg" style="width:100%; height:100%; object-fit:cover;" onerror="handleImgErrorRecom(this, 'restaurant')" />
-                    </div>
-                </div>`;
-            } else {
-                html += `
-                <div style="display:flex; gap:8px; margin-bottom:20px;">
-                    <div style="flex:1; height:80px; border-radius:10px; overflow:hidden; position:relative; border:1px solid var(--slate-200);">
-                        <img src="/assets/GAMBAR/wisata/${wFolder}/${wFolder}-1.jpg" style="width:100%; height:100%; object-fit:cover;" onerror="handleImgErrorRecom(this, 'landscape')" />
-                    </div>
-                    <div style="flex:1; height:80px; border-radius:10px; overflow:hidden; position:relative; border:1px solid var(--slate-200);" title="Makan Siang">
-                        <img src="/assets/GAMBAR/makan/${kFolder}/${kFolder}-1.jpg" style="width:100%; height:100%; object-fit:cover;" onerror="handleImgErrorRecom(this, 'restaurant')" />
-                    </div>
-                    <div style="flex:1; height:80px; border-radius:10px; overflow:hidden; position:relative; border:1px solid var(--slate-200);" title="Makan Malam">
-                        <img src="/assets/GAMBAR/makan/${kmFolder}/${kmFolder}-1.jpg" style="width:100%; height:100%; object-fit:cover;" onerror="handleImgErrorRecom(this, 'restaurant')" />
-                    </div>
-                </div>`;
+            if (pkg.duration > 1 && pkg.hotel_nama && pkg.hotel_nama !== 'Tanpa Akomodasi (One Day Trip)') {
+                uniqueRealNames.push(pkg.hotel_nama_real || pkg.hotel_nama);
+                uniqueRealCoords.push(`${pkg.hotel_lat || 0},${pkg.hotel_lon || 0}`);
             }
-
-            // A. Tampilkan Rute Utama Melingkar (Spatial Routing)
-            html += '<div style="font-weight: 800; font-size: 15px; color: var(--slate-800); margin-bottom: 12px; border-bottom: 1.5px solid var(--slate-100); padding-bottom: 6px;">🎯 Outline Rute Spasial Harian</div>';
-            html += '<div class="timeline">';
-            const places = [];
-            if (legs.length > 0) {
-                places.push({ name: legs[0].from, cat: 'Awal Perjalanan' });
-                for (let i = 0; i < legs.length; i++) {
-                    let cat = `Tujuan Segmen ${i + 1}`;
-                    if (legs[i].to.toLowerCase().includes('hotel')) cat = '🏨 Akomodasi';
-                    else if (legs[i].to.toLowerCase().includes('wisata')) cat = '🎯 Destinasi Wisata';
-                    else if (legs[i].to.toLowerCase().includes('pagi')) cat = '🍳 Makan Pagi';
-                    else if (legs[i].to.toLowerCase().includes('siang')) cat = '☀️ Makan Siang';
-                    else if (legs[i].to.toLowerCase().includes('malam')) cat = '🌙 Makan Malam';
-                    places.push({ name: legs[i].to, cat: cat });
+            pkg.itinerary?.forEach(day => {
+                if (day.kuliner_pagi && day.kuliner_pagi !== 'N/A') {
+                    const clean = day.kuliner_pagi.trim();
+                    if (uniqueRealNames.length === 0 || uniqueRealNames[uniqueRealNames.length - 1] !== clean) {
+                        uniqueRealNames.push(clean);
+                        uniqueRealCoords.push(`${day.kuliner_pagi_lat || 0},${day.kuliner_pagi_lon || 0}`);
+                    }
                 }
-            }
-
-            for (let i = 0; i < places.length; i++) {
-                html += `
-                <div class="timeline-item">
-                    <div class="timeline-dot"></div>
-                    <div class="timeline-title">${places[i].name}</div>
-                    <div class="timeline-desc">${places[i].cat}</div>
-                </div>`;
-
-                if (i < legs.length) {
-                    const leg = legs[i];
-                    html += `
-                    <div class="timeline-leg">
-                        <span class="material-symbols-outlined" style="font-size:16px">directions_car</span>
-                        <span>Jarak: ${leg.distance_km?.toFixed(1) || '?'} km</span>
-                        <span style="margin-left:auto">${fmtRp(leg.cost)}</span>
-                    </div>`;
+                if (day.wisata && day.wisata !== 'N/A') {
+                    const clean = day.wisata.trim();
+                    if (uniqueRealNames.length === 0 || uniqueRealNames[uniqueRealNames.length - 1] !== clean) {
+                        uniqueRealNames.push(clean);
+                        uniqueRealCoords.push(`${day.wisata_lat || 0},${day.wisata_lon || 0}`);
+                    }
                 }
-            }
-            html += '</div>';
-
-            // B. Tampilkan Day-by-Day Itinerary Cerdas (Jika durasi > 1 hari)
-            if (pkg.itinerary && pkg.itinerary.length > 0) {
-                html += `
-                <div style="font-weight: 800; font-size: 15px; color: var(--slate-800); margin: 24px 0 12px; border-bottom: 1.5px solid var(--slate-100); padding-bottom: 6px;">
-                    📅 Rencana Perjalanan Harian (Variasi Klaster FCM)
-                </div>
-                <div class="ota-itinerary-list" style="display:flex; flex-direction:column; gap:10px; margin-bottom: 24px;">
-                    ${pkg.itinerary.map(day => {
-                        let mealHTML = `
-                            <div style="font-size:12.5px; font-weight:500; color:var(--slate-500); margin-top:2px;">🍳 Makan Pagi: ${day.kuliner_pagi || 'N/A'}</div>
-                            <div style="font-size:12.5px; font-weight:500; color:var(--slate-500); margin-top:2px;">☀️ Makan Siang: ${day.kuliner}</div>
-                        `;
-                        if (pkg.duration > 1 && day.day !== pkg.duration) {
-                            mealHTML += `<div style="font-size:12.5px; font-weight:500; color:var(--slate-500); margin-top:2px;">🌙 Makan Malam: ${day.kuliner_malam || 'N/A'}</div>`;
-                        }
-                        return `
-                        <div style="background:var(--slate-50); border:1.5px solid var(--slate-200); border-radius:12px; padding:12px 16px;">
-                            <div style="font-size:11px; font-weight:800; color:var(--teal-600); letter-spacing:0.5px; text-transform:uppercase;">HARI ${day.day}</div>
-                            <div style="font-size:14px; font-weight:700; color:var(--slate-800); margin:4px 0 2px;">🎯 Wisata: ${day.wisata}</div>
-                            ${mealHTML}
-                        </div>
-                        `;
-                    }).join('')}
-                </div>
-                `;
-            }
-
-            // Google Maps URL (waypoints delimited by |)
-            const originName = places[0]?.name || '';
-            const destName = places[places.length - 1]?.name || '';
-            const waypointsNames = places.slice(1, -1).map(p => p.name).join('|');
-            const mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(originName)}&destination=${encodeURIComponent(destName)}&waypoints=${encodeURIComponent(waypointsNames)}&travelmode=driving`;
-
-            html += `
-            <a href="${mapsUrl}" target="_blank" class="gmaps-btn">
-                <span class="material-symbols-outlined">map</span>
-                Buka Rute di Google Maps
-            </a>`;
-
-            body.innerHTML = html;
+                if (day.kuliner && day.kuliner !== 'N/A') {
+                    const clean = day.kuliner.trim();
+                    if (uniqueRealNames.length === 0 || uniqueRealNames[uniqueRealNames.length - 1] !== clean) {
+                        uniqueRealNames.push(clean);
+                        uniqueRealCoords.push(`${day.kuliner_lat || 0},${day.kuliner_lon || 0}`);
+                    }
+                }
+                if (day.kuliner_malam && day.kuliner_malam !== 'N/A') {
+                    const clean = day.kuliner_malam.trim();
+                    if (uniqueRealNames.length === 0 || uniqueRealNames[uniqueRealNames.length - 1] !== clean) {
+                        uniqueRealNames.push(clean);
+                        uniqueRealCoords.push(`${day.kuliner_malam_lat || 0},${day.kuliner_malam_lon || 0}`);
+                    }
+                }
+                if (day.hotel && day.hotel !== 'Checkout') {
+                    const clean = day.hotel.trim();
+                    if (uniqueRealNames.length === 0 || uniqueRealNames[uniqueRealNames.length - 1] !== clean) {
+                        uniqueRealNames.push(clean);
+                        uniqueRealCoords.push(`${day.hotel_lat || pkg.hotel_lat || 0},${day.hotel_lon || pkg.hotel_lon || 0}`);
+                    }
+                }
+            });
         }
+
+        // Generate Maps directions URL & embed map URL menggunakan koordinat agar sangat akurat
+        let mapEmbedUrl = "";
+        let mapsUrl = "";
+        if (uniqueRealCoords.length >= 2) {
+            const originSearch = uniqueRealCoords[0];
+            const embedDAddr = uniqueRealCoords.slice(1).map(w => encodeURIComponent(w)).join("+to:");
+            mapEmbedUrl = `https://maps.google.com/maps?saddr=${encodeURIComponent(originSearch)}&daddr=${embedDAddr}&t=&z=13&ie=UTF8&iwloc=&output=embed`;
+            
+            const destName = uniqueRealCoords[uniqueRealCoords.length - 1];
+            const waypointsNames = uniqueRealCoords.slice(1, -1).join('|');
+            mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(originSearch)}&destination=${encodeURIComponent(destName)}&waypoints=${encodeURIComponent(waypointsNames)}&travelmode=driving`;
+        } else if (uniqueRealCoords.length === 1) {
+            const searchQ = uniqueRealCoords[0];
+            mapEmbedUrl = `https://maps.google.com/maps?q=${encodeURIComponent(searchQ)}&hl=id&z=15&t=&ie=UTF8&iwloc=&output=embed`;
+            mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(searchQ)}`;
+        }
+
+        // Build unique places image list for gallery view
+        const uniquePics = [];
+        const addPic = (name, cat, label) => {
+            if (!name || name === 'N/A' || name === 'Checkout') return;
+            const folder = getFolder(name);
+            const picPath = `/assets/GAMBAR/${cat}/${folder}/${folder}-1.jpg`;
+            if (!uniquePics.some(p => p.folder === folder)) {
+                uniquePics.push({ name, cat, folder, picPath, label });
+            }
+        };
+
+        if (pkg.duration > 1 && pkg.hotel_nama && pkg.hotel_nama !== 'Tanpa Akomodasi (One Day Trip)') {
+            addPic(pkg.hotel_nama_real || pkg.hotel_nama, 'hotel', 'Hotel');
+        }
+
+        pkg.itinerary?.forEach(day => {
+            addPic(day.wisata, 'wisata', 'Wisata');
+            addPic(day.kuliner_pagi, 'makan', 'Makan Pagi');
+            addPic(day.kuliner, 'makan', 'Makan Siang');
+            addPic(day.kuliner_malam, 'makan', 'Makan Malam');
+        });
+
+        const imagesGridHTML = uniquePics.slice(0, 4).map(pic => {
+            let errorIcon = 'restaurant';
+            if (pic.cat === 'hotel') errorIcon = 'hotel';
+            if (pic.cat === 'wisata') errorIcon = 'landscape';
+            
+            return `
+                <div style="position:relative; border-radius:12px; overflow:hidden; border:1px solid var(--slate-200); aspect-ratio:4/3; background:var(--slate-50);" title="${pic.name}">
+                    <img src="${pic.picPath}" alt="${escapeHtmlAttr(pic.name)}" style="width:100%; height:100%; object-fit:cover; transition:transform 0.3s;" onerror="handleImgErrorRecom(this, '${errorIcon}')" />
+                    <div style="position:absolute; bottom:0; left:0; right:0; background:linear-gradient(to top, rgba(0,0,0,0.8), transparent); padding:8px; color:#fff;">
+                        <span style="font-size:9px; font-weight:700; text-transform:uppercase; color:var(--teal-400); display:block; letter-spacing:0.5px;">${pic.label}</span>
+                        <span style="font-size:11px; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block; margin-top:1px;">${pic.name}</span>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        // Build accommodation cost breakdown HTML
+        let accommodationBreakdownHTML = '';
+        if (pkg.duration > 1 && pkg.hotel_nama && pkg.hotel_nama !== 'Tanpa Akomodasi (One Day Trip)') {
+            accommodationBreakdownHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; padding-bottom:8px; border-bottom:1px dashed var(--slate-200);">
+                    <div>
+                        <strong style="font-size:13.5px; color:var(--slate-700); display:block;">🏨 Akomodasi Hotel</strong>
+                        <span style="font-size:11.5px; color:var(--slate-400); font-weight:600;">
+                            ${pkg.nights} malam × ${pkg.num_rooms} kamar
+                        </span>
+                    </div>
+                    <div style="text-align:right;">
+                        <strong style="font-size:14.5px; color:var(--slate-800);">${fmtRp(pkg.cost_akomodasi)}</strong>
+                        <span style="font-size:11px; color:var(--slate-400); display:block;">@ ${fmtRp(pkg.hotel_harga)}/malam</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Calculate meals count
+        const mealsCount = pkg.duration === 1 ? 2 : (3 * (pkg.duration - 1) + 2);
+
+        // Build daily timeline cards
+        const timelineHTML = (pkg.itinerary || []).map(day => {
+            return `
+                <div style="background:#fff; border:1px solid var(--slate-200); border-radius:12px; padding:14px; box-shadow:0 2px 8px rgba(0,0,0,0.02);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; border-bottom:1px solid var(--slate-100); padding-bottom:6px;">
+                        <span style="font-size:11px; font-weight:800; color:var(--teal-600); letter-spacing:0.5px;">HARI ${day.day}</span>
+                        <span style="font-size:10px; color:var(--slate-400); font-weight:700;">Destinasi & Kuliner</span>
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:6px; font-size:12.5px; font-weight:600; color:var(--slate-600);">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span class="material-symbols-outlined" style="font-size:16px; color:var(--teal-500);">landscape</span>
+                            <span>Wisata: <strong style="color:var(--slate-800);">${day.wisata}</strong></span>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span class="material-symbols-outlined" style="font-size:16px; color:var(--teal-500);">wb_twilight</span>
+                            <span>Makan Pagi: <strong style="color:var(--slate-800);">${day.kuliner_pagi || 'N/A'}</strong></span>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span class="material-symbols-outlined" style="font-size:16px; color:var(--teal-500);">sunny</span>
+                            <span>Makan Siang: <strong style="color:var(--slate-800);">${day.kuliner}</strong></span>
+                        </div>
+                        ${(day.kuliner_malam && day.kuliner_malam !== 'N/A') ? `
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span class="material-symbols-outlined" style="font-size:16px; color:var(--teal-500);">dark_mode</span>
+                            <span>Makan Malam: <strong style="color:var(--slate-800);">${day.kuliner_malam}</strong></span>
+                        </div>
+                        ` : ''}
+                        ${(day.hotel && day.hotel !== 'Checkout') ? `
+                        <div style="display:flex; align-items:center; gap:8px; border-top:1px dashed var(--slate-100); margin-top:4px; padding-top:4px;">
+                            <span class="material-symbols-outlined" style="font-size:16px; color:var(--teal-500);">hotel</span>
+                            <span>Hotel: <strong style="color:var(--slate-800);">${day.hotel}</strong></span>
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        // Put everything together
+        body.innerHTML = `
+            <div class="pkg-detail-premium" style="font-family:'Manrope', sans-serif; color:var(--slate-800); text-align:left;">
+                <!-- 1. Header Banner -->
+                <div style="background:linear-gradient(135deg, var(--teal-700), var(--teal-900)); color:#fff; padding:24px; border-radius:16px; margin-bottom:24px; position:relative; overflow:hidden; box-shadow:0 10px 25px rgba(13,148,136,0.15);">
+                    <div style="position:relative; z-index:10;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                            <span style="font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:1px; background:rgba(255,255,255,0.2); padding:4px 10px; border-radius:30px;">
+                                Paket ${pkg.kategori || 'Hemat'}
+                            </span>
+                            <span style="font-size:12px; font-weight:700; opacity:0.9;">
+                                👥 ${pkg.num_persons} Peserta · 📅 ${pkg.duration} Hari
+                            </span>
+                        </div>
+                        <h2 style="margin:0 0 6px; font-size:20px; font-weight:800; color:#fff; letter-spacing:-0.5px;">Rencana Perjalanan Cerdas FCM</h2>
+                        <p style="margin:0; font-size:13px; opacity:0.85; font-weight:500;">
+                            Kombinasi destinasi, penginapan, dan kuliner terklaster dengan jarak spasial terpendek.
+                        </p>
+                    </div>
+                    <div style="position:absolute; right:-50px; bottom:-50px; width:180px; height:180px; border-radius:50%; background:rgba(255,255,255,0.08); z-index:1;"></div>
+                </div>
+
+                <!-- 2. Visual Gallery of the Package (Gambar Tempat) -->
+                <div style="margin-bottom:24px;">
+                    <h4 style="font-size:14.5px; font-weight:800; color:var(--slate-800); margin:0 0 12px; display:flex; align-items:center; gap:8px;">
+                        <span class="material-symbols-outlined" style="color:var(--teal-600); font-size:20px;">gallery_thumbnail</span>
+                        Galeri Destinasi & Akomodasi Pilihan
+                    </h4>
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:12px;">
+                        ${imagesGridHTML}
+                    </div>
+                </div>
+
+                <!-- 3. Rincian Anggaran (Semua Hitungannya) -->
+                <div style="background:var(--slate-50); border:1.5px solid var(--slate-200); border-radius:16px; padding:18px; margin-bottom:24px;">
+                    <h4 style="font-size:14.5px; font-weight:800; color:var(--slate-800); margin:0 0 14px; display:flex; align-items:center; gap:8px; border-bottom:1.5px solid var(--slate-200); padding-bottom:8px;">
+                        <span class="material-symbols-outlined" style="color:var(--teal-600); font-size:20px;">receipt_long</span>
+                        Kalkulasi Transparan & Rincian Biaya Paket
+                    </h4>
+                    <div style="display:flex; flex-direction:column; gap:12px;">
+                        ${accommodationBreakdownHTML}
+                        
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start; padding-bottom:8px; border-bottom:1px dashed var(--slate-200);">
+                            <div>
+                                <strong style="font-size:13.5px; color:var(--slate-700); display:block;">🌲 Tiket Masuk Wisata</strong>
+                                <span style="font-size:11.5px; color:var(--slate-400); font-weight:600;">
+                                    1x Tiket Hari 1 (sesuai rumus skripsi) × ${pkg.num_persons} orang
+                                </span>
+                            </div>
+                            <div style="text-align:right;">
+                                <strong style="font-size:14.5px; color:var(--slate-800);">${fmtRp(pkg.cost_wisata)}</strong>
+                                <span style="font-size:11px; color:var(--slate-400); display:block;">@ ${fmtRp(pkg.wisata_harga)}/org</span>
+                            </div>
+                        </div>
+
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start; padding-bottom:8px; border-bottom:1px dashed var(--slate-200);">
+                            <div>
+                                <strong style="font-size:13.5px; color:var(--slate-700); display:block;">🍜 Konsumsi & Kuliner</strong>
+                                <span style="font-size:11.5px; color:var(--slate-400); font-weight:600;">
+                                    Makan ${pkg.num_persons} orang × ${mealsCount} porsi makan
+                                </span>
+                            </div>
+                            <div style="text-align:right;">
+                                <strong style="font-size:14.5px; color:var(--slate-800);">${fmtRp(pkg.cost_kuliner)}</strong>
+                                <span style="font-size:11px; color:var(--slate-400); display:block;">Pagi, siang, malam</span>
+                            </div>
+                        </div>
+
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start; padding-bottom:8px; border-bottom:1px dashed var(--slate-200);">
+                            <div>
+                                <strong style="font-size:13.5px; color:var(--slate-700); display:block;">🚗 Transportasi Darat</strong>
+                                <span style="font-size:11.5px; color:var(--slate-400); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:240px; display:block;">
+                                    ${pkg.transport_detail?.legs?.[0]?.vehicle || 'Otomatis'}
+                                </span>
+                            </div>
+                            <div style="text-align:right;">
+                                <strong style="font-size:14.5px; color:var(--slate-800);">${fmtRp(pkg.cost_transport)}</strong>
+                                <span style="font-size:11px; color:var(--slate-400); display:block;">
+                                    📏 ${pkg.transport_detail?.total_distance_km?.toFixed(1) || '?'} km
+                                </span>
+                            </div>
+                        </div>
+
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; padding-top:12px; border-top:2px solid var(--slate-300);">
+                            <strong style="font-size:14.5px; color:var(--slate-800);">Total Estimasi Gabungan:</strong>
+                            <strong style="font-size:18px; color:var(--teal-700); font-weight:900;">${fmtRp(pkg.total_cost)}</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. Google Maps Route Embed (Potongan Rute) -->
+                <div style="margin-bottom:24px;">
+                    <h4 style="font-size:14.5px; font-weight:800; color:var(--slate-800); margin:0 0 12px; display:flex; align-items:center; gap:8px;">
+                        <span class="material-symbols-outlined" style="color:var(--teal-600); font-size:20px;">map</span>
+                        Potongan Peta Rute Perjalanan Spasial
+                    </h4>
+                    <div style="width:100%; height:260px; border-radius:14px; overflow:hidden; border:1px solid var(--slate-200); box-shadow:0 4px 12px rgba(0,0,0,0.05); background:var(--slate-100);">
+                        <iframe 
+                            src="${mapEmbedUrl}"
+                            width="100%" 
+                            height="100%" 
+                            style="border:0;" 
+                            allowfullscreen="" 
+                            loading="lazy">
+                        </iframe>
+                    </div>
+                </div>
+
+                <!-- 5. Day-by-Day Timeline -->
+                <div style="margin-bottom:24px;">
+                    <h4 style="font-size:14.5px; font-weight:800; color:var(--slate-800); margin:0 0 12px; display:flex; align-items:center; gap:8px;">
+                        <span class="material-symbols-outlined" style="color:var(--teal-600); font-size:20px;">calendar_today</span>
+                        Rencana Perjalanan Harian
+                    </h4>
+                    <div style="display:flex; flex-direction:column; gap:12px;">
+                        ${timelineHTML}
+                    </div>
+                </div>
+
+                <!-- 6. Action Button (Google Maps Redirect) -->
+                <div style="margin-top:20px; border-top:1.5px solid var(--slate-100); padding-top:20px; display:flex; gap:12px;">
+                    <a href="${mapsUrl}" target="_blank" class="gmaps-btn" style="flex:1; display:flex; align-items:center; justify-content:center; gap:8px; background:var(--teal-600); color:#fff; text-decoration:none; padding:14px; border-radius:12px; font-weight:800; text-align:center; box-shadow:0 4px 12px rgba(13,148,136,0.25); transition:all 0.2s;">
+                        <span class="material-symbols-outlined">map</span>
+                        Navigasi Rute di Google Maps
+                    </a>
+                </div>
+            </div>
+        `;
 
         modal.classList.add('show');
     }
@@ -3042,25 +3313,52 @@ document.addEventListener('DOMContentLoaded', () => {
         let destination = "";
         let waypoints = "";
 
-        if (isOneDay) {
-            const firstDay = plan.days[0];
-            origin = firstDay ? firstDay.kuliner : "";
-            destination = firstDay ? (firstDay.kuliner_malam || firstDay.kuliner) : "";
-            waypoints = firstDay ? firstDay.wisata : "";
-        } else {
-            origin = plan.hotel ? plan.hotel.nama : (plan.days[0] ? plan.days[0].wisata : "");
-            if (plan.hotelMode === 'split' && plan.hotelsByNight && plan.hotelsByNight[1]) {
-                origin = plan.hotelsByNight[1].nama;
-            }
-            destination = origin;
-            waypoints = plan.days.map(d => `${d.kuliner}|${d.wisata}|${d.kuliner_malam}`).join('|');
+        let mapsUrl = "";
+        let routeStops = [];
+        let routeCoords = [];
+        if (plan.legs && plan.legs.length > 0) {
+            const resolvedStops = plan.legs.map(leg => leg.from);
+            const resolvedCoords = plan.legs.map(leg => leg.from_coords);
+            resolvedStops.push(plan.legs[plan.legs.length - 1].to);
+            resolvedCoords.push(plan.legs[plan.legs.length - 1].to_coords);
+            
+            resolvedStops.forEach((name, idx) => {
+                const cleanName = name ? name.trim() : "";
+                const coord = resolvedCoords[idx];
+                if (cleanName && cleanName !== 'N/A' && cleanName !== 'Checkout' && coord) {
+                    if (routeStops.length === 0 || routeStops[routeStops.length - 1] !== cleanName) {
+                        routeStops.push(cleanName);
+                        routeCoords.push(coord);
+                    }
+                }
+            });
         }
 
-        let mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}`;
-        if (waypoints) {
-            mapsUrl += `&waypoints=${encodeURIComponent(waypoints)}`;
+        if (routeCoords.length >= 2) {
+            const originSearch = routeCoords[0];
+            const destName = routeCoords[routeCoords.length - 1];
+            const waypointsNames = routeCoords.slice(1, -1).join('|');
+            mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(originSearch)}&destination=${encodeURIComponent(destName)}&waypoints=${encodeURIComponent(waypointsNames)}&travelmode=driving`;
+        } else {
+            // Fallback ke logika lama jika legs tidak tersedia
+            if (isOneDay) {
+                origin = plan.days[0] ? plan.days[0].kuliner : "";
+                destination = plan.days[0] ? (plan.days[0].kuliner_malam || plan.days[0].kuliner) : "";
+                waypoints = plan.days[0] ? plan.days[0].wisata : "";
+            } else {
+                origin = plan.hotel ? plan.hotel.nama : (plan.days[0] ? plan.days[0].wisata : "");
+                if (plan.hotelMode === 'split' && plan.hotelsByNight && plan.hotelsByNight[1]) {
+                    origin = plan.hotelsByNight[1].nama;
+                }
+                destination = origin;
+                waypoints = plan.days.map(d => `${d.kuliner}|${d.wisata}|${d.kuliner_malam}`).join('|');
+            }
+            mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}`;
+            if (waypoints) {
+                mapsUrl += `&waypoints=${encodeURIComponent(waypoints)}`;
+            }
+            mapsUrl += `&travelmode=driving`;
         }
-        mapsUrl += `&travelmode=driving`;
 
         html += `
             <a href="${mapsUrl}" target="_blank" class="gmaps-btn" style="display:flex; align-items:center; justify-content:center; gap:8px; width:100%; background:var(--teal-600); color:#fff; text-decoration:none; padding:14px; border-radius:12px; font-weight:800; text-align:center; box-shadow:0 4px 12px rgba(13,148,136,0.3); transition:all 0.2s;">
@@ -3219,9 +3517,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="section-title">🚗 Biaya Transportasi & Jarak Spasial</div>
                 <div class="item-card">
                     <div class="item-info">
-                        <div class="item-cat">Transportasi Darat (${plan.vehDesc})</div>
-                        <div class="item-name">Total Jarak Tempuh Spasial: ${plan.totalDistance.toFixed(1)} km</div>
-                        <div class="item-price">Menggunakan tarif transportasi kustom: ${fmtRp(plan.transportCost)}</div>
+                        <div class="item-cat">Transportasi Darat (${plan.vehDesc || 'Otomatis'})</div>
+                        <div class="item-name">Total Jarak Tempuh Spasial: ${(plan.totalDistance || 0).toFixed(1)} km</div>
+                        <div class="item-price">Menggunakan tarif transportasi kustom: ${fmtRp(plan.transportCost || 0)}</div>
                     </div>
                 </div>
 
@@ -3231,12 +3529,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
 
                 <script>
-                    window.onload = function() {
-                        setTimeout(function() {
-                            window.print();
-                            window.close();
-                        }, 300);
-                    };
+                    setTimeout(function() {
+                        window.print();
+                    }, 500);
                 </script>
             </body>
             </html>
@@ -3304,7 +3599,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderPlannerStep();
     }
 
-    // Helper Haversine Spasial Distance
+    // Helper Haversine Spasial Distance (ditambahkan faktor koreksi jalan darat 1.45x agar sinkron dengan Python)
     function haversineDist(lat1, lon1, lat2, lon2) {
         if (!lat1 || !lon1 || !lat2 || !lon2) return 0;
         const R = 6371; // km
@@ -3314,7 +3609,7 @@ document.addEventListener('DOMContentLoaded', () => {
             Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
             Math.sin(dLon / 2) * Math.sin(dLon / 2);
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return R * c;
+        return R * c * 1.45;
     }
 
     // Custom spatial confirmation modal
@@ -3402,18 +3697,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const clustered = allOptions[0].clustered_items;
         if (category === 'hotel') {
-            const hotels = clustered.hotel[classIdx] || clustered.hotel[String(classIdx)] || [];
-            hotels.forEach(h => {
-                const name = h.Nama_Tempat || h.nama;
-                if (name && !list.some(item => item.nama === name)) {
-                    list.push({
-                        nama: name,
-                        harga: h.Estimasi_Harga || h.harga || 0,
-                        cost: (h.Estimasi_Harga || h.harga || 0) * (activeOptionPackages[0].nights || 1) * (activeOptionPackages[0].num_rooms || 1),
-                        lat: h.Latitude || h.lat || 0,
-                        lon: h.Longitude || h.lon || 0
-                    });
-                }
+            // Aggregate from all classes for maximum variety
+            [0, 1, 2].forEach(cIdx => {
+                const hotels = clustered.hotel[cIdx] || clustered.hotel[String(cIdx)] || [];
+                hotels.forEach(h => {
+                    const name = h.Nama_Tempat || h.nama;
+                    if (name && !list.some(item => item.nama === name)) {
+                        list.push({
+                            nama: name,
+                            harga: h.Estimasi_Harga || h.harga || 0,
+                            cost: (h.Estimasi_Harga || h.harga || 0) * (activeOptionPackages[0].nights || 1) * (activeOptionPackages[0].num_rooms || 1),
+                            lat: h.Latitude || h.lat || 0,
+                            lon: h.Longitude || h.lon || 0
+                        });
+                    }
+                });
             });
         }
         return list;
@@ -3424,17 +3722,21 @@ document.addEventListener('DOMContentLoaded', () => {
         let list = [];
         if (!allOptions || !allOptions[0] || !allOptions[0].clustered_items) return list;
         const clustered = allOptions[0].clustered_items;
-        const wisatas = clustered.wisata[classIdx] || clustered.wisata[String(classIdx)] || [];
-        wisatas.forEach(w => {
-            const name = w.Nama_Tempat || w.nama;
-            if (name && !list.some(item => item.nama === name)) {
-                list.push({
-                    nama: name,
-                    harga: w.Estimasi_Harga || w.harga || 0,
-                    lat: w.Latitude || w.lat || 0,
-                    lon: w.Longitude || w.lon || 0
-                });
-            }
+        
+        // Aggregate from all classes for maximum variety
+        [0, 1, 2].forEach(cIdx => {
+            const wisatas = clustered.wisata[cIdx] || clustered.wisata[String(cIdx)] || [];
+            wisatas.forEach(w => {
+                const name = w.Nama_Tempat || w.nama;
+                if (name && !list.some(item => item.nama === name)) {
+                    list.push({
+                        nama: name,
+                        harga: w.Estimasi_Harga || w.harga || 0,
+                        lat: w.Latitude || w.lat || 0,
+                        lon: w.Longitude || w.lon || 0
+                    });
+                }
+            });
         });
         return list;
     }
@@ -3444,17 +3746,21 @@ document.addEventListener('DOMContentLoaded', () => {
         let list = [];
         if (!allOptions || !allOptions[0] || !allOptions[0].clustered_items) return list;
         const clustered = allOptions[0].clustered_items;
-        const kuliners = clustered.kuliner[classIdx] || clustered.kuliner[String(classIdx)] || [];
-        kuliners.forEach(k => {
-            const name = k.Nama_Tempat || k.nama;
-            if (name && !list.some(item => item.nama === name)) {
-                list.push({
-                    nama: name,
-                    harga: k.Estimasi_Harga || k.harga || 0,
-                    lat: k.Latitude || k.lat || 0,
-                    lon: k.Longitude || k.lon || 0
-                });
-            }
+        
+        // Aggregate from all classes for maximum variety
+        [0, 1, 2].forEach(cIdx => {
+            const kuliners = clustered.kuliner[cIdx] || clustered.kuliner[String(cIdx)] || [];
+            kuliners.forEach(k => {
+                const name = k.Nama_Tempat || k.nama;
+                if (name && !list.some(item => item.nama === name)) {
+                    list.push({
+                        nama: name,
+                        harga: k.Estimasi_Harga || k.harga || 0,
+                        lat: k.Latitude || k.lat || 0,
+                        lon: k.Longitude || k.lon || 0
+                    });
+                }
+            });
         });
         return list;
     }
