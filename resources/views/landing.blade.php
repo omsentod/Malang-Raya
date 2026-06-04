@@ -101,7 +101,7 @@
                 </p>
                 <div class="hero-actions">
                     <a class="btn-teal" href="/recommender">
-                        Mulai Konsultasi AI
+                        Mulai Konsultasi FCM
                         <span class="material-symbols-outlined">arrow_forward</span>
                     </a>
                     <a class="hero-btn-ghost" href="#explore">

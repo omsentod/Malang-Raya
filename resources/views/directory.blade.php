@@ -241,6 +241,220 @@
             color: var(--color-slate-700);
             margin-bottom: 0.5rem;
         }
+
+        /* Price Filter Specifics */
+        .price-range-inputs {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .price-input {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--color-surface-container-high);
+            background: var(--color-surface);
+            font-family: var(--font-body);
+            font-size: 0.8125rem;
+            outline: none;
+            transition: var(--transition-normal);
+        }
+
+        .price-input:focus {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(0, 101, 101, 0.15);
+            background: #ffffff;
+        }
+
+        .btn-price-action {
+            padding: 0.5rem;
+            border-radius: var(--radius-md);
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.25rem;
+            transition: var(--transition-fast);
+        }
+
+        #btn-apply-price {
+            flex: 2;
+            background: var(--color-primary);
+            color: #ffffff;
+        }
+
+        #btn-apply-price:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        #btn-clear-price {
+            flex: 1;
+            background: var(--color-surface-container-high);
+            color: var(--color-slate-600);
+        }
+
+        #btn-clear-price:hover {
+            background: var(--color-surface-container-highest);
+            color: var(--color-slate-800);
+        }
+
+        /* Premium Custom Dropdown styling */
+        .custom-sort-dropdown {
+            position: relative;
+            display: inline-block;
+            z-index: 100;
+        }
+
+        .sort-trigger-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid var(--color-surface-container-high);
+            border-radius: var(--radius-lg);
+            padding: 0.5rem 1rem;
+            box-shadow: 0 4px 16px rgba(0, 101, 101, 0.04);
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            font-family: var(--font-body);
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: var(--color-slate-700);
+            outline: none;
+            width: auto;
+            border-style: solid;
+        }
+
+        .sort-trigger-btn:hover {
+            border-color: var(--color-primary);
+            background: #ffffff;
+            box-shadow: 0 6px 20px rgba(0, 101, 101, 0.08);
+            transform: translateY(-1px);
+        }
+
+        .sort-trigger-btn:focus-visible {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(0, 101, 101, 0.15);
+        }
+
+        .sort-trigger-btn .sort-icon {
+            font-size: 1.125rem;
+            color: var(--color-primary);
+        }
+
+        .sort-trigger-btn .dropdown-arrow {
+            font-size: 1.25rem;
+            color: var(--color-slate-400);
+            transition: transform var(--transition-fast);
+            margin-left: 0.25rem;
+        }
+
+        .custom-sort-dropdown.open .dropdown-arrow {
+            transform: rotate(180deg);
+            color: var(--color-primary);
+        }
+
+        /* Dropdown options list styling */
+        .sort-options-list {
+            position: absolute;
+            top: calc(100% + 0.5rem);
+            right: 0;
+            background: #ffffff;
+            border: 1px solid var(--color-surface-container-high);
+            border-radius: var(--radius-lg);
+            box-shadow: 0 10px 30px rgba(0, 101, 101, 0.12);
+            padding: 0.5rem;
+            margin: 0;
+            list-style: none;
+            width: 200px;
+            display: none;
+            flex-direction: column;
+            gap: 0.25rem;
+            transform-origin: top right;
+            animation: dropdownScaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes dropdownScaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(-5px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .custom-sort-dropdown.open .sort-options-list {
+            display: flex;
+        }
+
+        .sort-opt-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            border-radius: var(--radius-md);
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--color-slate-600);
+            cursor: pointer;
+            transition: var(--transition-fast);
+        }
+
+        .sort-opt-item:hover {
+            background: rgba(0, 101, 101, 0.05);
+            color: var(--color-primary);
+        }
+
+        .sort-opt-item.active {
+            background: rgba(0, 101, 101, 0.08);
+            color: var(--color-primary);
+            font-weight: 700;
+        }
+
+        .sort-opt-item .opt-icon {
+            font-size: 1rem;
+            color: var(--color-slate-400);
+        }
+
+        .sort-opt-item.active .opt-icon {
+            color: var(--color-primary);
+        }
+
+        /* Responsive styling */
+        @media (max-width: 640px) {
+            .results-header-row {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.75rem;
+            }
+            .results-count {
+                text-align: center;
+                font-size: 0.875rem;
+            }
+            .custom-sort-dropdown {
+                width: 100%;
+            }
+            .sort-trigger-btn {
+                width: 100%;
+                justify-content: center;
+            }
+            .sort-options-list {
+                width: 100%;
+                left: 0;
+                right: 0;
+                transform-origin: top center;
+            }
+        }
     </style>
 </head>
 <body>
@@ -363,12 +577,83 @@
                         </button>
                     </div>
                 </div>
+
+                <!-- Filter Section: Estimasi Harga -->
+                <div class="filter-section">
+                    <div class="filter-title">
+                        <span class="material-symbols-outlined">payments</span>
+                        Estimasi Harga
+                    </div>
+                    <div class="filter-btn-group" id="price-tier-group">
+                        <button class="filter-opt-btn active" data-price-tier="Semua">
+                            <span class="material-symbols-outlined">sell</span>
+                            <span>Semua Harga</span>
+                        </button>
+                        <button class="filter-opt-btn" data-price-tier="Hemat">
+                            <span class="material-symbols-outlined">savings</span>
+                            <span class="tier-label" id="tier-label-hemat">Hemat (< Rp 50k)</span>
+                        </button>
+                        <button class="filter-opt-btn" data-price-tier="Menengah">
+                            <span class="material-symbols-outlined">account_balance_wallet</span>
+                            <span class="tier-label" id="tier-label-menengah">Menengah (50k - 250k)</span>
+                        </button>
+                        <button class="filter-opt-btn" data-price-tier="Premium">
+                            <span class="material-symbols-outlined">diamond</span>
+                            <span class="tier-label" id="tier-label-premium">Premium (> Rp 250k)</span>
+                        </button>
+                    </div>
+                    
+                    <!-- Custom Price Range Inputs -->
+                    <div style="margin-top: 1.25rem;">
+                        <div style="font-size: 0.75rem; font-weight: 700; color: var(--color-slate-500); text-transform: uppercase; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.25rem;">
+                            <span class="material-symbols-outlined" style="font-size: 14px;">tune</span>
+                            Rentang Kustom (Rp)
+                        </div>
+                        <div class="price-range-inputs">
+                            <input type="text" id="price-min-input" placeholder="Min" class="price-input" autocomplete="off" />
+                            <span style="color: var(--color-slate-400); font-size: 0.75rem;">-</span>
+                            <input type="text" id="price-max-input" placeholder="Max" class="price-input" autocomplete="off" />
+                        </div>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button id="btn-apply-price" class="btn-price-action">
+                                <span class="material-symbols-outlined" style="font-size: 14px;">check</span>
+                                Terapkan
+                            </button>
+                            <button id="btn-clear-price" class="btn-price-action">
+                                Reset
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </aside>
 
             <!-- EXPLORER GRID CONTENT -->
             <section class="reveal reveal-delay-1">
                 <div class="results-header-row">
                     <div class="results-count" id="results-count-label">Menghubungkan data...</div>
+                    
+                    <!-- Custom Premium Sorting Dropdown -->
+                    <div class="custom-sort-dropdown" id="custom-sort-dropdown">
+                        <button class="sort-trigger-btn" id="sort-trigger-btn" type="button" aria-expanded="false" aria-label="Urutkan Katalog">
+                            <span class="material-symbols-outlined sort-icon">sort</span>
+                            <span class="selected-sort-label" id="selected-sort-label">Rekomendasi</span>
+                            <span class="material-symbols-outlined dropdown-arrow" id="sort-arrow">expand_more</span>
+                        </button>
+                        <ul class="sort-options-list" id="sort-options-list">
+                            <li class="sort-opt-item active" data-value="default">
+                                <span class="material-symbols-outlined opt-icon">auto_awesome</span>
+                                Rekomendasi
+                            </li>
+                            <li class="sort-opt-item" data-value="price-asc">
+                                <span class="material-symbols-outlined opt-icon">trending_up</span>
+                                Harga: Terendah ↑
+                            </li>
+                            <li class="sort-opt-item" data-value="price-desc">
+                                <span class="material-symbols-outlined opt-icon">trending_down</span>
+                                Harga: Tertinggi ↓
+                            </li>
+                        </ul>
+                    </div>
                 </div>
 
                 <!-- CARDS GRID -->
@@ -501,6 +786,47 @@
         let activeLocFilter = 'Semua';
         let searchQuery = '';
 
+        // Price Filter State
+        let activePriceTier = 'Semua';
+        let customMinPrice = null;
+        let customMaxPrice = null;
+        let activeSortOption = 'default';
+
+        // Dynamic price tier configurations matching our dataset statistics
+        const priceTierConfigs = {
+            'Semua': {
+                Hemat: { label: 'Hemat (< Rp 50k)', min: 0, max: 50000 },
+                Menengah: { label: 'Menengah (50k - 250k)', min: 50000, max: 250000 },
+                Premium: { label: 'Premium (> Rp 250k)', min: 250000, max: Infinity }
+            },
+            'Wisata': {
+                Hemat: { label: 'Hemat (< Rp 10k)', min: 0, max: 10000 },
+                Menengah: { label: 'Menengah (10k - 50k)', min: 10000, max: 50000 },
+                Premium: { label: 'Premium (> Rp 50k)', min: 50000, max: Infinity }
+            },
+            'Hotel': {
+                Hemat: { label: 'Hemat (< Rp 150k)', min: 0, max: 150000 },
+                Menengah: { label: 'Menengah (150k - 350k)', min: 150000, max: 350000 },
+                Premium: { label: 'Premium (> Rp 350k)', min: 350000, max: Infinity }
+            },
+            'Kuliner': {
+                Hemat: { label: 'Hemat (< Rp 15k)', min: 0, max: 15000 },
+                Menengah: { label: 'Menengah (15k - 35k)', min: 15000, max: 35000 },
+                Premium: { label: 'Premium (> Rp 35k)', min: 35000, max: Infinity }
+            }
+        };
+
+        function updatePriceTierLabels(category) {
+            const config = priceTierConfigs[category] || priceTierConfigs['Semua'];
+            const hematLabel = document.getElementById('tier-label-hemat');
+            const menengahLabel = document.getElementById('tier-label-menengah');
+            const premiumLabel = document.getElementById('tier-label-premium');
+            
+            if (hematLabel) hematLabel.textContent = config.Hemat.label;
+            if (menengahLabel) menengahLabel.textContent = config.Menengah.label;
+            if (premiumLabel) premiumLabel.textContent = config.Premium.label;
+        }
+
         const gridElement = document.getElementById('directory-grid');
         const countLabel = document.getElementById('results-count-label');
         const paginationControls = document.getElementById('pagination-controls');
@@ -542,6 +868,7 @@
                 catButtons.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 activeCatFilter = btn.dataset.cat;
+                updatePriceTierLabels(activeCatFilter);
                 applyFilters();
             });
         });
@@ -556,6 +883,141 @@
                 applyFilters();
             });
         });
+
+        // Price Tier buttons listeners
+        const priceTierButtons = document.querySelectorAll('[data-price-tier]');
+        priceTierButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                priceTierButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                activePriceTier = btn.dataset.priceTier;
+                
+                // Clear custom price inputs when a quick tier is chosen
+                const minInput = document.getElementById('price-min-input');
+                const maxInput = document.getElementById('price-max-input');
+                if (minInput) minInput.value = '';
+                if (maxInput) maxInput.value = '';
+                customMinPrice = null;
+                customMaxPrice = null;
+                
+                applyFilters();
+            });
+        });
+
+        // Format number helper (adds dots as thousands separators)
+        function formatNumberInput(value) {
+            let clean = value.replace(/\D/g, '');
+            if (!clean) return '';
+            return Number(clean).toLocaleString('id-ID');
+        }
+
+        // Custom price inputs formatting listeners
+        const minInput = document.getElementById('price-min-input');
+        const maxInput = document.getElementById('price-max-input');
+        if (minInput && maxInput) {
+            [minInput, maxInput].forEach(inp => {
+                inp.addEventListener('input', (e) => {
+                    const cursorPosition = e.target.selectionStart;
+                    const originalLength = e.target.value.length;
+                    const formatted = formatNumberInput(e.target.value);
+                    e.target.value = formatted;
+                    
+                    // Adjust cursor position to handle inserted dots
+                    const newLength = formatted.length;
+                    e.target.setSelectionRange(
+                        cursorPosition + (newLength - originalLength),
+                        cursorPosition + (newLength - originalLength)
+                    );
+                });
+            });
+        }
+
+        // Apply custom price filter
+        const btnApplyPrice = document.getElementById('btn-apply-price');
+        if (btnApplyPrice) {
+            btnApplyPrice.addEventListener('click', () => {
+                const minVal = minInput ? minInput.value.replace(/\D/g, '') : '';
+                const maxVal = maxInput ? maxInput.value.replace(/\D/g, '') : '';
+                
+                customMinPrice = minVal ? Number(minVal) : null;
+                customMaxPrice = maxVal ? Number(maxVal) : null;
+                
+                // Deactivate tier buttons if custom prices are specified
+                priceTierButtons.forEach(b => b.classList.remove('active'));
+                
+                // If custom range is applied, activePriceTier is Kustom
+                activePriceTier = 'Kustom';
+                
+                applyFilters();
+            });
+        }
+
+        // Reset price filters
+        const btnClearPrice = document.getElementById('btn-clear-price');
+        if (btnClearPrice) {
+            btnClearPrice.addEventListener('click', () => {
+                if (minInput) minInput.value = '';
+                if (maxInput) maxInput.value = '';
+                customMinPrice = null;
+                customMaxPrice = null;
+                
+                priceTierButtons.forEach(b => b.classList.remove('active'));
+                const allPriceBtn = document.querySelector('[data-price-tier="Semua"]');
+                if (allPriceBtn) allPriceBtn.classList.add('active');
+                
+                activePriceTier = 'Semua';
+                applyFilters();
+            });
+        }
+
+        // Custom Premium Dropdown Event Listeners
+        const customSortDropdown = document.getElementById('custom-sort-dropdown');
+        const sortTriggerBtn = document.getElementById('sort-trigger-btn');
+        const sortOptionsList = document.getElementById('sort-options-list');
+        const selectedSortLabel = document.getElementById('selected-sort-label');
+        const sortOptItems = document.querySelectorAll('.sort-opt-item');
+
+        if (sortTriggerBtn && customSortDropdown) {
+            // Toggle open on click
+            sortTriggerBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                customSortDropdown.classList.toggle('open');
+                
+                // Toggle accessibility attributes
+                const isOpen = customSortDropdown.classList.contains('open');
+                sortTriggerBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            });
+
+            // Close on click outside
+            document.addEventListener('click', (e) => {
+                if (!customSortDropdown.contains(e.target)) {
+                    customSortDropdown.classList.remove('open');
+                    sortTriggerBtn.setAttribute('aria-expanded', 'false');
+                }
+            });
+
+            // Option selection click handler
+            sortOptItems.forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const val = item.dataset.value;
+                    
+                    let cleanText = 'Rekomendasi';
+                    if (val === 'price-asc') cleanText = 'Harga: Terendah ↑';
+                    else if (val === 'price-desc') cleanText = 'Harga: Tertinggi ↓';
+                    
+                    if (selectedSortLabel) selectedSortLabel.textContent = cleanText;
+
+                    sortOptItems.forEach(opt => opt.classList.remove('active'));
+                    item.classList.add('active');
+
+                    activeSortOption = val;
+                    customSortDropdown.classList.remove('open');
+                    sortTriggerBtn.setAttribute('aria-expanded', 'false');
+                    applyFilters();
+                });
+            });
+        }
 
         function applyFilters() {
             currentPage = 1;
@@ -610,8 +1072,31 @@
                     item.Kategori.toLowerCase().includes(searchQuery)
                 );
 
-                return matchesCat && matchesLoc && matchesSearch;
+                // Price filter
+                let matchesPrice = true;
+                if (customMinPrice !== null || customMaxPrice !== null) {
+                    const price = item.Estimasi_Harga || 0;
+                    const min = customMinPrice !== null ? customMinPrice : 0;
+                    const max = customMaxPrice !== null ? customMaxPrice : Infinity;
+                    matchesPrice = (price >= min && price <= max);
+                } else if (activePriceTier !== 'Semua') {
+                    const price = item.Estimasi_Harga || 0;
+                    const catConfig = priceTierConfigs[activeCatFilter] || priceTierConfigs['Semua'];
+                    const tier = catConfig[activePriceTier];
+                    if (tier) {
+                        matchesPrice = (price >= tier.min && price <= tier.max);
+                    }
+                }
+
+                return matchesCat && matchesLoc && matchesSearch && matchesPrice;
             });
+
+            // Apply sorting
+            if (activeSortOption === 'price-asc') {
+                filteredIndex.sort((a, b) => (a.Estimasi_Harga || 0) - (b.Estimasi_Harga || 0));
+            } else if (activeSortOption === 'price-desc') {
+                filteredIndex.sort((a, b) => (b.Estimasi_Harga || 0) - (a.Estimasi_Harga || 0));
+            }
 
             // Update header count
             countLabel.textContent = `Menampilkan ${filteredIndex.length} dari ${searchIndex.length} objek terkurasi`;
