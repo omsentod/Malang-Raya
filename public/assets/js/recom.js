@@ -1799,7 +1799,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const activeOpt = options.find(opt => opt.active) || options[0];
             const activeFirstPkg = activeOpt.packages && activeOpt.packages[0];
             const activeWName = activeFirstPkg ? activeFirstPkg.wisata_nama : '';
-            const activeWFolder = activeWName ? activeWName.trim().replace(/ /g, '_') : '';
+            const activeWFolder = activeWName ? (activeWName.includes(' & ') ? activeWName.split(' & ')[0] : activeWName).trim().replace(/ /g, '_') : '';
             const activeImgUrl = activeWFolder ? `/assets/GAMBAR/wisata/${activeWFolder}/${activeWFolder}-1.jpg` : '';
 
             let dropdownHTML = `
@@ -1860,7 +1860,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const isSelected = opt.active;
                 const firstPkg = opt.packages && opt.packages[0];
                 const wName = firstPkg ? firstPkg.wisata_nama : '';
-                const wFolder = wName ? wName.trim().replace(/ /g, '_') : '';
+                const wFolder = wName ? (wName.includes(' & ') ? wName.split(' & ')[0] : wName).trim().replace(/ /g, '_') : '';
                 const imgUrl = wFolder ? `/assets/GAMBAR/wisata/${wFolder}/${wFolder}-1.jpg` : '';
                 return `
                         <button type="button" class="custom-select-item ${isSelected ? 'active' : ''}" data-idx="${i}" style="
@@ -2115,7 +2115,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const remainHTML = remaining !== null
             ? `<div class="pkg-sisa ${isOver ? 'over' : 'ok'}">${isOver ? '⚠ Melebihi budget ' + fmtRp(Math.abs(remaining)) : '✓ Sisa ' + fmtRp(remaining)}</div>` : '';
 
-        const getFolder = name => name ? name.trim().replace(/ /g, '_') : '';
+        const getFolder = name => {
+            if (!name) return '';
+            const cleanName = name.includes(' & ') ? name.split(' & ')[0] : name;
+            return cleanName.trim().replace(/ /g, '_');
+        };
         const hFolder = getFolder(pkg.hotel_nama_real || pkg.hotel_nama);
         const wFolder = getFolder(pkg.wisata_nama);
         const kpFolder = getFolder(pkg.kuliner_pagi_nama);
@@ -2410,7 +2414,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const legs = pkg.transport_detail?.legs || [];
         const isOneDay = pkg.nights === 0 || pkg.cost_akomodasi === 0 || pkg.duration === 1;
-        const getFolder = name => name ? name.trim().replace(/ /g, '_') : '';
+        const getFolder = name => {
+            if (!name) return '';
+            const cleanName = name.includes(' & ') ? name.split(' & ')[0] : name;
+            return cleanName.trim().replace(/ /g, '_');
+        };
 
         // Extract ordered route points (hanya hapus duplikat berurutan untuk menjaga rute pulang-pergi hotel)
         const uniqueRealNames = [];
