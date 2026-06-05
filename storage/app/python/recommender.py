@@ -550,7 +550,8 @@ def generate_packages(total_budget, num_persons, duration, datasets,
                         cost_hotel = 0
                         
                     # B. Hitung Biaya Wisata
-                    cost_wisata = w["Estimasi_Harga"] * num_persons
+                    # Estimasi semua hari agar konsisten dengan post-itinerary recalc
+                    cost_wisata = w["Estimasi_Harga"] * num_persons * duration
                     
                     # C. Cari kuliner pagi, siang, malam dan hitung biaya kuliner
                     if duration == 1:
@@ -682,7 +683,8 @@ def generate_packages(total_budget, num_persons, duration, datasets,
                                 cost_hotel = h["Estimasi_Harga"] * nights * num_rooms
                         else:
                             cost_hotel = 0
-                        cost_wisata = w["Estimasi_Harga"] * num_persons
+                        # Estimasi semua hari agar konsisten dengan post-itinerary recalc
+                        cost_wisata = w["Estimasi_Harga"] * num_persons * duration
                         
                         if duration == 1:
                             k_pagi = find_k_pagi(k, kuliner_list, w["Latitude"], w["Longitude"])
@@ -1336,7 +1338,8 @@ def generate_flexible_exploration_packages(num_persons, duration, datasets,
                         cost_hotel = 0
                         
                     # B. Hitung Biaya Wisata
-                    cost_wisata = w["Estimasi_Harga"] * num_persons
+                    # Estimasi semua hari agar konsisten dengan post-itinerary recalc
+                    cost_wisata = w["Estimasi_Harga"] * num_persons * duration
                     
                     # C. Cari kuliner pagi, siang, malam dan hitung biaya kuliner
                     if duration == 1:
