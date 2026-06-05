@@ -99,13 +99,38 @@ def calculate_min_budget(persons, duration):
                 if total < min_total:
                     min_total = total
 
+    # ─────────────────────────────────────────────
+    # Hitung MAX budget dari klaster Premium (2)
+    # Pakai 1 item termahal tiap kategori → batas teoretis
+    # Gabungan item termahal tiap var (hotel + wisata + kuliner)
+    # tanpa kendala kombinasi sehingga ≥ paket termahal asli dari recommender
+    # ─────────────────────────────────────────────
+    h_max = clustered["hotel"][clustered["hotel"]["Cluster"] == 2]["Estimasi_Harga"].max()
+    w_max = clustered["wisata"][clustered["wisata"]["Cluster"] == 2]["Estimasi_Harga"].max()
+    k_max = clustered["kuliner"][clustered["kuliner"]["Cluster"] == 2]["Estimasi_Harga"].max()
+
+    if pd.isna(h_max): h_max = 0
+    if pd.isna(w_max): w_max = 0
+    if pd.isna(k_max): k_max = 0
+
+    max_cost_hotel    = h_max * nights * num_rooms if duration > 1 else 0
+    max_cost_wisata   = w_max * persons
+    max_cost_kuliner  = k_max * persons * total_meals
+    max_distance      = 35 if duration == 1 else (50 + 35 * (duration - 1))
+    max_cost_transport = round(max_distance * rate_per_km)
+
+    max_total = max_cost_hotel + max_cost_wisata + max_cost_kuliner + max_cost_transport
+
     # Bulatkan ke atas 50rb untuk buffer
     min_budget = math.ceil(min_total / 50000) * 50000
+    max_budget = math.ceil(max_total / 50000) * 50000 if max_total > 0 else 0
 
     return {
         "status": "success",
         "min_budget": min_budget,
+        "max_budget": max_budget,
         "raw_min": min_total,
+        "raw_max": max_total if max_total > 0 else None,
         "persons": persons,
         "duration": duration
     }

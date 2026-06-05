@@ -1705,25 +1705,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    async function fetchMinBudget(persons, duration) {
-    try {
-        const fd = new FormData();
-        fd.append('persons', persons);
-        fd.append('duration', duration);
-        const res = await fetch('/api/min-budget', {
-            method: 'POST',
-            body: fd,
-            headers: { 'X-CSRF-TOKEN': csrfToken() }
-        });
-        const data = await res.json();
-        return data.status === 'success' ? data.min_budget : null;
-    } catch (e) {
-        return null;
+    async function fetchBudgetRange(persons, duration) {
+        try {
+            const fd = new FormData();
+            fd.append('persons', persons);
+            fd.append('duration', duration);
+            const res = await fetch('/api/min-budget', {
+                method: 'POST',
+                body: fd,
+                headers: { 'X-CSRF-TOKEN': csrfToken() }
+            });
+            const data = await res.json();
+            return data.status === 'success' ? data : null;
+        } catch (e) {
+            return null;
+        }
     }
-}
 let minBudgetDebounceTimer = null;
 
-  
+   
 async function onBudgetChange() {
     updateBudgetSliders();
 
@@ -1732,22 +1732,38 @@ async function onBudgetChange() {
         const bPersons = +document.getElementById('b-persons')?.value || 1;
         const bDuration = +document.getElementById('b-duration')?.value || 1;
 
-        const actualMin = await fetchMinBudget(bPersons, bDuration);
-        if (actualMin) {
-            const bSlider = document.getElementById('b-budget');
-            if (bSlider && actualMin > parseInt(bSlider.min)) {
-                bSlider.min = actualMin;
-                const minLbl = document.getElementById('b-budget-min-label');
-                if (minLbl) minLbl.textContent = "Min: " + fmtRp(actualMin);
+        const range = await fetchBudgetRange(bPersons, bDuration);
+        if (!range) return;
 
-                if (parseInt(bSlider.value) < actualMin) {
-                    bSlider.value = actualMin;
+        // ── Update b-slider ──
+        const bSlider = document.getElementById('b-budget');
+        if (bSlider) {
+            if (range.min_budget > parseInt(bSlider.min)) {
+                bSlider.min = range.min_budget;
+                const minLbl = document.getElementById('b-budget-min-label');
+                if (minLbl) minLbl.textContent = "Min: " + fmtRp(range.min_budget);
+
+                if (parseInt(bSlider.value) < range.min_budget) {
+                    bSlider.value = range.min_budget;
                     const valEl = document.getElementById('b-budget-val');
-                    if (valEl) valEl.textContent = fmtRp(actualMin);
+                    if (valEl) valEl.textContent = fmtRp(range.min_budget);
                     const manualInp = document.getElementById('b-budget-manual');
-                    if (manualInp) manualInp.value = actualMin;
+                    if (manualInp) manualInp.value = range.min_budget;
                 }
             }
+            if (range.max_budget > parseInt(bSlider.max)) {
+                bSlider.max = range.max_budget;
+                const maxLbl = document.getElementById('b-budget-max-label');
+                if (maxLbl) maxLbl.textContent = "Max: " + fmtRp(range.max_budget);
+            }
+        }
+
+        // ── Update d-slider ──
+        const dSlider = document.getElementById('d-budget');
+        if (dSlider && range.max_budget > parseInt(dSlider.max)) {
+            dSlider.max = range.max_budget;
+            const maxLbl = document.getElementById('d-budget-max-label');
+            if (maxLbl) maxLbl.textContent = "Max: " + fmtRp(range.max_budget);
         }
     }, 800);
 
