@@ -28,6 +28,12 @@ def calculate_min_budget(persons, duration):
     hotels = clustered["hotel"][clustered["hotel"]["Cluster"] == 0].nsmallest(5, "Estimasi_Harga")
     wisatas = clustered["wisata"][clustered["wisata"]["Cluster"] == 0].nsmallest(5, "Estimasi_Harga")
     kuliners = clustered["kuliner"][clustered["kuliner"]["Cluster"] == 0].nsmallest(5, "Estimasi_Harga")
+    k_list_hemat = clustered["kuliner"][clustered["kuliner"]["Cluster"] == 0].to_dict("records")
+
+    wisatas_15 = clustered["wisata"][clustered["wisata"]["Cluster"] == 0].nsmallest(15, "Estimasi_Harga")
+    kuliners_15 = clustered["kuliner"][clustered["kuliner"]["Cluster"] == 0].nsmallest(15, "Estimasi_Harga")
+    avg_w = wisatas_15["Estimasi_Harga"].mean() if not wisatas_15.empty else 0
+    avg_k = kuliners_15["Estimasi_Harga"].mean() if not kuliners_15.empty else 0
 
     nights = duration - 1
     num_rooms = math.ceil(persons / 2)
@@ -41,13 +47,13 @@ def calculate_min_budget(persons, duration):
         for _, w in wisatas.iterrows():
             for _, k in kuliners.iterrows():
                 k_dict = k.to_dict()
-                k_list = kuliners.to_dict("records")
+                k_list = k_list_hemat
 
                 # Biaya akomodasi
                 cost_hotel = h["Estimasi_Harga"] * nights * num_rooms if duration > 1 else 0
 
-                # Biaya wisata
-                cost_wisata = w["Estimasi_Harga"] * persons
+                # Biaya wisata (Day 1 real + rata-rata top 15 untuk mensimulasikan rute dinamis selanjutnya)
+                cost_wisata = (w["Estimasi_Harga"] + avg_w * (duration - 1)) * persons
 
                 # Kuliner pagi & malam
                 if duration == 1:
@@ -62,7 +68,11 @@ def calculate_min_budget(persons, duration):
                         continue  # skip kombinasi jika tidak ada kuliner pagi
                     k_malam = find_k_malam(k_dict, k_pagi, k_list, h["Latitude"], h["Longitude"])
                     k_malam_harga = k_malam["Estimasi_Harga"] if k_malam else 0
-                    cost_kuliner = ((duration - 1) * (k_pagi["Estimasi_Harga"] + k["Estimasi_Harga"] + k_malam_harga) + (k_pagi["Estimasi_Harga"] + k["Estimasi_Harga"])) * persons
+                    
+                    day1_k = k_pagi["Estimasi_Harga"] + k["Estimasi_Harga"] + k_malam_harga
+                    middle_days_k = (avg_k * 3) * (duration - 2) if duration > 2 else 0
+                    checkout_day_k = (avg_k * 2)
+                    cost_kuliner = (day1_k + middle_days_k + checkout_day_k) * persons
 
                 # Biaya transport
                 if duration == 1:
@@ -91,13 +101,32 @@ def calculate_min_budget(persons, duration):
                         haversine_road_distance(kp_lat, kp_lon, w["Latitude"], w["Longitude"]) +
                         haversine_road_distance(w["Latitude"], w["Longitude"], k["Latitude"], k["Longitude"])
                     )
-                    total_dist = dist_day1 + dist_checkout
+                    if duration == 2:
+                        total_dist = dist_day1 + dist_checkout
+                    else:
+                        # Hari Tengah (6 segmen): Hotel -> Makan Pagi -> Wisata -> Makan Siang -> Hotel -> Makan Malam -> Hotel
+                        dist_middle = (
+                            haversine_road_distance(h["Latitude"], h["Longitude"], kp_lat, kp_lon) +
+                            haversine_road_distance(kp_lat, kp_lon, w["Latitude"], w["Longitude"]) +
+                            haversine_road_distance(w["Latitude"], w["Longitude"], k["Latitude"], k["Longitude"]) +
+                            haversine_road_distance(k["Latitude"], k["Longitude"], h["Latitude"], h["Longitude"]) +
+                            haversine_road_distance(h["Latitude"], h["Longitude"], km_lat, km_lon) +
+                            haversine_road_distance(km_lat, km_lon, h["Latitude"], h["Longitude"])
+                        )
+                        total_dist = dist_day1 + (duration - 2) * dist_middle + dist_checkout
 
                 cost_transport = round(total_dist * rate_per_km)
                 total = cost_hotel + cost_wisata + cost_kuliner + cost_transport
 
                 if total < min_total:
                     min_total = total
+                    
+    if min_total == float('inf'):
+        fallback_h = 60000 * nights * num_rooms if duration > 1 else 0
+        fallback_w = 15000 * duration * persons
+        fallback_k = 15000 * total_meals * persons
+        fallback_t = 25 * duration * rate_per_km
+        min_total = fallback_h + fallback_w + fallback_k + fallback_t
 
     # ─────────────────────────────────────────────
     # Hitung MAX budget dari klaster Premium (2)
@@ -118,16 +147,20 @@ def calculate_min_budget(persons, duration):
     k_max = float(k_max)
 
     max_cost_hotel    = h_max * nights * num_rooms if duration > 1 else 0
-    max_cost_wisata   = w_max * persons
+    max_cost_wisata   = w_max * duration * persons
     max_cost_kuliner  = k_max * persons * total_meals
     max_distance      = 35 if duration == 1 else (50 + 35 * (duration - 1))
     max_cost_transport = round(max_distance * rate_per_km)
 
     max_total = max_cost_hotel + max_cost_wisata + max_cost_kuliner + max_cost_transport
 
-    # Bulatkan ke atas 50rb untuk buffer
-    min_budget = math.ceil(min_total / 50000) * 50000
+    # Bulatkan ke atas 50rb untuk buffer dengan safety margin 30% agar paket hemat riil selalu under budget
+    min_budget = math.ceil((min_total * 1.30) / 50000) * 50000
     max_budget = math.ceil(max_total / 50000) * 50000 if max_total > 0 else 0
+    
+    # Pastikan slider max selalu lebih besar dari min untuk mencegah JS Range slider rusak
+    if max_budget <= min_budget:
+        max_budget = min_budget + 50000
 
     return {
         "status": "success",

@@ -1298,6 +1298,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!inp || !plus || !minus) return;
         minus.addEventListener('click', () => { if (+inp.value > min) { inp.value = +inp.value - 1; updateBudgetSliders(); onBudgetChange(); } });
         plus.addEventListener('click', () => { inp.value = +inp.value + 1; updateBudgetSliders(); onBudgetChange(); });
+        inp.addEventListener('input', () => { updateBudgetSliders(); onBudgetChange(); });
         inp.addEventListener('change', () => { updateBudgetSliders(); onBudgetChange(); });
     }
     setupCounter('b-persons', 'b-persons-minus', 'b-persons-plus');
@@ -1315,26 +1316,37 @@ document.addEventListener('DOMContentLoaded', () => {
     if (persons > 4) ratePerKm = 6000;
     else if (persons > 1) ratePerKm = 5150;
 
-    const minHotelPrice = 80000;
+        const minHotelPrice = 60000;
     const minWisataPrice = 0;
-    const minKulinerPrice = 12000;
+        const avgWisataPrice = 15000;
+        const minKulinerPrice = 10000;
+        const avgKulinerPrice = 15000;
 
     const nights = duration - 1;
     const rooms = Math.ceil(persons / 2);
 
     const costHotel = duration > 1 ? minHotelPrice * nights * rooms : 0;
-    const costWisata = minWisataPrice * persons;
-    const mealsCount = duration === 1 ? 2 : (3 * (duration - 1) + 2);
-    const costKuliner = minKulinerPrice * persons * mealsCount;
+        const costWisata = (minWisataPrice + avgWisataPrice * (duration - 1)) * persons;
+        
+        let costKuliner = 0;
+        if (duration === 1) {
+            costKuliner = (minKulinerPrice * 2) * persons;
+        } else {
+            const day1K = minKulinerPrice * 3;
+            const middleK = (avgKulinerPrice * 3) * (duration - 2);
+            const checkoutK = (avgKulinerPrice * 2);
+            costKuliner = (day1K + (duration > 2 ? middleK : 0) + checkoutK) * persons;
+        }
 
-    // Estimasi jarak minimum realistis: asumsi semua dalam satu wilayah
-    // ODT: Pagi→Wisata→Siang = ~8 km
-    // 2 hari: Hari1 (5 segmen ~20km) + Hari2 (3 segmen ~12km) = ~32 km
-    const minDistanceBase = duration === 1 ? 8 : 20 + 12 * (duration - 1);
+        let minDistanceBase = 0;
+        if (duration === 1) minDistanceBase = 12;
+        else if (duration === 2) minDistanceBase = 25 + 15;
+        else minDistanceBase = 25 + 30 * (duration - 2) + 15;
+
     const costTransport = Math.round(minDistanceBase * ratePerKm);
 
     const totalMin = costHotel + costWisata + costKuliner + costTransport;
-    return Math.ceil(totalMin / 10000) * 10000;
+        return Math.ceil((totalMin * 1.30) / 50000) * 50000;
 }
 
     function calculateScaledMaxBudget(persons, duration) {
@@ -1350,7 +1362,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const rooms = Math.ceil(persons / 2);
 
         const costHotel = duration > 1 ? maxHotelPrice * nights * rooms : 0;
-        const costWisata = maxWisataPrice * persons;
+        const costWisata = maxWisataPrice * persons * duration;
         const mealsCount = duration === 1 ? 2 : (3 * (duration - 1) + 2);
         const costKuliner = maxKulinerPrice * persons * mealsCount;
 
@@ -1521,31 +1533,22 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!slider) return;
 
             let val = parseIdr(e.target.value);
+            const sliderMin = parseInt(slider.min);
+            const sliderMax = parseInt(slider.max);
+
             if (val <= 0) {
                 // Empty → reset to minimum budget
-                const bPersons = +document.getElementById('b-persons')?.value || 1;
-                const bDuration = +document.getElementById('b-duration')?.value || 1;
-                const bMin = calculateScaledMinBudget(bPersons, bDuration);
-                slider.value = bMin;
-                e.target.value = bMin;
-                const valEl = document.getElementById('b-budget-val');
-                if (valEl) valEl.textContent = fmtRp(bMin);
-                onBudgetChange();
-                return;
-            }
-
-            const sliderMax = parseInt(slider.max);
-            if (val > sliderMax) {
+                val = sliderMin;
+            } else if (val < sliderMin) {
+                val = sliderMin;
+            } else if (val > sliderMax) {
                 val = sliderMax;
-                e.target.value = val;
             }
 
-            const sliderMin = parseInt(slider.min);
-            if (val >= sliderMin) {
-                slider.value = val;
-                const valEl = document.getElementById('b-budget-val');
-                if (valEl) valEl.textContent = fmtRp(val);
-            }
+            slider.value = val;
+            e.target.value = val;
+            const valEl = document.getElementById('b-budget-val');
+            if (valEl) valEl.textContent = fmtRp(val);
             onBudgetChange();
         });
     }
@@ -1579,28 +1582,24 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!slider) return;
 
             let val = parseIdr(e.target.value);
-            if (val <= 0) {
-                // Empty means No Budget
-                const dPersons = +document.getElementById('d-persons')?.value || 1;
-                const dDuration = +document.getElementById('d-duration')?.value || 1;
-                const dMin = calculateScaledMinBudget(dPersons, dDuration);
-                slider.value = dMin - 10000;
-                const valEl = document.getElementById('d-budget-val');
-                if (valEl) valEl.textContent = "Tanpa Batasan Anggaran ";
-                onBudgetChange();
-                return;
-            }
-
-            const dMin = parseInt(slider.min) + 10000;
+            const sliderMin = parseInt(slider.min);
+            const dMin = sliderMin + 10000;
             const sliderMax = parseInt(slider.max);
 
-            if (val > sliderMax) {
-                val = sliderMax;
-                e.target.value = val;
-            }
-
-            if (val >= dMin) {
+            if (val <= 0) {
+                // Empty means No Budget
+                slider.value = sliderMin;
+                e.target.value = "";
+                const valEl = document.getElementById('d-budget-val');
+                if (valEl) valEl.textContent = "Tanpa Batasan Anggaran ";
+            } else {
+                if (val < dMin) {
+                    val = dMin;
+                } else if (val > sliderMax) {
+                    val = sliderMax;
+                }
                 slider.value = val;
+                e.target.value = val;
                 const valEl = document.getElementById('d-budget-val');
                 if (valEl) valEl.textContent = fmtRp(val);
             }
@@ -1716,46 +1715,87 @@ let budgetFetchSeq = 0;
 
    
 async function onBudgetChange() {
+    updateBudgetSliders();
 
     clearTimeout(minBudgetDebounceTimer);
     minBudgetDebounceTimer = setTimeout(async () => {
         const seq = ++budgetFetchSeq;
+
+        // ── Fetch untuk Budget-First ──
         const bPersons = +document.getElementById('b-persons')?.value || 1;
         const bDuration = +document.getElementById('b-duration')?.value || 1;
 
-        const range = await fetchBudgetRange(bPersons, bDuration);
-        if (!range || seq !== budgetFetchSeq) return;
+        // ── Fetch untuk Destination-First (pakai nilai d- bukan b-) ──
+        const dPersons = +document.getElementById('d-persons')?.value || 1;
+        const dDuration = +document.getElementById('d-duration')?.value || 1;
+
+        // Fetch keduanya paralel
+        const [bRange, dRange] = await Promise.all([
+            fetchBudgetRange(bPersons, bDuration),
+            fetchBudgetRange(dPersons, dDuration)
+        ]);
+
+        if (seq !== budgetFetchSeq) return;
 
         // ── Update b-slider ──
-        const bSlider = document.getElementById('b-budget');
-        if (bSlider) {
-            if (range.min_budget > parseInt(bSlider.min)) {
-                bSlider.min = range.min_budget;
-                const minLbl = document.getElementById('b-budget-min-label');
-                if (minLbl) minLbl.textContent = "Min: " + fmtRp(range.min_budget);
+        if (bRange) {
+            const bSlider = document.getElementById('b-budget');
+            if (bSlider) {
+                const oldVal = parseInt(bSlider.value) || bRange.min_budget;
+                
+                const safeMax = Math.max(bRange.min_budget + 50000, bRange.max_budget);
+                bSlider.max = safeMax;
+                bSlider.min = bRange.min_budget;
+                bSlider.step = 10000;
 
-                if (parseInt(bSlider.value) < range.min_budget) {
-                    bSlider.value = range.min_budget;
-                    const valEl = document.getElementById('b-budget-val');
-                    if (valEl) valEl.textContent = fmtRp(range.min_budget);
-                    const manualInp = document.getElementById('b-budget-manual');
-                    if (manualInp) manualInp.value = range.min_budget;
-                }
-            }
-            if (range.max_budget > parseInt(bSlider.max)) {
-                bSlider.max = range.max_budget;
-                const maxLbl = document.getElementById('b-budget-max-label');
-                if (maxLbl) maxLbl.textContent = "Max: " + fmtRp(range.max_budget);
+                let newVal = Math.max(bRange.min_budget, Math.min(safeMax, oldVal));
+                bSlider.value = newVal;
+
+                document.getElementById('b-budget-val')?.textContent !== undefined &&
+                    (document.getElementById('b-budget-val').textContent = fmtRp(newVal));
+                document.getElementById('b-budget-min-label') &&
+                    (document.getElementById('b-budget-min-label').textContent = "Min: " + fmtRp(bRange.min_budget));
+                document.getElementById('b-budget-max-label') &&
+                    (document.getElementById('b-budget-max-label').textContent = "Max: " + fmtRp(bRange.max_budget));
+
+                const bManual = document.getElementById('b-budget-manual');
+                if (bManual && document.activeElement !== bManual) bManual.value = newVal;
             }
         }
 
         // ── Update d-slider ──
-        const dSlider = document.getElementById('d-budget');
-        if (dSlider && range.max_budget > parseInt(dSlider.max)) {
-            dSlider.max = range.max_budget;
-            const maxLbl = document.getElementById('d-budget-max-label');
-            if (maxLbl) maxLbl.textContent = "Max: " + fmtRp(range.max_budget);
+        if (dRange) {
+            const dSlider = document.getElementById('d-budget');
+            if (dSlider) {
+                const dSliderMin = dRange.min_budget - 10000;
+                const oldVal = parseInt(dSlider.value) || dSliderMin;
+                const safeMax = Math.max(dRange.min_budget + 50000, dRange.max_budget);
+
+                dSlider.max = safeMax;
+                dSlider.min = dSliderMin;
+                dSlider.step = 10000;
+
+                let newVal = Math.max(dSliderMin, Math.min(safeMax, oldVal));
+                dSlider.value = newVal;
+
+                const isNoBudget = newVal < dRange.min_budget;
+                const dValEl = document.getElementById('d-budget-val');
+                if (dValEl) dValEl.textContent = isNoBudget ? "Tanpa Batasan Anggaran " : fmtRp(newVal);
+
+                document.getElementById('d-budget-min-label') &&
+                    (document.getElementById('d-budget-min-label').textContent = "Tanpa Budget / Min: " + fmtRp(dRange.min_budget));
+                document.getElementById('d-budget-max-label') &&
+                    (document.getElementById('d-budget-max-label').textContent = "Max: " + fmtRp(dRange.max_budget));
+
+                const dManual = document.getElementById('d-budget-manual');
+                if (dManual && document.activeElement !== dManual) {
+                    dManual.value = isNoBudget ? "" : newVal;
+                    dManual.min = dRange.min_budget;
+                    dManual.max = dRange.max_budget;
+                }
+            }
         }
+
     }, 800);
 
         // Tab Budget-First
@@ -2870,7 +2910,8 @@ async function onBudgetChange() {
         const transport = document.getElementById('b-transport')?.value || '';
         const hotel_mode = document.getElementById('b-hotel-mode')?.value || 'same';
 
-        const bMin = calculateScaledMinBudget(persons, duration);
+        const bSlider = document.getElementById('b-budget');
+        const bMin = bSlider ? parseInt(bSlider.min) : calculateScaledMinBudget(persons, duration);
 
         if (!budget) {
             showError('Masukkan total anggaran terlebih dahulu.');
@@ -2906,7 +2947,8 @@ async function onBudgetChange() {
 
         if (!destId) { showError('Pilih destinasi wisata terlebih dahulu.'); return; }
 
-        const dMin = calculateScaledMinBudget(persons, duration);
+        const dSlider = document.getElementById('d-budget');
+        const dMin = dSlider ? (parseInt(dSlider.min) + 10000) : calculateScaledMinBudget(persons, duration);
         const sliderVal = parseFloat(document.getElementById('d-budget')?.value) || 0;
         const isNoBudget = sliderVal < dMin;
 

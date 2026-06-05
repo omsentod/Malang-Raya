@@ -190,7 +190,7 @@ def main():
             total_meals = 2
             budget_anchor_map = {
                 "hotel": (args.budget * 0.40) / (1 * num_rooms),
-                "wisata": budget_alloc["wisata"] / args.persons,
+                "wisata": budget_alloc["wisata"] / (args.persons * args.duration),
                 "kuliner": budget_alloc["kuliner"] / (args.persons * total_meals),
             }
         else:
@@ -203,7 +203,7 @@ def main():
             total_meals = 3 * (args.duration - 1) + 2
             budget_anchor_map = {
                 "hotel": budget_alloc["akomodasi"] / (nights * num_rooms),
-                "wisata": budget_alloc["wisata"] / args.persons,
+                "wisata": budget_alloc["wisata"] / (args.persons * args.duration),
                 "kuliner": budget_alloc["kuliner"] / (args.persons * total_meals),
             }
 
