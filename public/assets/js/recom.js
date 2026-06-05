@@ -1313,11 +1313,12 @@ document.addEventListener('DOMContentLoaded', () => {
             ratePerKm = 5150;
         }
 
-        const minHotel = duration > 1 ? 170000 * (duration - 1) * Math.ceil(persons / 2) : 0;
-        const minWisata = 10000 * persons;
+        const minHotel = duration > 1 ? 60000 * (duration - 1) * Math.ceil(persons / 2) : 0;
+        const minWisata = 10000 * persons * duration;
         const mealsPerPerson = duration === 1 ? 2 : (3 * duration - 1);
-        const minKuliner = 13250 * persons * mealsPerPerson;
-        const minTransport = Math.round(2.5 * ratePerKm * duration);
+        const minKuliner = 10000 * persons * mealsPerPerson;
+        const minTransportDistance = duration === 1 ? 12 : 22 * (duration - 1) + 12;
+        const minTransport = Math.round(minTransportDistance * ratePerKm);
 
         const totalMin = minHotel + minWisata + minKuliner + minTransport;
         // Kelipatan 10.000 terdekat ke atas agar slider bernilai bersih bulat
@@ -3705,21 +3706,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const clustered = allOptions[0].clustered_items;
         if (category === 'hotel') {
-            // Aggregate from all classes for maximum variety
-            [0, 1, 2].forEach(cIdx => {
-                const hotels = clustered.hotel[cIdx] || clustered.hotel[String(cIdx)] || [];
-                hotels.forEach(h => {
-                    const name = h.Nama_Tempat || h.nama;
-                    if (name && !list.some(item => item.nama === name)) {
-                        list.push({
-                            nama: name,
-                            harga: h.Estimasi_Harga || h.harga || 0,
-                            cost: (h.Estimasi_Harga || h.harga || 0) * (activeOptionPackages[0].nights || 1) * (activeOptionPackages[0].num_rooms || 1),
-                            lat: h.Latitude || h.lat || 0,
-                            lon: h.Longitude || h.lon || 0
-                        });
-                    }
-                });
+            const hotels = clustered.hotel[classIdx] || clustered.hotel[String(classIdx)] || [];
+            hotels.forEach(h => {
+                const name = h.Nama_Tempat || h.nama;
+                if (name && !list.some(item => item.nama === name)) {
+                    list.push({
+                        nama: name,
+                        harga: h.Estimasi_Harga || h.harga || 0,
+                        cost: (h.Estimasi_Harga || h.harga || 0) * (activeOptionPackages[0].nights || 1) * (activeOptionPackages[0].num_rooms || 1),
+                        lat: h.Latitude || h.lat || 0,
+                        lon: h.Longitude || h.lon || 0
+                    });
+                }
             });
         }
         return list;
@@ -3731,20 +3729,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!allOptions || !allOptions[0] || !allOptions[0].clustered_items) return list;
         const clustered = allOptions[0].clustered_items;
         
-        // Aggregate from all classes for maximum variety
-        [0, 1, 2].forEach(cIdx => {
-            const wisatas = clustered.wisata[cIdx] || clustered.wisata[String(cIdx)] || [];
-            wisatas.forEach(w => {
-                const name = w.Nama_Tempat || w.nama;
-                if (name && !list.some(item => item.nama === name)) {
-                    list.push({
-                        nama: name,
-                        harga: w.Estimasi_Harga || w.harga || 0,
-                        lat: w.Latitude || w.lat || 0,
-                        lon: w.Longitude || w.lon || 0
-                    });
-                }
-            });
+        const wisatas = clustered.wisata[classIdx] || clustered.wisata[String(classIdx)] || [];
+        wisatas.forEach(w => {
+            const name = w.Nama_Tempat || w.nama;
+            if (name && !list.some(item => item.nama === name)) {
+                list.push({
+                    nama: name,
+                    harga: w.Estimasi_Harga || w.harga || 0,
+                    lat: w.Latitude || w.lat || 0,
+                    lon: w.Longitude || w.lon || 0
+                });
+            }
         });
         return list;
     }
@@ -3755,20 +3750,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!allOptions || !allOptions[0] || !allOptions[0].clustered_items) return list;
         const clustered = allOptions[0].clustered_items;
         
-        // Aggregate from all classes for maximum variety
-        [0, 1, 2].forEach(cIdx => {
-            const kuliners = clustered.kuliner[cIdx] || clustered.kuliner[String(cIdx)] || [];
-            kuliners.forEach(k => {
-                const name = k.Nama_Tempat || k.nama;
-                if (name && !list.some(item => item.nama === name)) {
-                    list.push({
-                        nama: name,
-                        harga: k.Estimasi_Harga || k.harga || 0,
-                        lat: k.Latitude || k.lat || 0,
-                        lon: k.Longitude || k.lon || 0
-                    });
-                }
-            });
+        const kuliners = clustered.kuliner[classIdx] || clustered.kuliner[String(classIdx)] || [];
+        kuliners.forEach(k => {
+            const name = k.Nama_Tempat || k.nama;
+            if (name && !list.some(item => item.nama === name)) {
+                list.push({
+                    nama: name,
+                    harga: k.Estimasi_Harga || k.harga || 0,
+                    lat: k.Latitude || k.lat || 0,
+                    lon: k.Longitude || k.lon || 0
+                });
+            }
         });
         return list;
     }

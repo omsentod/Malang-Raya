@@ -37,6 +37,34 @@ def haversine_road_distance(lat1, lon1, lat2, lon2):
     return haversine_distance(lat1, lon1, lat2, lon2) * 1.45
 
 
+def build_hotel_sequence_by_proximity(start_hotel, hotel_list, nights):
+    if nights <= 0:
+        return []
+    if len(hotel_list) <= 1:
+        return [start_hotel] * nights
+
+    sequence = [start_hotel]
+    current_hotel = start_hotel
+    remaining = [hotel for hotel in hotel_list if hotel is not current_hotel]
+
+    while len(sequence) < nights:
+        if not remaining:
+            remaining = [hotel for hotel in hotel_list if hotel is not current_hotel]
+
+        next_hotel = min(
+            remaining,
+            key=lambda hotel: haversine_road_distance(
+                current_hotel.get("Latitude", 0), current_hotel.get("Longitude", 0),
+                hotel.get("Latitude", 0), hotel.get("Longitude", 0)
+            )
+        )
+        sequence.append(next_hotel)
+        remaining = [hotel for hotel in remaining if hotel is not next_hotel]
+        current_hotel = next_hotel
+
+    return sequence
+
+
 def recalculate_pkg_legs(pkg_formatted, itinerary, num_persons):
     """
     Recalculates precise spatial legs, total distance, and transport cost based
@@ -141,7 +169,7 @@ def recalculate_pkg_legs(pkg_formatted, itinerary, num_persons):
                 dc3 = haversine_road_distance(day_data.get("wisata_lat", 0.0), day_data.get("wisata_lon", 0.0), day_data.get("kuliner_lat", 0.0), day_data.get("kuliner_lon", 0.0))
                 legs_detail.extend([
                     {
-                        "from": f"Hotel{day_label}",
+                        "from": f"Hotel (Hari {d_num-1})",
                         "to": f"Makan Pagi{day_label}",
                         "distance_km": round(dc1, 2),
                         "cost": 0.0,
@@ -174,7 +202,7 @@ def recalculate_pkg_legs(pkg_formatted, itinerary, num_persons):
                 dm6 = haversine_road_distance(day_data.get("kuliner_malam_lat", 0.0), day_data.get("kuliner_malam_lon", 0.0), day_data.get("hotel_lat", 0.0), day_data.get("hotel_lon", 0.0))
                 legs_detail.extend([
                     {
-                        "from": f"Hotel{day_label}",
+                        "from": f"Hotel (Hari {d_num-1})",
                         "to": f"Makan Pagi{day_label}",
                         "distance_km": round(dm1, 2),
                         "cost": 0.0,
@@ -542,7 +570,7 @@ def generate_packages(total_budget, num_persons, duration, datasets,
                     # A. Hitung Biaya Akomodasi
                     if duration > 1:
                         if hotel_mode == 'split' and len(hotel_list) > 1:
-                            hotel_seq = [hotel_list[(hotel_list.index(h) + n) % len(hotel_list)] for n in range(nights)]
+                            hotel_seq = build_hotel_sequence_by_proximity(h, hotel_list, nights)
                             cost_hotel = sum(ht["Estimasi_Harga"] for ht in hotel_seq) * num_rooms
                         else:
                             cost_hotel = h["Estimasi_Harga"] * nights * num_rooms
@@ -672,12 +700,12 @@ def generate_packages(total_budget, num_persons, duration, datasets,
         if not valid_combinations:
             min_cost_comb = None
             min_cost = float('inf')
-            for h in hotel_list[:5]:
-                for w in wisata_list[:5]:
-                    for k in kuliner_list[:5]:
+            for h in hotel_list[:15]:
+                for w in wisata_list[:15]:
+                    for k in kuliner_list[:15]:
                         if duration > 1:
                             if hotel_mode == 'split' and len(hotel_list) > 1:
-                                hotel_seq = [hotel_list[(hotel_list.index(h) + n) % len(hotel_list)] for n in range(nights)]
+                                hotel_seq = build_hotel_sequence_by_proximity(h, hotel_list, nights)
                                 cost_hotel = sum(ht["Estimasi_Harga"] for ht in hotel_seq) * num_rooms
                             else:
                                 cost_hotel = h["Estimasi_Harga"] * nights * num_rooms
@@ -1006,6 +1034,7 @@ def generate_packages(total_budget, num_persons, duration, datasets,
                 itinerary = []
                 wisata_in_c = candidates["wisata"][i]
                 kuliner_in_c = candidates["kuliner"][i]
+                hotel_list = candidates["hotel"][i]
                 
                 # If hotel mode is split, we also track different hotels
                 if hotel_mode == 'split' and len(hotel_list) > 1:
@@ -1698,7 +1727,7 @@ def generate_flexible_exploration_packages(num_persons, duration, datasets,
                 hotel_list = candidates["hotel"][i]
                 h_item = selected["hotel"]
                 if len(hotel_list) > 1:
-                    hotel_seq = [hotel_list[(hotel_list.index(h_item) + n) % len(hotel_list)] for n in range(nights)]
+                    hotel_seq = build_hotel_sequence_by_proximity(h_item, hotel_list, nights)
                 else:
                     hotel_seq = [h_item] * nights
 
@@ -2053,7 +2082,7 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
                 # A. Hitung Biaya Akomodasi
                 if duration > 1:
                     if hotel_mode == 'split' and len(hotel_list) > 1:
-                        hotel_seq = [hotel_list[(hotel_list.index(h) + n) % len(hotel_list)] for n in range(nights)]
+                        hotel_seq = build_hotel_sequence_by_proximity(h, hotel_list, nights)
                         cost_hotel = sum(ht["Estimasi_Harga"] for ht in hotel_seq) * num_rooms
                     else:
                         cost_hotel = h["Estimasi_Harga"] * nights * num_rooms
@@ -2182,11 +2211,11 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
         if total_budget is not None and not valid_combinations:
             min_cost_comb = None
             min_cost = float('inf')
-            for h in hotel_list[:5]:
-                for k in kuliner_list[:5]:
+            for h in hotel_list[:15]:
+                for k in kuliner_list[:15]:
                     if duration > 1:
                         if hotel_mode == 'split' and len(hotel_list) > 1:
-                            hotel_seq = [hotel_list[(hotel_list.index(h) + n) % len(hotel_list)] for n in range(nights)]
+                            hotel_seq = build_hotel_sequence_by_proximity(h, hotel_list, nights)
                             cost_hotel = sum(ht["Estimasi_Harga"] for ht in hotel_seq) * num_rooms
                         else:
                             cost_hotel = h["Estimasi_Harga"] * nights * num_rooms
@@ -2529,6 +2558,7 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
                 wisatas_in_c = df_wis[df_wis["Cluster"] == i]
                 w_list = wisatas_in_c.to_dict("records") if not wisatas_in_c.empty else [best_wisata]
                 k_list = candidates["kuliner"][i]
+                hotel_list = candidates["hotel"][i]
                 
                 # If hotel mode is split, we also track different hotels
                 if hotel_mode == 'split' and len(hotel_list) > 1:
@@ -2538,7 +2568,7 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
                         if ht["Nama_Tempat"] == h_item.get("Nama_Tempat", ""):
                             h_idx = idx
                             break
-                    hotel_seq = [h_list[(h_idx + n) % len(h_list)] for n in range(nights)]
+                    hotel_seq = build_hotel_sequence_by_proximity(h_list[h_idx], h_list, nights)
                 else:
                     hotel_seq = [h_item] * nights
 
