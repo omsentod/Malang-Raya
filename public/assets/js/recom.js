@@ -5,6 +5,11 @@ const fmtRp = n => {
     if (n === null || n === undefined || isNaN(n)) return 'Rp 0';
     return 'Rp ' + Math.round(n).toLocaleString('id-ID');
 };
+const parseIdr = str => {
+    if (!str) return 0;
+    const cleaned = String(str).replace(/\./g, '').replace(/,.*$/, '');
+    return parseInt(cleaned, 10) || 0;
+};
 const escapeHtmlAttr = str => {
     if (str === null || str === undefined) return '';
     return String(str).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
@@ -1305,24 +1310,58 @@ document.addEventListener('DOMContentLoaded', () => {
     // ─────────────────────────────────────────────────
     // Dynamic Budget Range Sliders
     // ─────────────────────────────────────────────────
-    function calculateScaledMinBudget(persons, duration) {
+   function calculateScaledMinBudget(persons, duration) {
+    let ratePerKm = 2250;
+    if (persons > 4) ratePerKm = 6000;
+    else if (persons > 1) ratePerKm = 5150;
+
+    const minHotelPrice = 80000;
+    const minWisataPrice = 0;
+    const minKulinerPrice = 12000;
+
+    const nights = duration - 1;
+    const rooms = Math.ceil(persons / 2);
+
+    const costHotel = duration > 1 ? minHotelPrice * nights * rooms : 0;
+    const costWisata = minWisataPrice * persons;
+    const mealsCount = duration === 1 ? 2 : (3 * (duration - 1) + 2);
+    const costKuliner = minKulinerPrice * persons * mealsCount;
+
+    // Estimasi jarak minimum realistis: asumsi semua dalam satu wilayah
+    // ODT: Pagi→Wisata→Siang = ~8 km
+    // 2 hari: Hari1 (5 segmen ~20km) + Hari2 (3 segmen ~12km) = ~32 km
+    const minDistanceBase = duration === 1 ? 8 : 20 + 12 * (duration - 1);
+    const costTransport = Math.round(minDistanceBase * ratePerKm);
+
+    const totalMin = costHotel + costWisata + costKuliner + costTransport;
+    return Math.ceil(totalMin / 10000) * 10000;
+}
+
+    function calculateScaledMaxBudget(persons, duration) {
         let ratePerKm = 2250;
-        if (persons > 4) {
-            ratePerKm = 6000;
-        } else if (persons > 1) {
-            ratePerKm = 5150;
-        }
+        if (persons > 4) ratePerKm = 6000;
+        else if (persons > 1) ratePerKm = 5150;
 
-        const minHotel = duration > 1 ? 60000 * (duration - 1) * Math.ceil(persons / 2) : 0;
-        const minWisata = 10000 * persons * duration;
-        const mealsPerPerson = duration === 1 ? 2 : (3 * duration - 1);
-        const minKuliner = 10000 * persons * mealsPerPerson;
-        const minTransportDistance = duration === 1 ? 12 : 22 * (duration - 1) + 12;
-        const minTransport = Math.round(minTransportDistance * ratePerKm);
+        const maxHotelPrice = 1200000;
+        const maxWisataPrice = 200000;
+        const maxKulinerPrice = 75000;
 
-        const totalMin = minHotel + minWisata + minKuliner + minTransport;
-        // Kelipatan 10.000 terdekat ke atas agar slider bernilai bersih bulat
-        return Math.ceil(totalMin / 10000) * 10000;
+        const nights = duration - 1;
+        const rooms = Math.ceil(persons / 2);
+
+        const costHotel = duration > 1 ? maxHotelPrice * nights * rooms : 0;
+        const costWisata = maxWisataPrice * persons;
+        const mealsCount = duration === 1 ? 2 : (3 * (duration - 1) + 2);
+        const costKuliner = maxKulinerPrice * persons * mealsCount;
+
+        // Estimasi jarak maksimum realistis: lintas wilayah Batu↔Malang
+        // ODT: ~35 km
+        // 2 hari: Hari1 (~50km lintas wilayah) + Hari2 (~35km) = ~85 km
+        const maxDistanceBase = duration === 1 ? 35 : 50 + 35 * (duration - 1);
+        const costTransport = Math.round(maxDistanceBase * ratePerKm);
+
+        const totalMax = costHotel + costWisata + costKuliner + costTransport;
+        return Math.ceil(totalMax / 50000) * 50000;
     }
 
     function updateBudgetSliders() {
@@ -1331,19 +1370,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const bDuration = +document.getElementById('b-duration')?.value || 1;
 
         const bMin = calculateScaledMinBudget(bPersons, bDuration);
+        const bMax = calculateScaledMaxBudget(bPersons, bDuration);
 
         // Show/hide b-hotel-mode-group depending on bDuration > 2
         const bHotelGroup = document.getElementById('b-hotel-mode-group');
         if (bHotelGroup) {
             bHotelGroup.style.display = bDuration > 2 ? 'block' : 'none';
         }
-
-        // Dynamic database-aligned max budget limit calculation:
-        const bMaxHotel = bDuration > 1 ? 4305000 * (bDuration - 1) * Math.ceil(bPersons / 2) : 0;
-        const bMaxWisata = 275000 * bPersons;
-        const bMaxKuliner = 150000 * bPersons * 2 * bDuration;
-        const bMaxTransport = 300000;
-        const bMax = Math.ceil((bMaxHotel + bMaxWisata + bMaxKuliner + bMaxTransport) / 10000) * 10000;
 
         const bSlider = document.getElementById('b-budget');
         if (bSlider) {
@@ -1380,18 +1413,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const dDuration = +document.getElementById('d-duration')?.value || 1;
 
         const dMin = calculateScaledMinBudget(dPersons, dDuration);
+        const dMax = calculateScaledMaxBudget(dPersons, dDuration);
 
         // Show/hide d-hotel-mode-group depending on dDuration > 2
         const dHotelGroup = document.getElementById('d-hotel-mode-group');
         if (dHotelGroup) {
             dHotelGroup.style.display = dDuration > 2 ? 'block' : 'none';
         }
-
-        const dMaxHotel = dDuration > 1 ? 4305000 * (dDuration - 1) * Math.ceil(dPersons / 2) : 0;
-        const dMaxWisata = 275000 * dPersons;
-        const dMaxKuliner = 150000 * dPersons * 2 * dDuration;
-        const dMaxTransport = 300000;
-        const dMax = Math.ceil((dMaxHotel + dMaxWisata + dMaxKuliner + dMaxTransport) / 10000) * 10000;
 
         const dSlider = document.getElementById('d-budget');
         if (dSlider) {
@@ -1470,24 +1498,22 @@ document.addEventListener('DOMContentLoaded', () => {
             const slider = document.getElementById('b-budget');
             if (!slider) return;
 
-            let val = parseInt(e.target.value);
-            if (isNaN(val)) return;
+            let val = parseIdr(e.target.value);
+            if (val <= 0) return;
 
             const bPersons = +document.getElementById('b-persons')?.value || 1;
             const bDuration = +document.getElementById('b-duration')?.value || 1;
             const bMin = calculateScaledMinBudget(bPersons, bDuration);
-
-            const bMaxHotel = bDuration > 1 ? 4305000 * (bDuration - 1) * Math.ceil(bPersons / 2) : 0;
-            const bMaxWisata = 275000 * bPersons;
-            const bMaxKuliner = 150000 * bPersons * 2 * bDuration;
-            const bMaxTransport = 300000;
-            const bMax = Math.ceil((bMaxHotel + bMaxWisata + bMaxKuliner + bMaxTransport) / 10000) * 10000;
+            const bMax = calculateScaledMaxBudget(bPersons, bDuration);
 
             // Only synchronize to slider and trigger calculation if the value is within range
             if (val >= bMin && val <= bMax) {
                 slider.value = val;
                 const valEl = document.getElementById('b-budget-val');
                 if (valEl) valEl.textContent = fmtRp(val);
+                onBudgetChange();
+            } else {
+                // Trigger validation warning even when out of range
                 onBudgetChange();
             }
         });
@@ -1496,18 +1522,24 @@ document.addEventListener('DOMContentLoaded', () => {
             const slider = document.getElementById('b-budget');
             if (!slider) return;
 
-            let val = parseInt(e.target.value);
-            if (isNaN(val)) return; // Allow empty
+            let val = parseIdr(e.target.value);
+            if (val <= 0) {
+                // Empty → reset to minimum budget
+                const bPersons = +document.getElementById('b-persons')?.value || 1;
+                const bDuration = +document.getElementById('b-duration')?.value || 1;
+                const bMin = calculateScaledMinBudget(bPersons, bDuration);
+                slider.value = bMin;
+                e.target.value = bMin;
+                const valEl = document.getElementById('b-budget-val');
+                if (valEl) valEl.textContent = fmtRp(bMin);
+                onBudgetChange();
+                return;
+            }
 
             const bPersons = +document.getElementById('b-persons')?.value || 1;
             const bDuration = +document.getElementById('b-duration')?.value || 1;
             const bMin = calculateScaledMinBudget(bPersons, bDuration);
-
-            const bMaxHotel = bDuration > 1 ? 4305000 * (bDuration - 1) * Math.ceil(bPersons / 2) : 0;
-            const bMaxWisata = 275000 * bPersons;
-            const bMaxKuliner = 150000 * bPersons * 2 * bDuration;
-            const bMaxTransport = 300000;
-            const bMax = Math.ceil((bMaxHotel + bMaxWisata + bMaxKuliner + bMaxTransport) / 10000) * 10000;
+            const bMax = calculateScaledMaxBudget(bPersons, bDuration);
 
             if (val > bMax) {
                 val = bMax;
@@ -1530,24 +1562,22 @@ document.addEventListener('DOMContentLoaded', () => {
             const slider = document.getElementById('d-budget');
             if (!slider) return;
 
-            let val = parseInt(e.target.value);
-            if (isNaN(val)) return;
+            let val = parseIdr(e.target.value);
+            if (val <= 0) return;
 
             const dPersons = +document.getElementById('d-persons')?.value || 1;
             const dDuration = +document.getElementById('d-duration')?.value || 1;
             const dMin = calculateScaledMinBudget(dPersons, dDuration);
-
-            const dMaxHotel = dDuration > 1 ? 4305000 * (dDuration - 1) * Math.ceil(dPersons / 2) : 0;
-            const dMaxWisata = 275000 * dPersons;
-            const dMaxKuliner = 150000 * dPersons * 2 * dDuration;
-            const dMaxTransport = 300000;
-            const dMax = Math.ceil((dMaxHotel + dMaxWisata + dMaxKuliner + dMaxTransport) / 10000) * 10000;
+            const dMax = calculateScaledMaxBudget(dPersons, dDuration);
 
             // Only synchronize to slider and trigger calculation if the value is within range
             if (val >= dMin && val <= dMax) {
                 slider.value = val;
                 const valEl = document.getElementById('d-budget-val');
                 if (valEl) valEl.textContent = fmtRp(val);
+                onBudgetChange();
+            } else {
+                // Trigger validation / treat as No Budget if below min
                 onBudgetChange();
             }
         });
@@ -1556,8 +1586,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const slider = document.getElementById('d-budget');
             if (!slider) return;
 
-            let val = parseInt(e.target.value);
-            if (isNaN(val)) {
+            let val = parseIdr(e.target.value);
+            if (val <= 0) {
                 // Empty means No Budget
                 const dPersons = +document.getElementById('d-persons')?.value || 1;
                 const dDuration = +document.getElementById('d-duration')?.value || 1;
@@ -1572,12 +1602,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const dPersons = +document.getElementById('d-persons')?.value || 1;
             const dDuration = +document.getElementById('d-duration')?.value || 1;
             const dMin = calculateScaledMinBudget(dPersons, dDuration);
-
-            const dMaxHotel = dDuration > 1 ? 4305000 * (dDuration - 1) * Math.ceil(dPersons / 2) : 0;
-            const dMaxWisata = 275000 * dPersons;
-            const dMaxKuliner = 150000 * dPersons * 2 * dDuration;
-            const dMaxTransport = 300000;
-            const dMax = Math.ceil((dMaxHotel + dMaxWisata + dMaxKuliner + dMaxTransport) / 10000) * 10000;
+            const dMax = calculateScaledMaxBudget(dPersons, dDuration);
 
             if (val > dMax) {
                 val = dMax;
@@ -1598,8 +1623,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (manual) {
             const rawText = manual.value.trim();
             if (rawText === "") return 0;
-            const manualVal = parseFloat(rawText);
-            if (!isNaN(manualVal)) return manualVal;
+            const manualVal = parseIdr(rawText);
+            if (manualVal > 0) return manualVal;
         }
 
         const slider = document.getElementById(elId);
@@ -1680,9 +1705,51 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function onBudgetChange() {
-        // Re-calculate ranges of sliders based on current days and persons
-        updateBudgetSliders();
+    async function fetchMinBudget(persons, duration) {
+    try {
+        const fd = new FormData();
+        fd.append('persons', persons);
+        fd.append('duration', duration);
+        const res = await fetch('/api/min-budget', {
+            method: 'POST',
+            body: fd,
+            headers: { 'X-CSRF-TOKEN': csrfToken() }
+        });
+        const data = await res.json();
+        return data.status === 'success' ? data.min_budget : null;
+    } catch (e) {
+        return null;
+    }
+}
+let minBudgetDebounceTimer = null;
+
+  
+async function onBudgetChange() {
+    updateBudgetSliders();
+
+    clearTimeout(minBudgetDebounceTimer);
+    minBudgetDebounceTimer = setTimeout(async () => {
+        const bPersons = +document.getElementById('b-persons')?.value || 1;
+        const bDuration = +document.getElementById('b-duration')?.value || 1;
+
+        const actualMin = await fetchMinBudget(bPersons, bDuration);
+        if (actualMin) {
+            const bSlider = document.getElementById('b-budget');
+            if (bSlider && actualMin > parseInt(bSlider.min)) {
+                bSlider.min = actualMin;
+                const minLbl = document.getElementById('b-budget-min-label');
+                if (minLbl) minLbl.textContent = "Min: " + fmtRp(actualMin);
+
+                if (parseInt(bSlider.value) < actualMin) {
+                    bSlider.value = actualMin;
+                    const valEl = document.getElementById('b-budget-val');
+                    if (valEl) valEl.textContent = fmtRp(actualMin);
+                    const manualInp = document.getElementById('b-budget-manual');
+                    if (manualInp) manualInp.value = actualMin;
+                }
+            }
+        }
+    }, 800);
 
         // Tab Budget-First
         const budget = getRawBudget('b-budget');

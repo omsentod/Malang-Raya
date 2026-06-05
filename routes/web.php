@@ -61,6 +61,7 @@ Route::get('/recommender', [RecommenderController::class, 'index']);
 $nocsrf = [\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class];
 Route::post('/api/recommend',    [RecommenderController::class, 'calculate'])->withoutMiddleware($nocsrf);
 Route::post('/api/how-it-works', [RecommenderController::class, 'runVisualization'])->withoutMiddleware($nocsrf);
+Route::post('/api/min-budget', [RecommenderController::class, 'minBudget'])->withoutMiddleware($nocsrf);
 
 // Auth API (AJAX)
 Route::post('/api/auth/login', [AuthController::class, 'ajaxLogin']);
@@ -68,8 +69,11 @@ Route::post('/api/auth/register', [AuthController::class, 'ajaxRegister']);
 Route::post('/api/auth/logout', [AuthController::class, 'ajaxLogout']);
 Route::get('/api/auth/status', [AuthController::class, 'checkAuthStatus']);
 
+
+
 // Profile API (Protected)
 Route::middleware('auth')->group(function () {
     Route::post('/api/profile/update', [AuthController::class, 'ajaxUpdateProfile']);
 });
+
 

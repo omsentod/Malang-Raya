@@ -37,6 +37,27 @@ def haversine_road_distance(lat1, lon1, lat2, lon2):
     return haversine_distance(lat1, lon1, lat2, lon2) * 1.45
 
 
+def classify_region(lat, lon):
+    """
+    Mengelompokkan koordinat secara spasial ke dalam 3 wilayah utama Malang Raya:
+    - Kota Batu: Latitude [-7.91, -7.73], Longitude [112.43, 112.58]
+    - Kota Malang: Latitude [-8.05, -7.90], Longitude [112.56, 112.69]
+    - Kabupaten Malang: Wilayah di luar jangkauan kota Batu dan Kota Malang.
+    """
+    try:
+        lat_f = float(lat)
+        lon_f = float(lon)
+    except (TypeError, ValueError):
+        return "Kabupaten Malang"
+
+    if -7.91 <= lat_f <= -7.73 and 112.43 <= lon_f <= 112.58:
+        return "Kota Batu"
+    elif -8.05 <= lat_f <= -7.90 and 112.56 <= lon_f <= 112.69:
+        return "Kota Malang"
+    else:
+        return "Kabupaten Malang"
+
+
 def build_hotel_sequence_by_proximity(start_hotel, hotel_list, nights):
     if nights <= 0:
         return []
@@ -521,6 +542,7 @@ def generate_packages(total_budget, num_persons, duration, datasets,
             u_matrix = result["u"]
             df_clustered["Membership_Degree"] = [float(u_matrix[result["labels"][j], j]) for j in range(len(prices))]
             df_clustered["Kategori"] = df_clustered["Cluster"].map(CLUSTER_LABELS)
+            df_clustered["Region"] = df_clustered.apply(lambda row: classify_region(row.get("Latitude", 0), row.get("Longitude", 0)), axis=1)
             clustered[cat_name] = {
                 "df": df_clustered,
                 "cntr": result["cntr"],
@@ -530,7 +552,7 @@ def generate_packages(total_budget, num_persons, duration, datasets,
             print(f"    ⚠ Error clustering {cat_name}: {e}")
             return []
 
-    # --- Langkah 3: Ambil 15 Kandidat Terdekat dari FCM ---
+    # --- Langkah 3: Ambil Kandidat Wilayah Terdistribusi Spasial dari FCM ---
     candidates = {
         "hotel": {i: [] for i in range(3)},
         "wisata": {i: [] for i in range(3)},
@@ -544,12 +566,24 @@ def generate_packages(total_budget, num_persons, duration, datasets,
             items_in_c = df[df["Cluster"] == i].copy()
             target_price = cat_anchor * ratios[i]
             
-            if items_in_c.empty:
-                df["distance_to_target"] = (df["Estimasi_Harga"] - target_price).abs()
-                best_items = df.nsmallest(15, "distance_to_target")
+            best_items_list = []
+            regions = ["Kota Batu", "Kota Malang", "Kabupaten Malang"]
+            for region in regions:
+                items_in_region = items_in_c[items_in_c["Region"] == region] if not items_in_c.empty else df[df["Region"] == region]
+                if not items_in_region.empty:
+                    items_in_region_cp = items_in_region.copy()
+                    items_in_region_cp["distance_to_target"] = (items_in_region_cp["Estimasi_Harga"] - target_price).abs()
+                    best_items_list.append(items_in_region_cp.nsmallest(8, "distance_to_target"))
+            
+            if best_items_list:
+                best_items = pd.concat(best_items_list)
             else:
-                items_in_c["distance_to_target"] = (items_in_c["Estimasi_Harga"] - target_price).abs()
-                best_items = items_in_c.nsmallest(15, "distance_to_target")
+                if items_in_c.empty:
+                    df["distance_to_target"] = (df["Estimasi_Harga"] - target_price).abs()
+                    best_items = df.nsmallest(15, "distance_to_target")
+                else:
+                    items_in_c["distance_to_target"] = (items_in_c["Estimasi_Harga"] - target_price).abs()
+                    best_items = items_in_c.nsmallest(15, "distance_to_target")
                 
             candidates[key][i] = best_items.to_dict("records")
 
@@ -805,7 +839,41 @@ def generate_packages(total_budget, num_persons, duration, datasets,
             if min_cost_comb:
                 valid_combinations.append(min_cost_comb)
 
-        package_options[i] = valid_combinations[:max_options_to_show[i]]
+        # --- Seleksi Beragam (Diversity Filter) untuk Keberagaman Paket ---
+        diverse_combinations = []
+        selected_wisata = set()
+        selected_hotels = set()
+        
+        # Phase 1: Unik berdasarkan tempat Wisata Utama
+        for combo in valid_combinations:
+            w_name = combo["wisata"]["Nama_Tempat"]
+            if w_name not in selected_wisata:
+                diverse_combinations.append(combo)
+                selected_wisata.add(w_name)
+                selected_hotels.add(combo["hotel"]["Nama_Tempat"])
+                if len(diverse_combinations) >= max_options_to_show[i]:
+                    break
+                    
+        # Phase 2: Jika kurang, boleh wisata sama tapi hotel berbeda
+        if len(diverse_combinations) < max_options_to_show[i]:
+            for combo in valid_combinations:
+                if combo not in diverse_combinations:
+                    h_name = combo["hotel"]["Nama_Tempat"]
+                    if h_name not in selected_hotels:
+                        diverse_combinations.append(combo)
+                        selected_hotels.add(h_name)
+                        if len(diverse_combinations) >= max_options_to_show[i]:
+                            break
+                            
+        # Phase 3: Jika masih kurang, ambil sisa kombinasi terbaik yang ada
+        if len(diverse_combinations) < max_options_to_show[i]:
+            for combo in valid_combinations:
+                if combo not in diverse_combinations:
+                    diverse_combinations.append(combo)
+                    if len(diverse_combinations) >= max_options_to_show[i]:
+                        break
+                        
+        package_options[i] = diverse_combinations
 
     # --- Langkah 7: Pemetaan Ke Tab Opsi Alternatif (Hingga 15 Opsi Unik) ---
     max_opts_avail = max(len(package_options[0]), len(package_options[1]), len(package_options[2]))
@@ -1316,6 +1384,7 @@ def generate_flexible_exploration_packages(num_persons, duration, datasets,
             u_matrix = result["u"]
             df_clustered["Membership_Degree"] = [float(u_matrix[result["labels"][j], j]) for j in range(len(prices))]
             df_clustered["Kategori"] = df_clustered["Cluster"].map(CLUSTER_LABELS)
+            df_clustered["Region"] = df_clustered.apply(lambda row: classify_region(row.get("Latitude", 0), row.get("Longitude", 0)), axis=1)
             clustered[cat_name] = {
                 "df": df_clustered,
                 "cntr": result["cntr"],
@@ -1324,7 +1393,7 @@ def generate_flexible_exploration_packages(num_persons, duration, datasets,
             print(f"    ⚠ Error clustering {cat_name}: {e}")
             return []
 
-    # --- Langkah 3: Ambil 15 Kandidat Terdekat dari FCM ---
+    # --- Langkah 3: Ambil Kandidat Wilayah Terdistribusi Spasial (Offline FCM) ---
     candidates = {
         "hotel": {i: [] for i in range(3)},
         "wisata": {i: [] for i in range(3)},
@@ -1337,11 +1406,27 @@ def generate_flexible_exploration_packages(num_persons, duration, datasets,
         for i in range(3):
             items_in_c = df[df["Cluster"] == i].copy()
             
-            if items_in_c.empty:
-                df["distance_to_target"] = (df["Estimasi_Harga"] - cntrs[i]).abs()
-                best_items = df.nsmallest(15, "distance_to_target")
+            best_items_list = []
+            regions = ["Kota Batu", "Kota Malang", "Kabupaten Malang"]
+            for region in regions:
+                items_in_region = items_in_c[items_in_c["Region"] == region] if not items_in_c.empty else df[df["Region"] == region]
+                if not items_in_region.empty:
+                    items_in_region_cp = items_in_region.copy()
+                    if items_in_c.empty:
+                        items_in_region_cp["distance_to_target"] = (items_in_region_cp["Estimasi_Harga"] - cntrs[i]).abs()
+                        best_items_list.append(items_in_region_cp.nsmallest(8, "distance_to_target"))
+                    else:
+                        items_in_region_sorted = items_in_region_cp.sort_values(by="Membership_Degree", ascending=False)
+                        best_items_list.append(items_in_region_sorted.head(8))
+            
+            if best_items_list:
+                best_items = pd.concat(best_items_list)
             else:
-                best_items = items_in_c.sort_values(by="Membership_Degree", ascending=False).head(15)
+                if items_in_c.empty:
+                    df["distance_to_target"] = (df["Estimasi_Harga"] - cntrs[i]).abs()
+                    best_items = df.nsmallest(15, "distance_to_target")
+                else:
+                    best_items = items_in_c.sort_values(by="Membership_Degree", ascending=False).head(15)
                 
             candidates[key][i] = best_items.to_dict("records")
 
@@ -1482,7 +1567,41 @@ def generate_flexible_exploration_packages(num_persons, duration, datasets,
                 key=lambda x: (x.get("selisih", 0) < 0, -get_val(x["wisata"], "Rating"), -get_val(x["hotel"], "Estimasi_Harga"), x["total_dist"])
             )
 
-        package_options[i] = valid_combinations[:max_options_to_show[i]]
+        # --- Seleksi Beragam (Diversity Filter) untuk Keberagaman Paket ---
+        diverse_combinations = []
+        selected_wisata = set()
+        selected_hotels = set()
+        
+        # Phase 1: Unik berdasarkan tempat Wisata Utama
+        for combo in valid_combinations:
+            w_name = combo["wisata"]["Nama_Tempat"]
+            if w_name not in selected_wisata:
+                diverse_combinations.append(combo)
+                selected_wisata.add(w_name)
+                selected_hotels.add(combo["hotel"]["Nama_Tempat"])
+                if len(diverse_combinations) >= max_options_to_show[i]:
+                    break
+                    
+        # Phase 2: Jika kurang, boleh wisata sama tapi hotel berbeda
+        if len(diverse_combinations) < max_options_to_show[i]:
+            for combo in valid_combinations:
+                if combo not in diverse_combinations:
+                    h_name = combo["hotel"]["Nama_Tempat"]
+                    if h_name not in selected_hotels:
+                        diverse_combinations.append(combo)
+                        selected_hotels.add(h_name)
+                        if len(diverse_combinations) >= max_options_to_show[i]:
+                            break
+                            
+        # Phase 3: Jika masih kurang, ambil sisa kombinasi terbaik yang ada
+        if len(diverse_combinations) < max_options_to_show[i]:
+            for combo in valid_combinations:
+                if combo not in diverse_combinations:
+                    diverse_combinations.append(combo)
+                    if len(diverse_combinations) >= max_options_to_show[i]:
+                        break
+                        
+        package_options[i] = diverse_combinations
 
     # --- Pemetaan Ke Tab Opsi Alternatif (Hingga 15 Opsi Unik) ---
     max_opts_avail = max(len(package_options[0]), len(package_options[1]), len(package_options[2]))
@@ -1990,6 +2109,7 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
             u_matrix = res["u"]
             df_c["Membership_Degree"] = [float(u_matrix[res["labels"][j], j]) for j in range(len(prices))]
             df_c["Kategori"] = df_c["Cluster"].map(CLUSTER_LABELS)
+            df_c["Region"] = df_c.apply(lambda row: classify_region(row.get("Latitude", 0), row.get("Longitude", 0)), axis=1)
             clustered[cat_name] = {"df": df_c, "cntr": res["cntr"]}
     else:
         # Kondisi B: Real-Time FCM
@@ -2025,6 +2145,7 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
             u_matrix = res["u"]
             df_c["Membership_Degree"] = [float(u_matrix[res["labels"][j], j]) for j in range(len(prices))]
             df_c["Kategori"] = df_c["Cluster"].map(CLUSTER_LABELS)
+            df_c["Region"] = df_c.apply(lambda row: classify_region(row.get("Latitude", 0), row.get("Longitude", 0)), axis=1)
             clustered[cat_name] = {"df": df_c, "cntr": res["cntr"]}
 
     candidates = {
@@ -2049,12 +2170,24 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
             items_in_c = df[df["Cluster"] == i].copy()
             target_price = anchor * ratios[i] if anchor is not None else cntrs[i]
             
-            if items_in_c.empty:
-                df["distance_to_target"] = (df["Estimasi_Harga"] - target_price).abs()
-                best_items = df.nsmallest(15, "distance_to_target")
+            best_items_list = []
+            regions = ["Kota Batu", "Kota Malang", "Kabupaten Malang"]
+            for region in regions:
+                items_in_region = items_in_c[items_in_c["Region"] == region] if not items_in_c.empty else df[df["Region"] == region]
+                if not items_in_region.empty:
+                    items_in_region_cp = items_in_region.copy()
+                    items_in_region_cp["distance_to_target"] = (items_in_region_cp["Estimasi_Harga"] - target_price).abs()
+                    best_items_list.append(items_in_region_cp.nsmallest(8, "distance_to_target"))
+            
+            if best_items_list:
+                best_items = pd.concat(best_items_list)
             else:
-                items_in_c["distance_to_target"] = (items_in_c["Estimasi_Harga"] - target_price).abs()
-                best_items = items_in_c.nsmallest(15, "distance_to_target")
+                if items_in_c.empty:
+                    df["distance_to_target"] = (df["Estimasi_Harga"] - target_price).abs()
+                    best_items = df.nsmallest(15, "distance_to_target")
+                else:
+                    items_in_c["distance_to_target"] = (items_in_c["Estimasi_Harga"] - target_price).abs()
+                    best_items = items_in_c.nsmallest(15, "distance_to_target")
                 
             candidates[key][i] = best_items.to_dict("records")
 
@@ -2315,7 +2448,41 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
             if min_cost_comb:
                 valid_combinations.append(min_cost_comb)
 
-        package_options[i] = valid_combinations[:max_options_to_show[i]]
+        # --- Seleksi Beragam (Diversity Filter) untuk Keberagaman Paket ---
+        diverse_combinations = []
+        selected_hotels = set()
+        selected_kuliner = set()
+        
+        # Phase 1: Unik berdasarkan Hotel
+        for combo in valid_combinations:
+            h_name = combo["hotel"]["Nama_Tempat"]
+            if h_name not in selected_hotels:
+                diverse_combinations.append(combo)
+                selected_hotels.add(h_name)
+                selected_kuliner.add(combo["kuliner"]["Nama_Tempat"])
+                if len(diverse_combinations) >= max_options_to_show[i]:
+                    break
+                    
+        # Phase 2: Jika kurang, boleh hotel sama tapi kuliner berbeda
+        if len(diverse_combinations) < max_options_to_show[i]:
+            for combo in valid_combinations:
+                if combo not in diverse_combinations:
+                    k_name = combo["kuliner"]["Nama_Tempat"]
+                    if k_name not in selected_kuliner:
+                        diverse_combinations.append(combo)
+                        selected_kuliner.add(k_name)
+                        if len(diverse_combinations) >= max_options_to_show[i]:
+                            break
+                            
+        # Phase 3: Jika masih kurang, ambil sisa kombinasi terbaik yang ada
+        if len(diverse_combinations) < max_options_to_show[i]:
+            for combo in valid_combinations:
+                if combo not in diverse_combinations:
+                    diverse_combinations.append(combo)
+                    if len(diverse_combinations) >= max_options_to_show[i]:
+                        break
+                        
+        package_options[i] = diverse_combinations
 
     # --- Pemetaan Ke Tab Opsi Alternatif (Hingga 15 Opsi Unik) ---
     max_opts_avail = max(len(package_options[0]), len(package_options[1]), len(package_options[2]))

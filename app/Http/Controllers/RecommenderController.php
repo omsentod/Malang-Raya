@@ -181,4 +181,46 @@ class RecommenderController extends Controller
             }
         });
     }
+public function minBudget(Request $request)
+{
+    $validated = $request->validate([
+        'persons'  => 'required|integer|min:1|max:20',
+        'duration' => 'required|integer|min:1|max:30',
+    ]);
+
+    $args = [
+        $this->pythonBinary(),
+        storage_path('app/python/min_budget_api.py'),
+        '--persons',  $validated['persons'],
+        '--duration', $validated['duration'],
+    ];
+
+    $process = new Process($args);
+    $process->setWorkingDirectory($this->workingDir());
+    $process->setEnv([
+        'OPENBLAS_NUM_THREADS' => '1',
+        'MKL_NUM_THREADS' => '1',
+        'OMP_NUM_THREADS' => '1',
+        'NUMEXPR_NUM_THREADS' => '1',
+        'VECLIB_MAXIMUM_THREADS' => '1',
+    ]);
+    $process->setTimeout(30);
+
+    try {
+        $process->mustRun();
+        $output = $process->getOutput();
+        $result = json_decode($output, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            return response()->json(['error' => 'Output bukan JSON valid'], 500);
+        }
+        return response()->json($result);
+
+    } catch (ProcessFailedException $e) {
+        return response()->json([
+            'error' => 'Proses gagal.',
+            'detail' => $e->getProcess()->getErrorOutput(),
+        ], 500);
+    }
+}
 }

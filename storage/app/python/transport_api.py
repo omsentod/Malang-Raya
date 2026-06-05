@@ -120,7 +120,7 @@ def _fallback_distance(origins, destinations):
     Fallback menggunakan Haversine saat API tidak tersedia.
     Haversine dikalikan faktor 1.45 untuk estimasi jarak jalan raya.
     """
-    ROAD_FACTOR = 1.45  # Estimasi jarak jalan ≈ 1.45x jarak lurus
+    ROAD_FACTOR = 1.58 # Estimasi jarak jalan ≈ 1.45x jarak lurus
 
     distances_km = []
     durations_min = []
