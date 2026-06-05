@@ -2058,7 +2058,9 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
                     cost_hotel = 0
                     
                 # B. Hitung Biaya Wisata
-                cost_wisata = best_wisata["Estimasi_Harga"] * num_persons
+                # Estimasi biaya wisata untuk SEMUA hari (bukan hanya hari pertama)
+                # karena itinerary akan menambahkan wisata alternatif di hari 2, 3, dst.
+                cost_wisata = best_wisata["Estimasi_Harga"] * num_persons * duration
                 
                 # C. Cari kuliner pagi, siang, malam dan hitung biaya kuliner
                 if duration == 1:
@@ -2188,7 +2190,8 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
                             cost_hotel = h["Estimasi_Harga"] * nights * num_rooms
                     else:
                         cost_hotel = 0
-                    cost_wisata = best_wisata["Estimasi_Harga"] * num_persons
+                    # Estimasi biaya wisata untuk SEMUA hari (konsisten dengan post-itinerary recalc)
+                    cost_wisata = best_wisata["Estimasi_Harga"] * num_persons * duration
                     
                     # C. Cari kuliner pagi, siang, malam dan hitung biaya kuliner
                     if duration == 1:
@@ -2772,13 +2775,21 @@ def export_to_excel_recom(options_list, workflow, budget, persons, duration):
                 day_total = pkg.get("cost_akomodasi", 0) + pkg.get("cost_wisata", 0) + pkg.get("cost_kuliner", 0) + pkg.get("cost_transport", 0)
                 row_dict["Harga Harian (Hari 1)"] = day_total
             else:
+                pkg_legs = pkg.get("transport_detail", {}).get("legs", [])
                 for day in itin:
                     d = day["day"]
+                    d_num_nights = pkg.get("nights", 0)
                     has_hotel = day.get("hotel") and day.get("hotel") != 'Checkout'
                     hotel_cost = float(day.get("hotel_harga", 0)) * pkg.get("num_rooms", 1) if has_hotel else 0.0
                     wisata_cost = float(day.get("wisata_harga", 0)) * pkg.get("num_persons", persons)
-                    kuliner_cost = (float(day.get("kuliner_harga", 0)) + float(day.get("kuliner_malam_harga", 0))) * pkg.get("num_persons", persons)
-                    transport_cost = round(pkg.get("cost_transport", 0) / pkg.get("duration", 1))
+                    # Include makan pagi + siang + malam (malam only for non-checkout days)
+                    kp = float(day.get("kuliner_pagi_harga", 0))
+                    ks = float(day.get("kuliner_harga", 0))
+                    km = float(day.get("kuliner_malam_harga", 0)) if d <= d_num_nights else 0.0
+                    kuliner_cost = (kp + ks + km) * pkg.get("num_persons", persons)
+                    # Use actual per-day transport legs cost
+                    day_legs = [l for l in pkg_legs if f"Hari {d}" in l.get("from", "") or f"Hari {d}" in l.get("to", "")]
+                    transport_cost = sum(l.get("cost", 0) for l in day_legs)
                     day_subtotal = hotel_cost + wisata_cost + kuliner_cost + transport_cost
                     row_dict[f"Harga Harian (Hari {d})"] = day_subtotal
                     
