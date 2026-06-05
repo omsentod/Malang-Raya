@@ -10,7 +10,7 @@ def calculate_min_budget(persons, duration):
     # Load dataset
     df_hotel = pd.read_excel("hotel_clean.xlsx")
     df_wisata = pd.read_excel("wisata_clean.xlsx")
-    df_kuliner = pd.read_excel("kuliner_clean.xlsx")
+    df_kuliner = pd.read_excel("tempat_makan_clean.xlsx")
 
     datasets = {"hotel": df_hotel, "wisata": df_wisata, "kuliner": df_kuliner}
 
@@ -113,6 +113,10 @@ def calculate_min_budget(persons, duration):
     if pd.isna(w_max): w_max = 0
     if pd.isna(k_max): k_max = 0
 
+    h_max = float(h_max)
+    w_max = float(w_max)
+    k_max = float(k_max)
+
     max_cost_hotel    = h_max * nights * num_rooms if duration > 1 else 0
     max_cost_wisata   = w_max * persons
     max_cost_kuliner  = k_max * persons * total_meals
@@ -129,8 +133,8 @@ def calculate_min_budget(persons, duration):
         "status": "success",
         "min_budget": min_budget,
         "max_budget": max_budget,
-        "raw_min": min_total,
-        "raw_max": max_total if max_total > 0 else None,
+        "raw_min": float(min_total),
+        "raw_max": float(max_total) if max_total > 0 else None,
         "persons": persons,
         "duration": duration
     }

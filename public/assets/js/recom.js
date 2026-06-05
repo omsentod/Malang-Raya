@@ -1296,9 +1296,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const plus = document.getElementById(plusId);
         const minus = document.getElementById(minusId);
         if (!inp || !plus || !minus) return;
-        minus.addEventListener('click', () => { if (+inp.value > min) inp.value = +inp.value - 1; onBudgetChange(); });
-        plus.addEventListener('click', () => { inp.value = +inp.value + 1; onBudgetChange(); });
-        inp.addEventListener('change', onBudgetChange);
+        minus.addEventListener('click', () => { if (+inp.value > min) { inp.value = +inp.value - 1; updateBudgetSliders(); onBudgetChange(); } });
+        plus.addEventListener('click', () => { inp.value = +inp.value + 1; updateBudgetSliders(); onBudgetChange(); });
+        inp.addEventListener('change', () => { updateBudgetSliders(); onBudgetChange(); });
     }
     setupCounter('b-persons', 'b-persons-minus', 'b-persons-plus');
     setupCounter('b-duration', 'b-duration-minus', 'b-duration-plus');
@@ -1501,13 +1501,11 @@ document.addEventListener('DOMContentLoaded', () => {
             let val = parseIdr(e.target.value);
             if (val <= 0) return;
 
-            const bPersons = +document.getElementById('b-persons')?.value || 1;
-            const bDuration = +document.getElementById('b-duration')?.value || 1;
-            const bMin = calculateScaledMinBudget(bPersons, bDuration);
-            const bMax = calculateScaledMaxBudget(bPersons, bDuration);
+            const sliderMin = parseInt(slider.min);
+            const sliderMax = parseInt(slider.max);
 
             // Only synchronize to slider and trigger calculation if the value is within range
-            if (val >= bMin && val <= bMax) {
+            if (val >= sliderMin && val <= sliderMax) {
                 slider.value = val;
                 const valEl = document.getElementById('b-budget-val');
                 if (valEl) valEl.textContent = fmtRp(val);
@@ -1536,18 +1534,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            const bPersons = +document.getElementById('b-persons')?.value || 1;
-            const bDuration = +document.getElementById('b-duration')?.value || 1;
-            const bMin = calculateScaledMinBudget(bPersons, bDuration);
-            const bMax = calculateScaledMaxBudget(bPersons, bDuration);
-
-            if (val > bMax) {
-                val = bMax;
+            const sliderMax = parseInt(slider.max);
+            if (val > sliderMax) {
+                val = sliderMax;
                 e.target.value = val;
             }
 
-            // Only synchronize slider if >= bMin
-            if (val >= bMin) {
+            const sliderMin = parseInt(slider.min);
+            if (val >= sliderMin) {
                 slider.value = val;
                 const valEl = document.getElementById('b-budget-val');
                 if (valEl) valEl.textContent = fmtRp(val);
@@ -1565,13 +1559,11 @@ document.addEventListener('DOMContentLoaded', () => {
             let val = parseIdr(e.target.value);
             if (val <= 0) return;
 
-            const dPersons = +document.getElementById('d-persons')?.value || 1;
-            const dDuration = +document.getElementById('d-duration')?.value || 1;
-            const dMin = calculateScaledMinBudget(dPersons, dDuration);
-            const dMax = calculateScaledMaxBudget(dPersons, dDuration);
+            const dMin = parseInt(slider.min) + 10000;
+            const sliderMax = parseInt(slider.max);
 
             // Only synchronize to slider and trigger calculation if the value is within range
-            if (val >= dMin && val <= dMax) {
+            if (val >= dMin && val <= sliderMax) {
                 slider.value = val;
                 const valEl = document.getElementById('d-budget-val');
                 if (valEl) valEl.textContent = fmtRp(val);
@@ -1599,13 +1591,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            const dPersons = +document.getElementById('d-persons')?.value || 1;
-            const dDuration = +document.getElementById('d-duration')?.value || 1;
-            const dMin = calculateScaledMinBudget(dPersons, dDuration);
-            const dMax = calculateScaledMaxBudget(dPersons, dDuration);
+            const dMin = parseInt(slider.min) + 10000;
+            const sliderMax = parseInt(slider.max);
 
-            if (val > dMax) {
-                val = dMax;
+            if (val > sliderMax) {
+                val = sliderMax;
                 e.target.value = val;
             }
 
@@ -1722,18 +1712,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 let minBudgetDebounceTimer = null;
+let budgetFetchSeq = 0;
 
    
 async function onBudgetChange() {
-    updateBudgetSliders();
 
     clearTimeout(minBudgetDebounceTimer);
     minBudgetDebounceTimer = setTimeout(async () => {
+        const seq = ++budgetFetchSeq;
         const bPersons = +document.getElementById('b-persons')?.value || 1;
         const bDuration = +document.getElementById('b-duration')?.value || 1;
 
         const range = await fetchBudgetRange(bPersons, bDuration);
-        if (!range) return;
+        if (!range || seq !== budgetFetchSeq) return;
 
         // ── Update b-slider ──
         const bSlider = document.getElementById('b-budget');
@@ -1807,7 +1798,8 @@ async function onBudgetChange() {
     document.getElementById('b-transport')?.addEventListener('change', onBudgetChange);
     document.getElementById('d-transport')?.addEventListener('change', onBudgetChange);
 
-    // Initial budget calculation
+        // Initial budget calculation
+    updateBudgetSliders();
     onBudgetChange();
 
     // ─────────────────────────────────────────────────
