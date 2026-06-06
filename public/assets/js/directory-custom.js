@@ -13,6 +13,44 @@ window.handleImgError = function(el) {
     }
 };
 
+// 2.5 LEVENSHTEIN FUZZY MATCH ALGORITHM FOR AUTOCORRECT
+function levenshteinDistance(s, t) {
+    if (!s.length) return t.length;
+    if (!t.length) return s.length;
+    const arr = [];
+    for (let i = 0; i <= t.length; i++) { arr[i] = [i]; }
+    for (let j = 0; j <= s.length; j++) { arr[0][j] = j; }
+    for (let i = 1; i <= t.length; i++) {
+        for (let j = 1; j <= s.length; j++) {
+            arr[i][j] = s[j - 1] === t[i - 1] 
+                ? arr[i - 1][j - 1] 
+                : Math.min(arr[i - 1][j - 1] + 1, arr[i][j - 1] + 1, arr[i - 1][j] + 1);
+        }
+    }
+    return arr[t.length][s.length];
+}
+
+function findTypoAutocorrect(query, items) {
+    if (query.length < 3) return null;
+    const cleanQuery = query.toLowerCase().trim();
+    let bestMatch = null;
+    let minDistance = 3;
+
+    for (const item of items) {
+        const name = item.Nama_Tempat.toLowerCase();
+        const words = name.split(/\s+/);
+        for (const word of words) {
+            if (word.length < 3) continue;
+            const distance = levenshteinDistance(cleanQuery, word);
+            if (distance < minDistance) {
+                minDistance = distance;
+                bestMatch = item;
+            }
+        }
+    }
+    return bestMatch;
+}
+
 // 3. EXPLORER SYSTEM MAIN ENGINE
 let searchIndex = [];
 let filteredIndex = [];
@@ -256,6 +294,15 @@ if (sortTriggerBtn && customSortDropdown) {
     });
 }
 
+window.applyAutocorrect = function(correctedWord) {
+    const searchInput = document.getElementById('dir-search-input');
+    if (searchInput) {
+        searchInput.value = correctedWord;
+        searchQuery = correctedWord.toLowerCase().trim();
+        applyFilters();
+    }
+};
+
 function applyFilters() {
     currentPage = 1;
 
@@ -354,11 +401,23 @@ function renderGrid() {
     gridElement.innerHTML = '';
 
     if (filteredIndex.length === 0) {
+        const autocorrectSuggestion = findTypoAutocorrect(searchQuery, searchIndex);
+        let autocorrectHtml = '';
+        if (autocorrectSuggestion) {
+            autocorrectHtml = `
+                <div style="margin-top:16px; display:inline-flex; align-items:center; gap:8px; background:rgba(20,184,166,0.1); color:var(--teal-700); padding:10px 16px; border-radius:8px; border:1px solid rgba(20,184,166,0.2);">
+                    <span class="material-symbols-outlined" style="font-size:18px;">auto_awesome</span>
+                    <span>Maksud Anda: <strong style="cursor:pointer; text-decoration:underline;" onclick="applyAutocorrect('${autocorrectSuggestion.Nama_Tempat.replace(/'/g, "\\'")}')">${autocorrectSuggestion.Nama_Tempat}</strong>?</span>
+                </div>
+            `;
+        }
+
         gridElement.innerHTML = `
-            <div class="empty-results">
+            <div class="empty-results" style="grid-column: 1/-1; text-align:center; padding: 40px 20px;">
                 <span class="material-symbols-outlined empty-results-icon">sentiment_dissatisfied</span>
                 <h4>Destinasi Tidak Ditemukan</h4>
                 <p>Cobalah menyaring dengan kata kunci lain atau ubah filter kategori/wilayah Anda.</p>
+                ${autocorrectHtml}
             </div>
         `;
         if (paginationControls) paginationControls.innerHTML = '';
@@ -682,4 +741,126 @@ if (detailModal) {
     detailModal.addEventListener('click', (e) => {
         if (e.target === detailModal) closeOtaDetail();
     });
+}
+
+// 5. NAVBAR SEARCH AUTOCOMPLETE ENGINE
+const navSearchInputs = [
+    { input: document.getElementById('nav-search-input'), dropdown: document.getElementById('search-autocomplete-dropdown') },
+    { input: document.getElementById('mobile-nav-search-input'), dropdown: document.getElementById('mobile-search-autocomplete-dropdown') }
+].filter(item => item.input && item.dropdown);
+
+navSearchInputs.forEach(({input, dropdown}) => {
+    input.addEventListener('input', (e) => {
+        const query = e.target.value;
+        renderNavSearchSuggestions(query, dropdown);
+    });
+
+    // Close search on clicking outside
+    document.addEventListener('click', (e) => {
+        if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+            dropdown.classList.remove('open');
+        }
+    });
+
+    // Show suggestions on focus if not empty
+    input.addEventListener('focus', () => {
+        if (input.value.trim().length > 0) {
+            dropdown.classList.add('open');
+        }
+    });
+});
+
+function escapeRegExp(string) {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function renderNavSearchSuggestions(query, targetDropdown) {
+    if (!targetDropdown) return;
+    const cleanQuery = query.trim().toLowerCase();
+    
+    if (cleanQuery.length === 0) {
+        targetDropdown.classList.remove('open');
+        return;
+    }
+
+    targetDropdown.classList.add('open');
+    targetDropdown.innerHTML = '';
+
+    const matches = [];
+    const exactRegex = new RegExp(escapeRegExp(cleanQuery), 'i');
+
+    for (const item of searchIndex) {
+        if (exactRegex.test(item.Nama_Tempat) || exactRegex.test(item.Kategori)) {
+            matches.push(item);
+        }
+        if (matches.length >= 8) break;
+    }
+
+    let html = '';
+
+    if (matches.length < 3) {
+        const autocorrectSuggestion = findTypoAutocorrect(cleanQuery, searchIndex);
+        if (autocorrectSuggestion && !matches.some(m => m.Id_Tempat === autocorrectSuggestion.Id_Tempat)) {
+            html += `
+                <div class="autocomplete-autocorrect-banner" style="padding: 8px 12px; background: rgba(20,184,166,0.1); color: var(--teal-700); font-size: 12px; display: flex; align-items: center; gap: 6px; border-bottom: 1px solid rgba(20,184,166,0.2);">
+                    <span class="material-symbols-outlined" style="font-size:16px;">auto_awesome</span>
+                    <span>Maksud Anda: <strong style="cursor:pointer; text-decoration:underline;" onclick='triggerNavAutocorrectClick(${JSON.stringify(autocorrectSuggestion).replace(/"/g, '&quot;')})'>${autocorrectSuggestion.Nama_Tempat}</strong>?</span>
+                </div>
+            `;
+        }
+    }
+
+    if (matches.length === 0 && html === '') {
+        targetDropdown.innerHTML = `
+            <div class="autocomplete-empty" style="padding: 16px; text-align: center; color: var(--slate-400);">
+                <span class="material-symbols-outlined" style="font-size: 24px;">search_off</span>
+                <h5 style="margin: 4px 0 2px; font-size: 13px; color: var(--slate-600);">Tidak Ada Hasil</h5>
+                <p style="margin: 0; font-size: 11px;">Cobalah kata kunci lain seperti "bromo", "hotel", atau "sate".</p>
+            </div>
+        `;
+        return;
+    }
+
+    html += `<div class="autocomplete-section-title" style="padding: 8px 12px; font-size: 10px; font-weight: 800; color: var(--slate-400); text-transform: uppercase;">Hasil Pencarian</div>`;
+
+    matches.forEach(item => {
+        const priceFormatted = item.Estimasi_Harga > 0 ? fmtRupiah(item.Estimasi_Harga) : 'Gratis';
+        const hasImg = item.Gambar && item.Gambar.length > 0;
+        
+        const imgHTML = hasImg
+            ? `<img class="suggestion-thumb" src="${item.Gambar[0]}" alt="${escapeRegExp(item.Nama_Tempat)}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" style="width: 40px; height: 40px; border-radius: 6px; object-fit: cover;" />
+               <div class="suggestion-shimmer" style="display:none; width: 40px; height: 40px; border-radius: 6px; background: var(--slate-100);"></div>`
+            : `<div class="ota-shimmer-placeholder suggestion-thumb" style="width: 40px; height: 40px; border-radius: 6px; background: var(--slate-100); display: flex; align-items: center; justify-content: center;">
+                   <span class="material-symbols-outlined" style="font-size:16px;color:var(--slate-400);">landscape</span>
+               </div>`;
+
+        const highlightedName = item.Nama_Tempat.replace(
+            new RegExp(`(${escapeRegExp(query)})`, 'gi'),
+            '<span class="suggestion-highlight" style="color: var(--teal-600);">$1</span>'
+        );
+
+        html += `
+            <div class="autocomplete-suggestion" onclick='triggerNavAutocorrectClick(${JSON.stringify(item).replace(/"/g, '&quot;')})' style="display: flex; align-items: center; gap: 10px; padding: 8px 12px; cursor: pointer; border-bottom: 1px solid var(--slate-50); transition: background 0.2s;">
+                ${imgHTML}
+                <div class="suggestion-info" style="flex: 1; min-width: 0;">
+                    <div class="suggestion-title" style="font-size: 12px; font-weight: 700; color: var(--slate-800); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${highlightedName}</div>
+                    <div class="suggestion-meta" style="font-size: 10px; color: var(--slate-400); margin-top: 2px;">
+                        <span class="suggestion-badge" style="background: var(--slate-100); padding: 1px 4px; border-radius: 4px; font-weight: 600;">${item.Kategori}</span>
+                        <span>• ${item.Sub_Kategori}</span>
+                    </div>
+                </div>
+                <div class="suggestion-price" style="font-size: 11px; font-weight: 700; color: var(--teal-600);">${priceFormatted}</div>
+            </div>
+        `;
+    });
+
+    targetDropdown.innerHTML = html;
+}
+
+window.triggerNavAutocorrectClick = function(item) {
+    navSearchInputs.forEach(({input, dropdown}) => {
+        input.value = '';
+        dropdown.classList.remove('open');
+    });
+    openOtaDetail(item);
 }

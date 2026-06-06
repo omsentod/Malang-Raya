@@ -54,8 +54,10 @@ function findTypoAutocorrect(query, items) {
 
 // 3. SEARCH AUTOCOMPLETE ENGINE
 let searchIndex = [];
-const searchInput = document.getElementById('nav-search-input');
-const searchDropdown = document.getElementById('search-autocomplete-dropdown');
+const searchInputs = [
+    { input: document.getElementById('nav-search-input'), dropdown: document.getElementById('search-autocomplete-dropdown') },
+    { input: document.getElementById('mobile-nav-search-input'), dropdown: document.getElementById('mobile-search-autocomplete-dropdown') }
+].filter(item => item.input && item.dropdown);
 
 // Asynchronously fetch search index
 fetch('/assets/search_index.json')
@@ -65,38 +67,38 @@ fetch('/assets/search_index.json')
     })
     .catch(err => console.error("Error loading search index:", err));
 
-if (searchInput && searchDropdown) {
-    searchInput.addEventListener('input', (e) => {
+searchInputs.forEach(({input, dropdown}) => {
+    input.addEventListener('input', (e) => {
         const query = e.target.value;
-        renderSearchSuggestions(query);
+        renderSearchSuggestions(query, dropdown);
     });
 
     // Close search on clicking outside
     document.addEventListener('click', (e) => {
-        if (!searchInput.contains(e.target) && !searchDropdown.contains(e.target)) {
-            searchDropdown.classList.remove('open');
+        if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+            dropdown.classList.remove('open');
         }
     });
 
     // Show suggestions on focus if not empty
-    searchInput.addEventListener('focus', () => {
-        if (searchInput.value.trim().length > 0) {
-            searchDropdown.classList.add('open');
+    input.addEventListener('focus', () => {
+        if (input.value.trim().length > 0) {
+            dropdown.classList.add('open');
         }
     });
-}
+});
 
-function renderSearchSuggestions(query) {
-    if (!searchDropdown) return;
+function renderSearchSuggestions(query, targetDropdown) {
+    if (!targetDropdown) return;
     const cleanQuery = query.trim().toLowerCase();
     
     if (cleanQuery.length === 0) {
-        searchDropdown.classList.remove('open');
+        targetDropdown.classList.remove('open');
         return;
     }
 
-    searchDropdown.classList.add('open');
-    searchDropdown.innerHTML = '';
+    targetDropdown.classList.add('open');
+    targetDropdown.innerHTML = '';
 
     // Filter index
     const matches = [];
@@ -125,7 +127,7 @@ function renderSearchSuggestions(query) {
     }
 
     if (matches.length === 0 && html === '') {
-        searchDropdown.innerHTML = `
+        targetDropdown.innerHTML = `
             <div class="autocomplete-empty">
                 <span class="material-symbols-outlined">search_off</span>
                 <h5>Tidak Ada Hasil</h5>
@@ -169,7 +171,7 @@ function renderSearchSuggestions(query) {
         `;
     });
 
-    searchDropdown.innerHTML = html;
+    targetDropdown.innerHTML = html;
 }
 
 function escapeRegExp(string) {
@@ -177,8 +179,10 @@ function escapeRegExp(string) {
 }
 
 window.triggerAutocorrectClick = function(item) {
-    if (searchInput) searchInput.value = '';
-    if (searchDropdown) searchDropdown.classList.remove('open');
+    searchInputs.forEach(({input, dropdown}) => {
+        input.value = '';
+        dropdown.classList.remove('open');
+    });
     openOtaDetail(item);
 }
 

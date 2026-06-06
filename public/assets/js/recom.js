@@ -4123,7 +4123,7 @@ function onBudgetChange() {
                     if (type === 'hotel') {
                         optAccommodationCost = activeOptionPackages[idx].cost_akomodasi;
                     } else {
-                        optAccommodationCost = selectedHotel ? selectedHotel.cost : 0;
+                        optAccommodationCost = selectedHotel ? selectedHotel.cost : activeOptionPackages[idx].cost_akomodasi;
                     }
                 } else {
                     for (let n = 1; n <= nights; n++) {
@@ -4133,6 +4133,8 @@ function onBudgetChange() {
                             const activeN = selectedHotelsByNight[n];
                             if (activeN) {
                                 optAccommodationCost += activeN.cost;
+                            } else {
+                                optAccommodationCost += activeOptionPackages[idx].hotel_harga * activeOptionPackages[idx].num_rooms;
                             }
                         }
                     }
@@ -4178,6 +4180,24 @@ function onBudgetChange() {
                     };
                 } else {
                     dayPlan = selectedDays[dNum];
+                    if (!dayPlan) {
+                        let pkg = activeOptionPackages[idx];
+                        let defaultItin = pkg.itinerary?.find(it => it.day === dNum);
+                        dayPlan = {
+                            wisata_harga: defaultItin?.wisata_harga !== undefined ? defaultItin.wisata_harga : (pkg.wisata_harga || 0),
+                            wisata_lat: defaultItin?.wisata_lat || pkg.wisata_lat || 0,
+                            wisata_lon: defaultItin?.wisata_lon || pkg.wisata_lon || 0,
+                            kuliner_harga: defaultItin?.kuliner_harga !== undefined ? defaultItin.kuliner_harga : (pkg.kuliner_harga || 0),
+                            kuliner_lat: defaultItin?.kuliner_lat || pkg.kuliner_lat || 0,
+                            kuliner_lon: defaultItin?.kuliner_lon || pkg.kuliner_lon || 0,
+                            kuliner_pagi_harga: defaultItin?.kuliner_pagi_harga || 0,
+                            kuliner_malam_harga: defaultItin?.kuliner_malam_harga !== undefined ? defaultItin.kuliner_malam_harga : (pkg.kuliner_malam_harga || 0),
+                            kuliner_pagi_lat: defaultItin?.kuliner_pagi_lat || 0,
+                            kuliner_pagi_lon: defaultItin?.kuliner_pagi_lon || 0,
+                            kuliner_malam_lat: defaultItin?.kuliner_malam_lat || pkg.kuliner_malam_lat || 0,
+                            kuliner_malam_lon: defaultItin?.kuliner_malam_lon || pkg.kuliner_malam_lon || 0
+                        };
+                    }
                 }
 
                 if (dayPlan) {
