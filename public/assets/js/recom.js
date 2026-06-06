@@ -1296,10 +1296,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const plus = document.getElementById(plusId);
         const minus = document.getElementById(minusId);
         if (!inp || !plus || !minus) return;
-        minus.addEventListener('click', () => { if (+inp.value > min) { inp.value = +inp.value - 1; updateBudgetSliders(); onBudgetChange(); } });
-        plus.addEventListener('click', () => { inp.value = +inp.value + 1; updateBudgetSliders(); onBudgetChange(); });
-        inp.addEventListener('input', () => { updateBudgetSliders(); onBudgetChange(); });
-        inp.addEventListener('change', () => { updateBudgetSliders(); onBudgetChange(); });
+        minus.addEventListener('click', () => { if (+inp.value > min) { inp.value = +inp.value - 1; updateBudgetSliders(); fetchApiMinMaxUpdate(); onBudgetChange(); } });
+        plus.addEventListener('click', () => { inp.value = +inp.value + 1; updateBudgetSliders(); fetchApiMinMaxUpdate(); onBudgetChange(); });
+        inp.addEventListener('input', () => { updateBudgetSliders(); fetchApiMinMaxUpdate(); onBudgetChange(); });
+        inp.addEventListener('change', () => { updateBudgetSliders(); fetchApiMinMaxUpdate(); onBudgetChange(); });
     }
     setupCounter('b-persons', 'b-persons-minus', 'b-persons-plus');
     setupCounter('b-duration', 'b-duration-minus', 'b-duration-plus');
@@ -1392,12 +1392,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const bSlider = document.getElementById('b-budget');
         if (bSlider) {
-            bSlider.min = bMin;
+            bSlider.min = 0; // Biarkan slider fisik bebas mentok 0 demi UX yang smooth
+            bSlider.dataset.aiMin = bMin; // Simpan batas AI secara gaib
             bSlider.max = bMax;
             bSlider.step = 10000;
 
             let curVal = parseInt(bSlider.value) || 1000000;
-            if (curVal < bMin) curVal = bMin;
+            if (curVal < 0) curVal = 0;
             if (curVal > bMax) curVal = bMax;
             bSlider.value = curVal;
 
@@ -1405,7 +1406,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (valEl) valEl.textContent = fmtRp(curVal);
 
             const minLbl = document.getElementById('b-budget-min-label');
-            if (minLbl) minLbl.textContent = "Min: " + fmtRp(bMin);
+            if (minLbl) minLbl.textContent = "Min: Rp 0";
 
             const maxLbl = document.getElementById('b-budget-max-label');
             if (maxLbl) maxLbl.textContent = "Max: " + fmtRp(bMax);
@@ -1415,7 +1416,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (document.activeElement !== manualInp) {
                     manualInp.value = curVal;
                 }
-                manualInp.min = bMin;
+                manualInp.min = 0;
                 manualInp.max = bMax;
             }
         }
@@ -1435,9 +1436,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const dSlider = document.getElementById('d-budget');
         if (dSlider) {
-            // Set slider minimum 1 step below dMin to represent "No Budget"
-            const dSliderMin = dMin - 10000;
-            dSlider.min = dSliderMin;
+            // 0 merepresentasikan "Tanpa Batasan Budget"
+            const dSliderMin = 0;
+            dSlider.min = 0;
+            dSlider.dataset.aiMin = dMin; // Simpan batas AI secara gaib
             dSlider.max = dMax;
             dSlider.step = 10000;
 
@@ -1454,7 +1456,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (valEl) valEl.textContent = isNoBudget ? "Tanpa Batasan Anggaran " : fmtRp(curVal);
 
             const minLbl = document.getElementById('d-budget-min-label');
-            if (minLbl) minLbl.textContent = "Tanpa Budget / Min: " + fmtRp(dMin);
+            if (minLbl) minLbl.textContent = "Min: Rp 0";
 
             const maxLbl = document.getElementById('d-budget-max-label');
             if (maxLbl) maxLbl.textContent = "Max: " + fmtRp(dMax);
@@ -1464,7 +1466,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (document.activeElement !== manualInp) {
                     manualInp.value = isNoBudget ? "" : curVal;
                 }
-                manualInp.min = dMin;
+                manualInp.min = 0;
                 manualInp.max = dMax;
             }
         }
@@ -1486,7 +1488,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const dPersons = +document.getElementById('d-persons')?.value || 1;
         const dDuration = +document.getElementById('d-duration')?.value || 1;
 
-        const dMin = calculateScaledMinBudget(dPersons, dDuration);
+        let dMin = calculateScaledMinBudget(dPersons, dDuration);
+        const slider = document.getElementById('d-budget');
+        if (slider && slider.dataset.aiMin) {
+            dMin = parseInt(slider.dataset.aiMin);
+        }
 
         const valEl = document.getElementById('d-budget-val');
         if (valEl) {
@@ -1513,7 +1519,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let val = parseIdr(e.target.value);
             if (val <= 0) return;
 
-            const sliderMin = parseInt(slider.min);
+            const sliderMin = 0;
             const sliderMax = parseInt(slider.max);
 
             // Only synchronize to slider and trigger calculation if the value is within range
@@ -1533,14 +1539,14 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!slider) return;
 
             let val = parseIdr(e.target.value);
-            const sliderMin = parseInt(slider.min);
+            const sliderMin = 0;
             const sliderMax = parseInt(slider.max);
 
             if (val <= 0) {
                 // Empty → reset to minimum budget
-                val = sliderMin;
-            } else if (val < sliderMin) {
-                val = sliderMin;
+                val = 0;
+            } else if (val < 0) {
+                val = 0;
             } else if (val > sliderMax) {
                 val = sliderMax;
             }
@@ -1562,7 +1568,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let val = parseIdr(e.target.value);
             if (val <= 0) return;
 
-            const dMin = parseInt(slider.min) + 10000;
+            const dMin = 0;
             const sliderMax = parseInt(slider.max);
 
             // Only synchronize to slider and trigger calculation if the value is within range
@@ -1582,26 +1588,29 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!slider) return;
 
             let val = parseIdr(e.target.value);
-            const sliderMin = parseInt(slider.min);
-            const dMin = sliderMin + 10000;
+            const sliderMin = 0;
+            const dMin = 0;
             const sliderMax = parseInt(slider.max);
 
             if (val <= 0) {
                 // Empty means No Budget
-                slider.value = sliderMin;
+                slider.value = 0;
                 e.target.value = "";
                 const valEl = document.getElementById('d-budget-val');
                 if (valEl) valEl.textContent = "Tanpa Batasan Anggaran ";
             } else {
-                if (val < dMin) {
-                    val = dMin;
-                } else if (val > sliderMax) {
+                if (val > sliderMax) {
                     val = sliderMax;
                 }
                 slider.value = val;
                 e.target.value = val;
                 const valEl = document.getElementById('d-budget-val');
-                if (valEl) valEl.textContent = fmtRp(val);
+                
+                const dPersons = +document.getElementById('d-persons')?.value || 1;
+                const dDuration = +document.getElementById('d-duration')?.value || 1;
+                let targetDMin = calculateScaledMinBudget(dPersons, dDuration);
+                if (slider && slider.dataset.aiMin) targetDMin = parseInt(slider.dataset.aiMin);
+                if (valEl) valEl.textContent = (val < targetDMin) ? "Tanpa Batasan Anggaran " : fmtRp(val);
             }
             onBudgetChange();
         });
@@ -1623,7 +1632,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (elId === 'd-budget') {
             const persons = +document.getElementById('d-persons')?.value || 1;
             const duration = +document.getElementById('d-duration')?.value || 1;
-            const minBudget = calculateScaledMinBudget(persons, duration);
+            let minBudget = calculateScaledMinBudget(persons, duration);
+            const slider = document.getElementById('d-budget');
+            if (slider && slider.dataset.aiMin) minBudget = parseInt(slider.dataset.aiMin);
             if (val < minBudget) return 0; // return 0 for "No Budget"
         }
         return val;
@@ -1642,7 +1653,12 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const minBudget = calculateScaledMinBudget(persons, duration);
+        // Ambil nilai AI pintar dari label (jika ada), sehingga kotak peringatan responsif terhadap Python AI
+        let minBudget = calculateScaledMinBudget(persons, duration);
+        const slider = document.getElementById(budgetId);
+        if (slider && slider.dataset.aiMin) {
+            minBudget = parseInt(slider.dataset.aiMin);
+        }
 
         if (budget < minBudget) {
             box.innerHTML = `
@@ -1713,9 +1729,12 @@ document.addEventListener('DOMContentLoaded', () => {
 let minBudgetDebounceTimer = null;
 let budgetFetchSeq = 0;
 
-   
-async function onBudgetChange() {
-    updateBudgetSliders();
+function fetchApiMinMaxUpdate() {
+    // Beri indikator visual agar user mengerti Python sedang mengkalkulasi batas asli
+    const bMaxLbl = document.getElementById('b-budget-max-label');
+    if (bMaxLbl) bMaxLbl.innerHTML = '<span style="color:var(--teal-600);font-weight:700">Sinkronisasi AI...</span>';
+    const dMaxLbl = document.getElementById('d-budget-max-label');
+    if (dMaxLbl) dMaxLbl.innerHTML = '<span style="color:var(--teal-600);font-weight:700">Sinkronisasi AI...</span>';
 
     clearTimeout(minBudgetDebounceTimer);
     minBudgetDebounceTimer = setTimeout(async () => {
@@ -1741,20 +1760,21 @@ async function onBudgetChange() {
         if (bRange) {
             const bSlider = document.getElementById('b-budget');
             if (bSlider) {
+                bSlider.dataset.aiMin = bRange.min_budget;
                 const oldVal = parseInt(bSlider.value) || bRange.min_budget;
                 
                 const safeMax = Math.max(bRange.min_budget + 50000, bRange.max_budget);
                 bSlider.max = safeMax;
-                bSlider.min = bRange.min_budget;
+                bSlider.min = 0; // Biarkan slider tetap di 0
                 bSlider.step = 10000;
 
-                let newVal = Math.max(bRange.min_budget, Math.min(safeMax, oldVal));
+                let newVal = Math.max(0, Math.min(safeMax, oldVal));
                 bSlider.value = newVal;
 
                 document.getElementById('b-budget-val')?.textContent !== undefined &&
                     (document.getElementById('b-budget-val').textContent = fmtRp(newVal));
                 document.getElementById('b-budget-min-label') &&
-                    (document.getElementById('b-budget-min-label').textContent = "Min: " + fmtRp(bRange.min_budget));
+                    (document.getElementById('b-budget-min-label').textContent = "Min: Rp 0");
                 document.getElementById('b-budget-max-label') &&
                     (document.getElementById('b-budget-max-label').textContent = "Max: " + fmtRp(bRange.max_budget));
 
@@ -1767,15 +1787,15 @@ async function onBudgetChange() {
         if (dRange) {
             const dSlider = document.getElementById('d-budget');
             if (dSlider) {
-                const dSliderMin = dRange.min_budget - 10000;
-                const oldVal = parseInt(dSlider.value) || dSliderMin;
+                dSlider.dataset.aiMin = dRange.min_budget;
+                const oldVal = parseInt(dSlider.value) || 0;
                 const safeMax = Math.max(dRange.min_budget + 50000, dRange.max_budget);
 
                 dSlider.max = safeMax;
-                dSlider.min = dSliderMin;
+                dSlider.min = 0;
                 dSlider.step = 10000;
 
-                let newVal = Math.max(dSliderMin, Math.min(safeMax, oldVal));
+                let newVal = Math.max(0, Math.min(safeMax, oldVal));
                 dSlider.value = newVal;
 
                 const isNoBudget = newVal < dRange.min_budget;
@@ -1783,7 +1803,7 @@ async function onBudgetChange() {
                 if (dValEl) dValEl.textContent = isNoBudget ? "Tanpa Batasan Anggaran " : fmtRp(newVal);
 
                 document.getElementById('d-budget-min-label') &&
-                    (document.getElementById('d-budget-min-label').textContent = "Tanpa Budget / Min: " + fmtRp(dRange.min_budget));
+                    (document.getElementById('d-budget-min-label').textContent = "Min: Rp 0");
                 document.getElementById('d-budget-max-label') &&
                     (document.getElementById('d-budget-max-label').textContent = "Max: " + fmtRp(dRange.max_budget));
 
@@ -1796,9 +1816,12 @@ async function onBudgetChange() {
             }
         }
 
+        onBudgetChange();
     }, 800);
+}
 
-        // Tab Budget-First
+function onBudgetChange() {
+    // Tab Budget-First
         const budget = getRawBudget('b-budget');
         const persons = +document.getElementById('b-persons')?.value || 1;
         const duration = +document.getElementById('b-duration')?.value || 1;
@@ -1835,11 +1858,20 @@ async function onBudgetChange() {
         if (dSubmit) dSubmit.disabled = !isDestCapValid;
     }
 
-    document.getElementById('b-transport')?.addEventListener('change', onBudgetChange);
-    document.getElementById('d-transport')?.addEventListener('change', onBudgetChange);
+    document.getElementById('b-transport')?.addEventListener('change', () => {
+        updateBudgetSliders();
+        fetchApiMinMaxUpdate();
+        onBudgetChange();
+    });
+    document.getElementById('d-transport')?.addEventListener('change', () => {
+        updateBudgetSliders();
+        fetchApiMinMaxUpdate();
+        onBudgetChange();
+    });
 
-        // Initial budget calculation
+    // Initial budget calculation
     updateBudgetSliders();
+    fetchApiMinMaxUpdate();
     onBudgetChange();
 
     // ─────────────────────────────────────────────────
@@ -2910,15 +2942,8 @@ async function onBudgetChange() {
         const transport = document.getElementById('b-transport')?.value || '';
         const hotel_mode = document.getElementById('b-hotel-mode')?.value || 'same';
 
-        const bSlider = document.getElementById('b-budget');
-        const bMin = bSlider ? parseInt(bSlider.min) : calculateScaledMinBudget(persons, duration);
-
         if (!budget) {
             showError('Masukkan total anggaran terlebih dahulu.');
-            return;
-        }
-        if (budget < bMin) {
-            showError(`Anggaran minimal untuk ${persons} orang, ${duration} hari adalah ${fmtRp(bMin)}. Silakan masukkan budget di atas nilai tersebut.`);
             return;
         }
 
@@ -2947,15 +2972,14 @@ async function onBudgetChange() {
 
         if (!destId) { showError('Pilih destinasi wisata terlebih dahulu.'); return; }
 
-        const dSlider = document.getElementById('d-budget');
-        const dMin = dSlider ? (parseInt(dSlider.min) + 10000) : calculateScaledMinBudget(persons, duration);
+        let dMin = calculateScaledMinBudget(persons, duration);
+        const slider = document.getElementById('d-budget');
+        if (slider && slider.dataset.aiMin) {
+            dMin = parseInt(slider.dataset.aiMin);
+        }
+        
         const sliderVal = parseFloat(document.getElementById('d-budget')?.value) || 0;
         const isNoBudget = sliderVal < dMin;
-
-        if (!isNoBudget && budget > 0 && budget < dMin) {
-            showError(`Anggaran minimal untuk ${persons} orang, ${duration} hari adalah ${fmtRp(dMin)} (atau kosongkan untuk Tanpa Batasan Anggaran).`);
-            return;
-        }
 
         const destSearchInp = document.getElementById('d-dest-search-input');
         callRecommend({ workflow: 'destination', dest_id: destId, persons, duration, budget: (isNoBudget ? null : (budget || null)), transport, hotel_mode },
