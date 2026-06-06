@@ -1311,21 +1311,27 @@ document.addEventListener('DOMContentLoaded', () => {
     // ─────────────────────────────────────────────────
     // Dynamic Budget Range Sliders
     // ─────────────────────────────────────────────────
-   function calculateScaledMinBudget(persons, duration) {
-    let ratePerKm = 2250;
-    if (persons > 4) ratePerKm = 6000;
-    else if (persons > 1) ratePerKm = 5150;
+    function calculateScaledMinBudget(persons, duration, hotelMode = 'same') {
+        let ratePerKm = 2250;
+        if (persons > 4) ratePerKm = 6000;
+        else if (persons > 1) ratePerKm = 5150;
 
-        const minHotelPrice = 60000;
-    const minWisataPrice = 0;
-        const avgWisataPrice = 15000;
-        const minKulinerPrice = 10000;
-        const avgKulinerPrice = 15000;
+        const minHotelPrice = 50000;
+        const minWisataPrice = 0;
+        const avgWisataPrice = 5000;
+        const minKulinerPrice = 8000;
+        const avgKulinerPrice = 10000;
 
-    const nights = duration - 1;
-    const rooms = Math.ceil(persons / 2);
+        const nights = duration - 1;
+        const rooms = Math.ceil(persons / 2);
 
-    const costHotel = duration > 1 ? minHotelPrice * nights * rooms : 0;
+        let costHotel = 0;
+        if (duration > 1) {
+            // Jika pindah hotel, estimasi harga rata-rata hotel termurah bertambah karena harus mix & match
+            const hotelMultiplier = (hotelMode === 'split' && nights > 1) ? 1.2 : 1.0; 
+            costHotel = (minHotelPrice * hotelMultiplier) * nights * rooms;
+        }
+
         const costWisata = (minWisataPrice + avgWisataPrice * (duration - 1)) * persons;
         
         let costKuliner = 0;
@@ -1339,17 +1345,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         let minDistanceBase = 0;
-        if (duration === 1) minDistanceBase = 12;
-        else if (duration === 2) minDistanceBase = 25 + 15;
-        else minDistanceBase = 25 + 30 * (duration - 2) + 15;
+        if (duration === 1) minDistanceBase = 10;
+        else if (duration === 2) minDistanceBase = 20 + 10;
+        else minDistanceBase = 20 + 20 * (duration - 2) + 10;
+
+        // Ekstra mobilitas / jarak untuk perpindahan lokasi hotel baru
+        if (hotelMode === 'split' && duration > 2) minDistanceBase += (15 * (duration - 2));
 
     const costTransport = Math.round(minDistanceBase * ratePerKm);
 
     const totalMin = costHotel + costWisata + costKuliner + costTransport;
         return Math.ceil((totalMin * 1.30) / 50000) * 50000;
-}
+    }
 
-    function calculateScaledMaxBudget(persons, duration) {
+    function calculateScaledMaxBudget(persons, duration, hotelMode = 'same') {
         let ratePerKm = 2250;
         if (persons > 4) ratePerKm = 6000;
         else if (persons > 1) ratePerKm = 5150;
@@ -1370,7 +1379,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // ODT: ~35 km
         // 2 hari: Hari1 (~50km lintas wilayah) + Hari2 (~35km) = ~85 km
         const maxDistanceBase = duration === 1 ? 35 : 50 + 35 * (duration - 1);
-        const costTransport = Math.round(maxDistanceBase * ratePerKm);
+        
+        let adjustedMaxDistance = maxDistanceBase;
+        if (hotelMode === 'split' && duration > 2) adjustedMaxDistance += (20 * (duration - 2));
+        const costTransport = Math.round(adjustedMaxDistance * ratePerKm);
 
         const totalMax = costHotel + costWisata + costKuliner + costTransport;
         return Math.ceil(totalMax / 50000) * 50000;
@@ -1380,9 +1392,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // --- 1. Tab Budget-First ---
         const bPersons = +document.getElementById('b-persons')?.value || 1;
         const bDuration = +document.getElementById('b-duration')?.value || 1;
+        const bHotelMode = document.getElementById('b-hotel-mode')?.value || 'same';
 
-        const bMin = calculateScaledMinBudget(bPersons, bDuration);
-        const bMax = calculateScaledMaxBudget(bPersons, bDuration);
+        const bMin = calculateScaledMinBudget(bPersons, bDuration, bHotelMode);
+        const bMax = calculateScaledMaxBudget(bPersons, bDuration, bHotelMode);
 
         // Show/hide b-hotel-mode-group depending on bDuration > 2
         const bHotelGroup = document.getElementById('b-hotel-mode-group');
@@ -1424,9 +1437,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // --- 2. Tab Destination-First ---
         const dPersons = +document.getElementById('d-persons')?.value || 1;
         const dDuration = +document.getElementById('d-duration')?.value || 1;
+        const dHotelMode = document.getElementById('d-hotel-mode')?.value || 'same';
 
-        const dMin = calculateScaledMinBudget(dPersons, dDuration);
-        const dMax = calculateScaledMaxBudget(dPersons, dDuration);
+        const dMin = calculateScaledMinBudget(dPersons, dDuration, dHotelMode);
+        const dMax = calculateScaledMaxBudget(dPersons, dDuration, dHotelMode);
 
         // Show/hide d-hotel-mode-group depending on dDuration > 2
         const dHotelGroup = document.getElementById('d-hotel-mode-group');
@@ -1487,8 +1501,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const val = +e.target.value;
         const dPersons = +document.getElementById('d-persons')?.value || 1;
         const dDuration = +document.getElementById('d-duration')?.value || 1;
+        const dHotelMode = document.getElementById('d-hotel-mode')?.value || 'same';
 
-        let dMin = calculateScaledMinBudget(dPersons, dDuration);
+        let dMin = calculateScaledMinBudget(dPersons, dDuration, dHotelMode);
         const slider = document.getElementById('d-budget');
         if (slider && slider.dataset.aiMin) {
             dMin = parseInt(slider.dataset.aiMin);
@@ -1608,7 +1623,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 const dPersons = +document.getElementById('d-persons')?.value || 1;
                 const dDuration = +document.getElementById('d-duration')?.value || 1;
-                let targetDMin = calculateScaledMinBudget(dPersons, dDuration);
+                const dHotelMode = document.getElementById('d-hotel-mode')?.value || 'same';
+                let targetDMin = calculateScaledMinBudget(dPersons, dDuration, dHotelMode);
                 if (slider && slider.dataset.aiMin) targetDMin = parseInt(slider.dataset.aiMin);
                 if (valEl) valEl.textContent = (val < targetDMin) ? "Tanpa Batasan Anggaran " : fmtRp(val);
             }
@@ -1632,7 +1648,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (elId === 'd-budget') {
             const persons = +document.getElementById('d-persons')?.value || 1;
             const duration = +document.getElementById('d-duration')?.value || 1;
-            let minBudget = calculateScaledMinBudget(persons, duration);
+            const hotelMode = document.getElementById('d-hotel-mode')?.value || 'same';
+            let minBudget = calculateScaledMinBudget(persons, duration, hotelMode);
             const slider = document.getElementById('d-budget');
             if (slider && slider.dataset.aiMin) minBudget = parseInt(slider.dataset.aiMin);
             if (val < minBudget) return 0; // return 0 for "No Budget"
@@ -1640,9 +1657,10 @@ document.addEventListener('DOMContentLoaded', () => {
         return val;
     }
 
-    function checkMinBudget(personsId, durationId, budgetId, warningBoxId) {
+    function checkMinBudget(personsId, durationId, budgetId, warningBoxId, hotelModeId) {
         const persons = +document.getElementById(personsId)?.value || 1;
         const duration = +document.getElementById(durationId)?.value || 1;
+        const hotelMode = document.getElementById(hotelModeId)?.value || 'same';
         const budget = getRawBudget(budgetId);
         const box = document.getElementById(warningBoxId);
 
@@ -1653,8 +1671,17 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        if (typeof isSyncingBudget !== 'undefined' && isSyncingBudget) {
+            box.innerHTML = `
+                <span class="material-symbols-outlined" style="font-size:18px;flex-shrink:0;animation:spin 1s linear infinite;">sync</span>
+                <span>Sedang mensinkronkan batas anggaran minimum dengan AI...</span>
+            `;
+            box.style.display = 'flex';
+            return;
+        }
+
         // Ambil nilai AI pintar dari label (jika ada), sehingga kotak peringatan responsif terhadap Python AI
-        let minBudget = calculateScaledMinBudget(persons, duration);
+        let minBudget = calculateScaledMinBudget(persons, duration, hotelMode);
         const slider = document.getElementById(budgetId);
         if (slider && slider.dataset.aiMin) {
             minBudget = parseInt(slider.dataset.aiMin);
@@ -1732,9 +1759,9 @@ let budgetFetchSeq = 0;
 function fetchApiMinMaxUpdate() {
     // Beri indikator visual agar user mengerti Python sedang mengkalkulasi batas asli
     const bMaxLbl = document.getElementById('b-budget-max-label');
-    if (bMaxLbl) bMaxLbl.innerHTML = '<span style="color:var(--teal-600);font-weight:700">Sinkronisasi AI...</span>';
+    if (bMaxLbl) bMaxLbl.innerHTML = '<span style="color:var(--teal-600);font-weight:700">Sinkronisasi Budget...</span>';
     const dMaxLbl = document.getElementById('d-budget-max-label');
-    if (dMaxLbl) dMaxLbl.innerHTML = '<span style="color:var(--teal-600);font-weight:700">Sinkronisasi AI...</span>';
+    if (dMaxLbl) dMaxLbl.innerHTML = '<span style="color:var(--teal-600);font-weight:700">Sinkronisasi Budget...</span>';
 
     clearTimeout(minBudgetDebounceTimer);
     minBudgetDebounceTimer = setTimeout(async () => {
@@ -1755,6 +1782,8 @@ function fetchApiMinMaxUpdate() {
         ]);
 
         if (seq !== budgetFetchSeq) return;
+
+        isSyncingBudget = false;
 
         // ── Update b-slider ──
         if (bRange) {
@@ -1841,10 +1870,10 @@ function onBudgetChange() {
             mealsEl.textContent = `${totalMeals} kali (${mealsPerPerson}x per Orang)`;
         }
 
-        checkMinBudget('b-persons', 'b-duration', 'b-budget', 'b-warning-box');
+        checkMinBudget('b-persons', 'b-duration', 'b-budget', 'b-warning-box', 'b-hotel-mode');
 
         // Tab Destination-First
-        checkMinBudget('d-persons', 'd-duration', 'd-budget', 'd-warning-box');
+        checkMinBudget('d-persons', 'd-duration', 'd-budget', 'd-warning-box', 'd-hotel-mode');
 
         // Run capacity checks
         const isBudgetCapValid = checkCapacity('b-persons', 'b-transport', 'b-capacity-warning');
@@ -1864,6 +1893,17 @@ function onBudgetChange() {
         onBudgetChange();
     });
     document.getElementById('d-transport')?.addEventListener('change', () => {
+        updateBudgetSliders();
+        fetchApiMinMaxUpdate();
+        onBudgetChange();
+    });
+
+    document.getElementById('b-hotel-mode')?.addEventListener('change', () => {
+        updateBudgetSliders();
+        fetchApiMinMaxUpdate();
+        onBudgetChange();
+    });
+    document.getElementById('d-hotel-mode')?.addEventListener('change', () => {
         updateBudgetSliders();
         fetchApiMinMaxUpdate();
         onBudgetChange();
@@ -2972,7 +3012,7 @@ function onBudgetChange() {
 
         if (!destId) { showError('Pilih destinasi wisata terlebih dahulu.'); return; }
 
-        let dMin = calculateScaledMinBudget(persons, duration);
+        let dMin = calculateScaledMinBudget(persons, duration, hotel_mode);
         const slider = document.getElementById('d-budget');
         if (slider && slider.dataset.aiMin) {
             dMin = parseInt(slider.dataset.aiMin);
