@@ -214,77 +214,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 const isSelected = selectEl.selectedIndex === i;
                 const optGraphic = getOptionGraphic(opt.value, opt.text);
                 return `
-                    <button type="button" class="custom-select-item ${isSelected ? 'active' : ''}" data-value="${opt.value}" style="
-                        display: flex;
-                        align-items: center;
-                        justify-content: space-between;
-                        width: 100%;
-                        padding: 10px 14px;
-                        font-size: 13px;
-                        font-weight: 750;
-                        color: ${isSelected ? 'var(--teal-700)' : 'var(--slate-600)'};
-                        background: ${isSelected ? 'rgba(20, 184, 166, 0.08)' : 'transparent'};
-                        border-radius: 10px;
-                        border: none;
-                        cursor: pointer;
-                        transition: all 0.15s ease;
-                        text-align: left;
-                        margin-bottom: 2px;
-                        font-family: inherit;
-                    ">
-                        <div style="display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1;">
+                    <button type="button" class="custom-select-item ${isSelected ? 'active' : ''}" data-value="${opt.value}">
+                        <div class="trigger-inner">
                             ${optGraphic ? optGraphic : ''}
-                            <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${opt.text}</span>
+                            <span class="item-text-span">${opt.text}</span>
                         </div>
-                        ${isSelected ? '<span class="material-symbols-outlined" style="font-size: 16px; color: var(--teal-600); flex-shrink: 0;">check_circle</span>' : ''}
+                        ${isSelected ? '<span class="material-symbols-outlined check-icon">check_circle</span>' : ''}
                     </button>
                 `;
             }).join('');
             
             container.innerHTML = `
-                <button type="button" class="custom-select-trigger" style="
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    width: 100%;
-                    padding: 12px 16px;
-                    font-size: 14px;
-                    font-weight: 700;
-                    color: var(--slate-700);
-                    background: var(--slate-50);
-                    border: 1.5px solid var(--slate-200);
-                    border-radius: 12px;
-                    cursor: pointer;
-                    transition: all 0.2s ease;
-                    text-align: left;
-                    font-family: inherit;
-                ">
-                    <div style="display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1;">
-                        <span class="trigger-prefix-icon" style="display:flex; align-items:center; flex-shrink:0;">
+                <button type="button" class="custom-select-trigger">
+                    <div class="trigger-inner">
+                        <span class="trigger-prefix-icon">
                             ${activeGraphic ? activeGraphic : ''}
                         </span>
                         <span class="custom-select-trigger-text" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${selectedLabel}</span>
                     </div>
-                    <span class="material-symbols-outlined select-arrow-icon" style="color: var(--slate-400); font-size: 18px; transition: transform 0.2s;">expand_more</span>
+                    <span class="material-symbols-outlined select-arrow-icon">expand_more</span>
                 </button>
                 
-                <div class="custom-select-menu" style="
-                    position: absolute;
-                    top: calc(100% + 6px);
-                    left: 0;
-                    right: 0;
-                    background: rgba(255, 255, 255, 0.98);
-                    backdrop-filter: blur(20px);
-                    -webkit-backdrop-filter: blur(20px);
-                    border: 1.5px solid var(--slate-200);
-                    border-radius: 14px;
-                    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.1);
-                    z-index: 1500;
-                    display: none;
-                    flex-direction: column;
-                    padding: 6px;
-                    box-sizing: border-box;
-                ">
+                <div class="custom-select-menu">
                     ${menuItemsHTML}
                 </div>
             `;
@@ -301,7 +252,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 // Close other open custom select menus
                 document.querySelectorAll('.custom-select-menu').forEach(m => {
-                    if (m !== menuList) m.classList.remove('open');
+                    if (m !== menuList) {
+                        m.classList.remove('open');
+                        m.style.display = 'none';
+                    }
                 });
                 document.querySelectorAll('.select-arrow-icon').forEach(a => {
                     if (a !== arrowIcon) a.style.transform = 'rotate(0deg)';
@@ -309,9 +263,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 if (isOpen) {
                     menuList.classList.remove('open');
+                    menuList.style.display = 'none';
                     if (arrowIcon) arrowIcon.style.transform = 'rotate(0deg)';
                 } else {
                     menuList.classList.add('open');
+                    menuList.style.display = 'flex';
                     if (arrowIcon) arrowIcon.style.transform = 'rotate(180deg)';
                 }
             });
@@ -320,6 +276,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 itemEl.addEventListener('click', (e) => {
                     e.stopPropagation();
                     menuList.classList.remove('open');
+                    menuList.style.display = 'none';
                     if (arrowIcon) arrowIcon.style.transform = 'rotate(0deg)';
                     
                     container.querySelector('.custom-select-trigger-text').textContent = itemEl.querySelector('span').textContent;
@@ -333,18 +290,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     menuList.querySelectorAll('.custom-select-item').forEach(btn => {
                         btn.classList.remove('active');
-                        btn.style.color = 'var(--slate-600)';
-                        btn.style.background = 'transparent';
-                        const checkIcon = btn.querySelector('.material-symbols-outlined');
+                        const checkIcon = btn.querySelector('.check-icon');
                         checkIcon?.remove();
                     });
                     itemEl.classList.add('active');
-                    itemEl.style.color = 'var(--teal-700)';
-                    itemEl.style.background = 'rgba(20, 184, 166, 0.08)';
                     
                     const checkSpan = document.createElement('span');
-                    checkSpan.className = 'material-symbols-outlined';
-                    checkSpan.style.cssText = 'font-size: 16px; color: var(--teal-600); flex-shrink: 0;';
+                    checkSpan.className = 'material-symbols-outlined check-icon';
                     checkSpan.textContent = 'check_circle';
                     itemEl.appendChild(checkSpan);
                     
@@ -355,9 +307,20 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         
         // Document click to close all custom select menus
-        document.addEventListener('click', () => {
-            document.querySelectorAll('.custom-select-menu').forEach(m => m.classList.remove('open'));
+        document.addEventListener('click', (e) => {
+            document.querySelectorAll('.custom-select-menu').forEach(m => {
+                m.classList.remove('open');
+                m.style.display = 'none';
+            });
             document.querySelectorAll('.select-arrow-icon').forEach(a => a.style.transform = 'rotate(0deg)');
+            
+            // Close searchable suggestions on clicking outside (from custom planner wizard)
+            document.querySelectorAll('.custom-search-select-dropdown').forEach(dropdownEl => {
+                const triggerEl = dropdownEl.closest('.custom-select-wrapper')?.querySelector('.custom-select-trigger');
+                if (dropdownEl && triggerEl && !triggerEl.contains(e.target) && !dropdownEl.contains(e.target)) {
+                    dropdownEl.style.display = 'none';
+                }
+            });
         });
     }
 
@@ -898,16 +861,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (visibleAlts.length === 0) {
             dropdownEl.innerHTML = `
-                <div class="autocomplete-empty" style="padding: 16px; text-align: center; color: var(--slate-400);">
-                    <span class="material-symbols-outlined" style="font-size: 24px; margin-bottom: 6px;">search_off</span>
-                    <h5 style="margin: 0 0 2px; font-size: 12px; font-weight: 700; color: var(--slate-700);">Tidak Ada Pilihan</h5>
-                    <p style="margin: 0; font-size: 11px;">Tidak ditemukan alternatif yang cocok.</p>
+                <div class="autocomplete-empty autocomplete-empty-alt">
+                    <span class="material-symbols-outlined">search_off</span>
+                    <h5>Tidak Ada Pilihan</h5>
+                    <p>Tidak ditemukan alternatif yang cocok.</p>
                 </div>
             `;
             return;
         }
 
-        html += `<div class="autocomplete-section-title" style="padding: 8px 12px 4px; font-size: 10px; font-weight: 800; color: var(--slate-400); text-transform: uppercase; letter-spacing: 0.5px;">Pilihan Alternatif</div>`;
+        html += `<div class="autocomplete-section-title alt-section-title">Pilihan Alternatif</div>`;
 
         visibleAlts.forEach(item => {
             const priceFormatted = fmtRp(item.harga || item.Estimasi_Harga || 0);
@@ -977,39 +940,37 @@ document.addEventListener('DOMContentLoaded', () => {
             if (type === 'hotel' || type === 'split-hotel') {
                 const hFolder = item.nama.trim().replace(/ /g, '_');
                 imgHTML = `
-                    <div class="suggestion-thumb-wrap" style="width: 32px; height: 32px; border-radius: 6px; overflow: hidden; flex-shrink: 0;">
-                        <img class="suggestion-thumb" src="/assets/GAMBAR/hotel/${hFolder}/${hFolder}-1.jpg" alt="${escapeHtmlAttr(item.nama)}" onerror="handleImgErrorRecom(this, 'hotel')" style="width: 100%; height: 100%; object-fit: cover;" />
+                    <div class="suggestion-thumb-wrap">
+                        <img class="suggestion-thumb" src="/assets/GAMBAR/hotel/${hFolder}/${hFolder}-1.jpg" alt="${escapeHtmlAttr(item.nama)}" onerror="handleImgErrorRecom(this, 'hotel')" />
                     </div>
                 `;
             } else if (type === 'wisata') {
                 const wFolder = item.nama.trim().replace(/ /g, '_');
                 imgHTML = `
-                    <div class="suggestion-thumb-wrap" style="width: 32px; height: 32px; border-radius: 6px; overflow: hidden; flex-shrink: 0;">
-                        <img class="suggestion-thumb" src="/assets/GAMBAR/wisata/${wFolder}/${wFolder}-1.jpg" alt="${escapeHtmlAttr(item.nama)}" onerror="handleImgErrorRecom(this, 'landscape')" style="width: 100%; height: 100%; object-fit: cover;" />
+                    <div class="suggestion-thumb-wrap">
+                        <img class="suggestion-thumb" src="/assets/GAMBAR/wisata/${wFolder}/${wFolder}-1.jpg" alt="${escapeHtmlAttr(item.nama)}" onerror="handleImgErrorRecom(this, 'landscape')" />
                     </div>
                 `;
             } else {
                 const kFolder = item.nama.trim().replace(/ /g, '_');
                 imgHTML = `
-                    <div class="suggestion-thumb-wrap" style="width: 32px; height: 32px; border-radius: 6px; overflow: hidden; flex-shrink: 0;">
-                        <img class="suggestion-thumb" src="/assets/GAMBAR/makan/${kFolder}/${kFolder}-1.jpg" alt="${escapeHtmlAttr(item.nama)}" onerror="handleImgErrorRecom(this, 'restaurant')" style="width: 100%; height: 100%; object-fit: cover;" />
+                    <div class="suggestion-thumb-wrap">
+                        <img class="suggestion-thumb" src="/assets/GAMBAR/makan/${kFolder}/${kFolder}-1.jpg" alt="${escapeHtmlAttr(item.nama)}" onerror="handleImgErrorRecom(this, 'restaurant')" />
                     </div>
                 `;
             }
 
             html += `
-                <div class="autocomplete-suggestion custom-suggestion-item" 
-                     data-name="${escapeHtmlAttr(item.nama)}"
-                     style="display: flex; align-items: center; gap: 10px; padding: 8px 12px; cursor: pointer; transition: background 0.2s; border-bottom: 1px solid var(--slate-100);">
+                <div class="autocomplete-suggestion custom-suggestion-item" data-name="${escapeHtmlAttr(item.nama)}">
                     ${imgHTML}
-                    <div class="suggestion-info" style="flex: 1; display: flex; flex-direction: column; gap: 1px; min-width: 0;">
-                        <div class="suggestion-title" style="font-size: 12px; font-weight: 700; color: var(--slate-800); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.nama}</div>
-                        <div class="suggestion-meta" style="font-size: 10.5px; color: var(--slate-400); display: flex; align-items: center; gap: 4px; flex-wrap: wrap;">
-                            ${item.isOverBudget ? '<span class="suggestion-badge" style="background:#fecaca; color:#dc2626; padding: 1px 4px; border-radius: 3px; font-weight: 700; font-size: 9px; border:1px solid #fee2e2;">⚠️ BUDGET OVER</span>' : '<span class="suggestion-badge" style="background:#ccfbf1; color:#0d9488; padding: 1px 4px; border-radius: 3px; font-weight: 700; font-size: 9px; border:1px solid #e2fbf7;">✓ AMAN</span>'}
+                    <div class="suggestion-info">
+                        <div class="suggestion-title">${item.nama}</div>
+                        <div class="suggestion-meta">
+                            ${item.isOverBudget ? '<span class="suggestion-badge over-budget-badge">⚠️ BUDGET OVER</span>' : '<span class="suggestion-badge ok-budget-badge">✓ AMAN</span>'}
                             ${distSuffix ? `<span>• 📍 ${distSuffix}</span>` : ''}
                         </div>
                     </div>
-                    <div class="suggestion-price" style="font-size: 11.5px; font-weight: 700; color: var(--teal-600); flex-shrink: 0;">${priceFormatted}</div>
+                    <div class="suggestion-price">${priceFormatted}</div>
                 </div>
             `;
         });
@@ -1120,7 +1081,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             ratePerKm = 6000;
                         }
 
-                        const dayWisataCost = (dNum === 1) ? targetDPlan.wisata_harga * persons : 0;
+                        const dayWisataCost = (targetDPlan.wisata_harga || 0) * persons;
                         const isCheckoutOrODT = (pkg.duration === 1 || dNum === pkg.duration);
                         const dayKulinerCost = ((targetDPlan.kuliner_pagi_harga || 0) + targetDPlan.kuliner_harga + (isCheckoutOrODT ? 0 : (targetDPlan.kuliner_malam_harga || 0))) * persons;
                         
@@ -1998,57 +1959,21 @@ function onBudgetChange() {
             const activeImgUrl = activeWFolder ? `/assets/GAMBAR/wisata/${activeWFolder}/${activeWFolder}-1.jpg` : '';
 
             let dropdownHTML = `
-                <div class="custom-select-dropdown-container" style="position: relative; max-width: 380px; width: 100%; margin-top: 8px; margin-bottom: 8px; z-index: 50;">
-                    <button type="button" class="custom-select-trigger" id="ai-alternatives-trigger" style="
-                        display: flex;
-                        justify-content: space-between;
-                        align-items: center;
-                        width: 100%;
-                        padding: 8px 14px;
-                        font-size: 13.5px;
-                        font-weight: 800;
-                        color: var(--slate-800);
-                        background: #fff;
-                        border: 1.5px solid var(--slate-200);
-                        border-radius: 12px;
-                        cursor: pointer;
-                        transition: all 0.2s ease;
-                        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-                        text-align: left;
-                    ">
-                        <div style="display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1;">
-                            <div class="suggestion-thumb-wrap" style="width: 38px; height: 38px; border-radius: 6px; overflow: hidden; flex-shrink: 0; background: var(--slate-100); border: 1px solid var(--slate-200);">
-                                <img class="suggestion-thumb" id="ai-alternatives-trigger-img" src="${activeImgUrl}" alt="${escapeHtmlAttr(activeWName)}" onerror="handleImgErrorRecom(this, 'landscape')" style="width: 100%; height: 100%; object-fit: cover;" />
+                <div class="custom-select-dropdown-container ai-alt-dropdown">
+                    <button type="button" class="custom-select-trigger ai-alt-trigger" id="ai-alternatives-trigger">
+                        <div class="ai-alt-trigger-inner">
+                            <div class="suggestion-thumb-wrap ai-alt-thumb">
+                                <img class="suggestion-thumb" id="ai-alternatives-trigger-img" src="${activeImgUrl}" alt="${escapeHtmlAttr(activeWName)}" onerror="handleImgErrorRecom(this, 'landscape')" />
                             </div>
-                            <div style="display: flex; flex-direction: column; min-width: 0; flex: 1;">
-                                <span class="custom-select-trigger-text" style="font-size: 13px; font-weight: 800; color: var(--slate-800);">Opsi Alternatif ${activeOpt.option_index}</span>
-                                <span class="custom-select-trigger-sub" style="font-size: 11px; color: var(--slate-500); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px;">
-                                    📍 ${activeWName || 'Wisata'}
-                                </span>
+                            <div class="ai-alt-text-col">
+                                <span class="custom-select-trigger-text ai-alt-title">Opsi Alternatif ${activeOpt.option_index}</span>
+                                <span class="custom-select-trigger-sub">📍 ${activeWName || 'Wisata'}</span>
                             </div>
                         </div>
-                        <span class="material-symbols-outlined select-arrow-icon" style="color: var(--slate-400); font-size: 18px; transition: transform 0.2s; margin-left: 8px;">expand_more</span>
+                        <span class="material-symbols-outlined select-arrow-icon">expand_more</span>
                     </button>
                     
-                    <div class="custom-select-menu" id="ai-alternatives-menu" style="
-                        position: absolute;
-                        top: calc(100% + 6px);
-                        left: 0;
-                        right: 0;
-                        background: rgba(255, 255, 255, 0.98);
-                        backdrop-filter: blur(20px);
-                        -webkit-backdrop-filter: blur(20px);
-                        border: 1.5px solid var(--slate-200);
-                        border-radius: 14px;
-                        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.1);
-                        z-index: 1500;
-                        display: none;
-                        flex-direction: column;
-                        overflow-y: auto;
-                        max-height: 250px;
-                        padding: 6px;
-                        box-sizing: border-box;
-                    ">
+                    <div class="custom-select-menu ai-alt-menu" id="ai-alternatives-menu">
             `;
 
             dropdownHTML += visibleOptions.map((opt, i) => {
@@ -2058,59 +1983,24 @@ function onBudgetChange() {
                 const wFolder = wName ? (wName.includes(' & ') ? wName.split(' & ')[0] : wName).trim().replace(/ /g, '_') : '';
                 const imgUrl = wFolder ? `/assets/GAMBAR/wisata/${wFolder}/${wFolder}-1.jpg` : '';
                 return `
-                        <button type="button" class="custom-select-item ${isSelected ? 'active' : ''}" data-idx="${i}" style="
-                            display: flex;
-                            align-items: center;
-                            justify-content: space-between;
-                            width: 100%;
-                            padding: 10px 14px;
-                            font-size: 13px;
-                            font-weight: 700;
-                            color: ${isSelected ? 'var(--teal-700)' : 'var(--slate-600)'};
-                            background: ${isSelected ? 'rgba(20, 184, 166, 0.08)' : 'transparent'};
-                            border-radius: 10px;
-                            border: none;
-                            cursor: pointer;
-                            transition: all 0.15s ease;
-                            text-align: left;
-                            margin-bottom: 2px;
-                        ">
-                            <div style="display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1;">
-                                <div class="suggestion-thumb-wrap" style="width: 42px; height: 42px; border-radius: 8px; overflow: hidden; flex-shrink: 0; background: var(--slate-100); border: 1px solid var(--slate-200);">
-                                    <img class="suggestion-thumb" src="${imgUrl}" alt="${escapeHtmlAttr(wName)}" onerror="handleImgErrorRecom(this, 'landscape')" style="width: 100%; height: 100%; object-fit: cover;" />
+                        <button type="button" class="custom-select-item ai-alt-item ${isSelected ? 'active' : ''}" data-idx="${i}">
+                            <div class="ai-alt-trigger-inner">
+                                <div class="suggestion-thumb-wrap ai-alt-item-thumb">
+                                    <img class="suggestion-thumb" src="${imgUrl}" alt="${escapeHtmlAttr(wName)}" onerror="handleImgErrorRecom(this, 'landscape')" />
                                 </div>
-                                <div style="display: flex; flex-direction: column; min-width: 0; flex: 1;">
-                                    <span style="font-size: 13px; font-weight: 800; color: ${isSelected ? 'var(--teal-700)' : 'var(--slate-700)'};">Opsi Alternatif ${opt.option_index}</span>
-                                    <span style="font-size: 11px; color: var(--slate-500); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px;">
-                                        📍 ${wName || 'Wisata'}
-                                    </span>
+                                <div class="ai-alt-text-col">
+                                    <span class="ai-alt-title" style="color: ${isSelected ? 'var(--teal-700)' : 'var(--slate-700)'};">Opsi Alternatif ${opt.option_index}</span>
+                                    <span class="custom-select-trigger-sub">📍 ${wName || 'Wisata'}</span>
                                 </div>
                             </div>
-                            ${isSelected ? '<span class="material-symbols-outlined" style="font-size: 16px; color: var(--teal-600); margin-left: 8px;">check_circle</span>' : ''}
+                            ${isSelected ? '<span class="material-symbols-outlined check-icon" style="margin-left:8px;">check_circle</span>' : ''}
                         </button>
                 `;
             }).join('');
 
             if (needsViewAll && !isShowingAll) {
                 dropdownHTML += `
-                        <button type="button" class="custom-select-item view-all-trigger" style="
-                            display: flex;
-                            align-items: center;
-                            gap: 8px;
-                            width: 100%;
-                            padding: 10px 14px;
-                            font-size: 13px;
-                            font-weight: 700;
-                            color: var(--teal-600);
-                            background: transparent;
-                            border-radius: 10px;
-                            border: none;
-                            cursor: pointer;
-                            transition: all 0.15s ease;
-                            text-align: left;
-                            margin-top: 4px;
-                            border-top: 1px solid var(--slate-100);
-                        ">
+                        <button type="button" class="custom-select-item view-all-trigger">
                             <span class="material-symbols-outlined" style="font-size: 16px;">search</span>
                             <span>Lihat Semua (${options.length} Opsi)...</span>
                         </button>
@@ -2136,28 +2026,28 @@ function onBudgetChange() {
                 
                 // Close other open custom select menus
                 document.querySelectorAll('.custom-select-menu').forEach(m => {
-                    if (m !== menuList) m.classList.remove('open');
+                    if (m !== menuList) {
+                        m.classList.remove('open');
+                        m.style.display = 'none';
+                    }
                 });
                 
                 if (isOpen) {
                     menuList.classList.remove('open');
+                    menuList.style.display = 'none';
                     if (arrowIcon) arrowIcon.style.transform = 'rotate(0deg)';
                 } else {
                     menuList.classList.add('open');
+                    menuList.style.display = 'flex';
                     if (arrowIcon) arrowIcon.style.transform = 'rotate(180deg)';
                 }
-            });
-
-            // Close menu on clicking outside
-            document.addEventListener('click', () => {
-                if (menuList) menuList.classList.remove('open');
-                if (arrowIcon) arrowIcon.style.transform = 'rotate(0deg)';
             });
 
             menuList?.querySelectorAll('.custom-select-item').forEach(itemEl => {
                 itemEl.addEventListener('click', (e) => {
                     e.stopPropagation();
                     menuList.classList.remove('open');
+                    menuList.style.display = 'none';
                     if (arrowIcon) arrowIcon.style.transform = 'rotate(0deg)';
 
                     if (itemEl.classList.contains('view-all-trigger')) {
@@ -2167,7 +2057,10 @@ function onBudgetChange() {
                         setTimeout(() => {
                             const m = document.getElementById('ai-alternatives-menu');
                             const t = document.getElementById('ai-alternatives-trigger');
-                            if (m) m.classList.add('open');
+                            if (m) {
+                                m.classList.add('open');
+                                m.style.display = 'flex';
+                            }
                             if (t) {
                                 const arr = t.querySelector('.select-arrow-icon');
                                 if (arr) arr.style.transform = 'rotate(180deg)';
@@ -2304,7 +2197,7 @@ function onBudgetChange() {
         const legs = pkg.transport_detail?.legs || [];
         const legHTML = legs.length > 0
             ? `<div class="transport-legs">
-                ${legs.map(l => `<div class="transport-leg-row"><span>${l.from}→${l.to} (${l.distance_km?.toFixed(1)} km)</span><span>${fmtRp(l.cost)}</span></div>`).join('')}
+                ${legs.map(l => `<div class="transport-leg-row" style="align-items:flex-start; gap:4px;"><span style="flex:1; min-width:0; word-break:break-word; line-height:1.3;">${l.from} → ${l.to} (${l.distance_km?.toFixed(1)} km)</span><span style="flex-shrink:0;">${fmtRp(l.cost)}</span></div>`).join('')}
                </div>` : '';
 
         const remainHTML = remaining !== null
@@ -2315,10 +2208,15 @@ function onBudgetChange() {
             const cleanName = name.includes(' & ') ? name.split(' & ')[0] : name;
             return cleanName.trim().replace(/ /g, '_');
         };
+
+        // BUG FIX: Ambil hanya nama pertama jika durasi > 1 agar tidak menumpuk "A & B & C" di Hari 1
+        const displayWisata = (pkg.duration > 1 && pkg.wisata_nama.includes(' & ')) ? pkg.wisata_nama.split(' & ')[0] : pkg.wisata_nama;
+        const displayKuliner = (pkg.duration > 1 && pkg.kuliner_nama.includes(' & ')) ? pkg.kuliner_nama.split(' & ')[0] : pkg.kuliner_nama;
+
         const hFolder = getFolder(pkg.hotel_nama_real || pkg.hotel_nama);
-        const wFolder = getFolder(pkg.wisata_nama);
+        const wFolder = getFolder(displayWisata);
         const kpFolder = getFolder(pkg.kuliner_pagi_nama);
-        const kFolder = getFolder(pkg.kuliner_nama);
+        const kFolder = getFolder(displayKuliner);
 
         const isOneDay = pkg.nights === 0 || pkg.cost_akomodasi === 0 || pkg.duration === 1;
 
@@ -2353,7 +2251,7 @@ function onBudgetChange() {
 
                 const hasHotel = day.hotel && day.hotel !== 'Checkout';
                 const hotelCost = hasHotel ? (day.hotel_harga || 0) * pkg.num_rooms : 0;
-                const wisataCost = 0; // Sesuai rumus skripsi, tiket hanya dihitung 1x di Hari 1
+                const wisataCost = (day.wisata_harga || 0) * pkg.num_persons;
                 const kulinerCost = ((day.kuliner_pagi_harga || 0) + (day.kuliner_harga || 0) + (day.kuliner_malam_harga || 0)) * pkg.num_persons;
                 
                 const dayLegs = legs.filter(l => l.from.includes(`(Hari ${day.day})`) || l.to.includes(`(Hari ${day.day})`));
@@ -2369,43 +2267,43 @@ function onBudgetChange() {
                                 <span>REKOMENDASI HARI ${day.day}</span>
                             </div>
                             <div style="display: flex; flex-direction: column; gap: 4px; font-size: 11.5px; font-weight: 600; color: var(--slate-600);">
-                                <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px;">
-                                    <div style="display: flex; align-items: center; gap: 6px;">
-                                        <span class="material-symbols-outlined" style="font-size: 14px; color: var(--teal-500);">hotel</span>
-                                        <span>Hotel: <span style="color: var(--slate-800); font-weight: 700;">${hasHotel ? day.hotel : 'Checkout'}</span></span>
+                                <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 6px;">
+                                    <div style="display: flex; align-items: flex-start; gap: 6px; flex: 1; min-width: 0;">
+                                        <span class="material-symbols-outlined" style="font-size: 14px; color: var(--teal-500); margin-top: 1px;">hotel</span>
+                                        <span style="flex: 1; min-width: 0; word-break: break-word; line-height: 1.3;">Hotel: <span style="color: var(--slate-800); font-weight: 700;">${hasHotel ? day.hotel : 'Checkout'}</span></span>
                                     </div>
-                                    <span style="color: var(--slate-500); font-size: 11px;">
+                                    <span style="color: var(--slate-500); font-size: 11px; flex-shrink: 0; text-align: right;">
                                         ${hasHotel ? `${fmtRp(day.hotel_harga)} /malam ${isPindah ? '<span class="pkg-badge hemat" style="font-size: 9px; padding: 1px 4px; font-weight: 700; margin-left: 4px;">Pindah</span>' : '<span class="pkg-badge balanced" style="font-size: 9px; padding: 1px 4px; font-weight: 700; margin-left: 4px;">Sama</span>'}` : 'Rp 0'}
                                     </span>
                                 </div>
-                                <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px;">
-                                    <div style="display: flex; align-items: center; gap: 6px;">
-                                        <span class="material-symbols-outlined" style="font-size: 14px; color: var(--teal-500);">landscape</span>
-                                        <span>Wisata: <span style="color: var(--slate-800); font-weight: 700;">${day.wisata}</span></span>
+                                <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 6px;">
+                                    <div style="display: flex; align-items: flex-start; gap: 6px; flex: 1; min-width: 0;">
+                                        <span class="material-symbols-outlined" style="font-size: 14px; color: var(--teal-500); margin-top: 1px;">landscape</span>
+                                        <span style="flex: 1; min-width: 0; word-break: break-word; line-height: 1.3;">Wisata: <span style="color: var(--slate-800); font-weight: 700;">${day.wisata}</span></span>
                                     </div>
-                                    <span style="color: var(--slate-500); font-size: 11px;">${fmtRp(day.wisata_harga || 0)} /orang</span>
+                                    <span style="color: var(--slate-500); font-size: 11px; flex-shrink: 0; text-align: right;">${fmtRp(day.wisata_harga || 0)} /orang</span>
                                 </div>
-                                <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px;">
-                                    <div style="display: flex; align-items: center; gap: 6px;">
-                                        <span class="material-symbols-outlined" style="font-size: 14px; color: var(--teal-500);">wb_twilight</span>
-                                        <span>Makan Pagi: <span style="color: var(--slate-800); font-weight: 700;">${day.kuliner_pagi || 'N/A'}</span></span>
+                                <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 6px;">
+                                    <div style="display: flex; align-items: flex-start; gap: 6px; flex: 1; min-width: 0;">
+                                        <span class="material-symbols-outlined" style="font-size: 14px; color: var(--teal-500); margin-top: 1px;">wb_twilight</span>
+                                        <span style="flex: 1; min-width: 0; word-break: break-word; line-height: 1.3;">Makan Pagi: <span style="color: var(--slate-800); font-weight: 700;">${day.kuliner_pagi || 'N/A'}</span></span>
                                     </div>
-                                    <span style="color: var(--slate-500); font-size: 11px;">${fmtRp(day.kuliner_pagi_harga || 0)} /org</span>
+                                    <span style="color: var(--slate-500); font-size: 11px; flex-shrink: 0; text-align: right;">${fmtRp(day.kuliner_pagi_harga || 0)} /org</span>
                                 </div>
-                                <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px;">
-                                    <div style="display: flex; align-items: center; gap: 6px;">
-                                        <span class="material-symbols-outlined" style="font-size: 14px; color: var(--teal-500);">sunny</span>
-                                        <span>Makan Siang: <span style="color: var(--slate-800); font-weight: 700;">${day.kuliner}</span></span>
+                                <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 6px;">
+                                    <div style="display: flex; align-items: flex-start; gap: 6px; flex: 1; min-width: 0;">
+                                        <span class="material-symbols-outlined" style="font-size: 14px; color: var(--teal-500); margin-top: 1px;">sunny</span>
+                                        <span style="flex: 1; min-width: 0; word-break: break-word; line-height: 1.3;">Makan Siang: <span style="color: var(--slate-800); font-weight: 700;">${day.kuliner}</span></span>
                                     </div>
-                                    <span style="color: var(--slate-500); font-size: 11px;">${fmtRp(day.kuliner_harga || 0)} /org</span>
+                                    <span style="color: var(--slate-500); font-size: 11px; flex-shrink: 0; text-align: right;">${fmtRp(day.kuliner_harga || 0)} /org</span>
                                 </div>
                                 ${(pkg.duration === 1 || day.day === pkg.duration) ? '' : `
-                                <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px;">
-                                    <div style="display: flex; align-items: center; gap: 6px;">
-                                        <span class="material-symbols-outlined" style="font-size: 14px; color: var(--teal-500);">dark_mode</span>
-                                        <span>Makan Malam: <span style="color: var(--slate-800); font-weight: 700;">${day.kuliner_malam || 'N/A'}</span></span>
+                                <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 6px;">
+                                    <div style="display: flex; align-items: flex-start; gap: 6px; flex: 1; min-width: 0;">
+                                        <span class="material-symbols-outlined" style="font-size: 14px; color: var(--teal-500); margin-top: 1px;">dark_mode</span>
+                                        <span style="flex: 1; min-width: 0; word-break: break-word; line-height: 1.3;">Makan Malam: <span style="color: var(--slate-800); font-weight: 700;">${day.kuliner_malam || 'N/A'}</span></span>
                                     </div>
-                                    <span style="color: var(--slate-500); font-size: 11px;">${fmtRp(day.kuliner_malam_harga || 0)} /org</span>
+                                    <span style="color: var(--slate-500); font-size: 11px; flex-shrink: 0; text-align: right;">${fmtRp(day.kuliner_malam_harga || 0)} /org</span>
                                 </div>
                                 `}
                             </div>
@@ -2417,7 +2315,7 @@ function onBudgetChange() {
                                     <span>${fmtRp(hotelCost)}</span>
                                 </div>
                                 <div style="display: flex; justify-content: space-between;">
-                                    <span>• Tiket Wisata (${pkg.num_persons} Orang) <span style="font-size: 8.5px; color:var(--slate-400); font-weight:500;">(Hari 1)</span></span>
+                                    <span>• Tiket Wisata (${pkg.num_persons} Orang)</span>
                                     <span>${fmtRp(wisataCost)}</span>
                                 </div>
                                 <div style="display: flex; justify-content: space-between;">
@@ -2467,7 +2365,7 @@ function onBudgetChange() {
                     </div>
                     <div class="pkg-item-info">
                         <div class="pkg-item-cat">Destinasi Wisata</div>
-                        <div class="pkg-item-name">${pkg.wisata_nama}</div>
+                        <div class="pkg-item-name">${displayWisata}</div>
                         <div class="pkg-item-price">${fmtRp(pkg.wisata_harga)} <span style="font-size:11px;font-weight:500;color:var(--slate-400)">/tiket</span></div>
                     </div>
                 </div>
@@ -2478,7 +2376,7 @@ function onBudgetChange() {
                     </div>
                     <div class="pkg-item-info">
                         <div class="pkg-item-cat">Makan Siang (Kuliner)</div>
-                        <div class="pkg-item-name">${pkg.kuliner_nama}</div>
+                        <div class="pkg-item-name">${displayKuliner}</div>
                         <div class="pkg-item-price">${fmtRp(pkg.kuliner_harga)} <span style="font-size:11px;font-weight:500;color:var(--slate-400)">/porsi</span></div>
                     </div>
                 </div>
@@ -2501,7 +2399,7 @@ function onBudgetChange() {
                 <div class="pkg-breakdown">
                     ${akomodasiRowHTML}
                     <div class="pkg-breakdown-row">
-                        <span>🎯 Tiket Wisata (${pkg.num_persons} orang)</span>
+                        <span>🎯 Tiket Wisata (${pkg.num_persons} orang × ${pkg.duration} wisata)</span>
                         <span>${fmtRp(pkg.cost_wisata)}</span>
                     </div>
                     <div class="pkg-breakdown-row">
@@ -2723,11 +2621,11 @@ function onBudgetChange() {
             if (pic.cat === 'wisata') errorIcon = 'landscape';
             
             return `
-                <div style="position:relative; border-radius:12px; overflow:hidden; border:1px solid var(--slate-200); aspect-ratio:4/3; background:var(--slate-50);" title="${pic.name}">
-                    <img src="${pic.picPath}" alt="${escapeHtmlAttr(pic.name)}" style="width:100%; height:100%; object-fit:cover; transition:transform 0.3s;" onerror="handleImgErrorRecom(this, '${errorIcon}')" />
-                    <div style="position:absolute; bottom:0; left:0; right:0; background:linear-gradient(to top, rgba(0,0,0,0.8), transparent); padding:8px; color:#fff;">
-                        <span style="font-size:9px; font-weight:700; text-transform:uppercase; color:var(--teal-400); display:block; letter-spacing:0.5px;">${pic.label}</span>
-                        <span style="font-size:11px; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block; margin-top:1px;">${pic.name}</span>
+                <div class="detail-gallery-item" title="${pic.name}">
+                    <img src="${pic.picPath}" alt="${escapeHtmlAttr(pic.name)}" onerror="handleImgErrorRecom(this, '${errorIcon}')" />
+                    <div class="detail-gallery-caption">
+                        <span class="detail-gallery-label">${pic.label}</span>
+                        <span class="detail-gallery-name">${pic.name}</span>
                     </div>
                 </div>
             `;
@@ -2737,16 +2635,16 @@ function onBudgetChange() {
         let accommodationBreakdownHTML = '';
         if (pkg.duration > 1 && pkg.hotel_nama && pkg.hotel_nama !== 'Tanpa Akomodasi (One Day Trip)') {
             accommodationBreakdownHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:flex-start; padding-bottom:8px; border-bottom:1px dashed var(--slate-200);">
-                    <div>
-                        <strong style="font-size:13.5px; color:var(--slate-700); display:block;">🏨 Akomodasi Hotel</strong>
-                        <span style="font-size:11.5px; color:var(--slate-400); font-weight:600;">
+                <div class="detail-calc-row">
+                    <div class="detail-calc-label-col">
+                        <strong class="detail-calc-main-label">🏨 Akomodasi Hotel</strong>
+                        <span class="detail-calc-sub-label">
                             ${pkg.nights} malam × ${pkg.num_rooms} kamar
                         </span>
                     </div>
-                    <div style="text-align:right;">
-                        <strong style="font-size:14.5px; color:var(--slate-800);">${fmtRp(pkg.cost_akomodasi)}</strong>
-                        <span style="font-size:11px; color:var(--slate-400); display:block;">@ ${fmtRp(pkg.hotel_harga)}/malam</span>
+                    <div class="detail-calc-val-col">
+                        <strong class="detail-calc-main-val">${fmtRp(pkg.cost_akomodasi)}</strong>
+                        <span class="detail-calc-sub-val">@ ${fmtRp(pkg.hotel_harga)}/malam</span>
                     </div>
                 </div>
             `;
@@ -2795,101 +2693,101 @@ function onBudgetChange() {
 
         // Put everything together
         body.innerHTML = `
-            <div class="pkg-detail-premium" style="font-family:'Manrope', sans-serif; color:var(--slate-800); text-align:left;">
+            <div class="pkg-detail-premium">
                 <!-- 1. Header Banner -->
-                <div style="background:linear-gradient(135deg, var(--teal-700), var(--teal-900)); color:#fff; padding:24px; border-radius:16px; margin-bottom:24px; position:relative; overflow:hidden; box-shadow:0 10px 25px rgba(13,148,136,0.15);">
-                    <div style="position:relative; z-index:10;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                            <span style="font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:1px; background:rgba(255,255,255,0.2); padding:4px 10px; border-radius:30px;">
+                <div class="detail-header-banner">
+                    <div class="detail-header-content">
+                        <div class="detail-header-top">
+                            <span class="detail-header-badge">
                                 Paket ${pkg.kategori || 'Hemat'}
                             </span>
-                            <span style="font-size:12px; font-weight:700; opacity:0.9;">
+                            <span class="detail-header-meta">
                                 👥 ${pkg.num_persons} Peserta · 📅 ${pkg.duration} Hari
                             </span>
                         </div>
-                        <h2 style="margin:0 0 6px; font-size:20px; font-weight:800; color:#fff; letter-spacing:-0.5px;">Rencana Perjalanan Cerdas FCM</h2>
-                        <p style="margin:0; font-size:13px; opacity:0.85; font-weight:500;">
+                        <h2 class="detail-header-title">Rencana Perjalanan Cerdas FCM</h2>
+                        <p class="detail-header-desc">
                             Kombinasi destinasi, penginapan, dan kuliner terklaster dengan jarak spasial terpendek.
                         </p>
                     </div>
-                    <div style="position:absolute; right:-50px; bottom:-50px; width:180px; height:180px; border-radius:50%; background:rgba(255,255,255,0.08); z-index:1;"></div>
+                    <div class="detail-header-decor"></div>
                 </div>
 
                 <!-- 2. Visual Gallery of the Package (Gambar Tempat) -->
-                <div style="margin-bottom:24px;">
-                    <h4 style="font-size:14.5px; font-weight:800; color:var(--slate-800); margin:0 0 12px; display:flex; align-items:center; gap:8px;">
+                <div class="detail-gallery-wrap">
+                    <h4 class="detail-section-title">
                         <span class="material-symbols-outlined" style="color:var(--teal-600); font-size:20px;">gallery_thumbnail</span>
                         Galeri Destinasi & Akomodasi Pilihan
                     </h4>
-                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:12px;">
+                    <div class="detail-gallery-grid">
                         ${imagesGridHTML}
                     </div>
                 </div>
 
                 <!-- 3. Rincian Anggaran (Semua Hitungannya) -->
-                <div style="background:var(--slate-50); border:1.5px solid var(--slate-200); border-radius:16px; padding:18px; margin-bottom:24px;">
-                    <h4 style="font-size:14.5px; font-weight:800; color:var(--slate-800); margin:0 0 14px; display:flex; align-items:center; gap:8px; border-bottom:1.5px solid var(--slate-200); padding-bottom:8px;">
+                <div class="detail-calc-card">
+                    <h4 class="detail-calc-header">
                         <span class="material-symbols-outlined" style="color:var(--teal-600); font-size:20px;">receipt_long</span>
                         Kalkulasi Transparan & Rincian Biaya Paket
                     </h4>
-                    <div style="display:flex; flex-direction:column; gap:12px;">
+                    <div class="detail-calc-list">
                         ${accommodationBreakdownHTML}
                         
-                        <div style="display:flex; justify-content:space-between; align-items:flex-start; padding-bottom:8px; border-bottom:1px dashed var(--slate-200);">
-                            <div>
-                                <strong style="font-size:13.5px; color:var(--slate-700); display:block;">🌲 Tiket Masuk Wisata</strong>
-                                <span style="font-size:11.5px; color:var(--slate-400); font-weight:600;">
+                        <div class="detail-calc-row">
+                            <div class="detail-calc-label-col">
+                                <strong class="detail-calc-main-label">🌲 Tiket Masuk Wisata</strong>
+                                <span class="detail-calc-sub-label">
                                     1x Tiket Hari 1 (sesuai rumus skripsi) × ${pkg.num_persons} orang
                                 </span>
                             </div>
-                            <div style="text-align:right;">
-                                <strong style="font-size:14.5px; color:var(--slate-800);">${fmtRp(pkg.cost_wisata)}</strong>
-                                <span style="font-size:11px; color:var(--slate-400); display:block;">@ ${fmtRp(pkg.wisata_harga)}/org</span>
+                            <div class="detail-calc-val-col">
+                                <strong class="detail-calc-main-val">${fmtRp(pkg.cost_wisata)}</strong>
+                                <span class="detail-calc-sub-val">@ ${fmtRp(pkg.wisata_harga)}/org</span>
                             </div>
                         </div>
 
-                        <div style="display:flex; justify-content:space-between; align-items:flex-start; padding-bottom:8px; border-bottom:1px dashed var(--slate-200);">
-                            <div>
-                                <strong style="font-size:13.5px; color:var(--slate-700); display:block;">🍜 Konsumsi & Kuliner</strong>
-                                <span style="font-size:11.5px; color:var(--slate-400); font-weight:600;">
+                        <div class="detail-calc-row">
+                            <div class="detail-calc-label-col">
+                                <strong class="detail-calc-main-label">🍜 Konsumsi & Kuliner</strong>
+                                <span class="detail-calc-sub-label">
                                     Makan ${pkg.num_persons} orang × ${mealsCount} porsi makan
                                 </span>
                             </div>
-                            <div style="text-align:right;">
-                                <strong style="font-size:14.5px; color:var(--slate-800);">${fmtRp(pkg.cost_kuliner)}</strong>
-                                <span style="font-size:11px; color:var(--slate-400); display:block;">Pagi, siang, malam</span>
+                            <div class="detail-calc-val-col">
+                                <strong class="detail-calc-main-val">${fmtRp(pkg.cost_kuliner)}</strong>
+                                <span class="detail-calc-sub-val">Pagi, siang, malam</span>
                             </div>
                         </div>
 
-                        <div style="display:flex; justify-content:space-between; align-items:flex-start; padding-bottom:8px; border-bottom:1px dashed var(--slate-200);">
-                            <div>
-                                <strong style="font-size:13.5px; color:var(--slate-700); display:block;">🚗 Transportasi Darat</strong>
-                                <span style="font-size:11.5px; color:var(--slate-400); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:240px; display:block;">
+                        <div class="detail-calc-row">
+                            <div class="detail-calc-label-col">
+                                <strong class="detail-calc-main-label">🚗 Transportasi Darat</strong>
+                                <span class="detail-calc-sub-label transport-label-trunc">
                                     ${pkg.transport_detail?.legs?.[0]?.vehicle || 'Otomatis'}
                                 </span>
                             </div>
-                            <div style="text-align:right;">
-                                <strong style="font-size:14.5px; color:var(--slate-800);">${fmtRp(pkg.cost_transport)}</strong>
-                                <span style="font-size:11px; color:var(--slate-400); display:block;">
+                            <div class="detail-calc-val-col">
+                                <strong class="detail-calc-main-val">${fmtRp(pkg.cost_transport)}</strong>
+                                <span class="detail-calc-sub-val">
                                     📏 ${pkg.transport_detail?.total_distance_km?.toFixed(1) || '?'} km
                                 </span>
                             </div>
                         </div>
 
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; padding-top:12px; border-top:2px solid var(--slate-300);">
-                            <strong style="font-size:14.5px; color:var(--slate-800);">Total Estimasi Gabungan:</strong>
-                            <strong style="font-size:18px; color:var(--teal-700); font-weight:900;">${fmtRp(pkg.total_cost)}</strong>
+                        <div class="detail-calc-total-row">
+                            <strong class="detail-calc-total-label">Total Estimasi Gabungan:</strong>
+                            <strong class="detail-calc-total-val">${fmtRp(pkg.total_cost)}</strong>
                         </div>
                     </div>
                 </div>
 
                 <!-- 4. Google Maps Route Embed (Potongan Rute) -->
-                <div style="margin-bottom:24px;">
-                    <h4 style="font-size:14.5px; font-weight:800; color:var(--slate-800); margin:0 0 12px; display:flex; align-items:center; gap:8px;">
+                <div class="detail-map-wrapper">
+                    <h4 class="detail-section-title">
                         <span class="material-symbols-outlined" style="color:var(--teal-600); font-size:20px;">map</span>
                         Potongan Peta Rute Perjalanan Spasial
                     </h4>
-                    <div style="width:100%; height:260px; border-radius:14px; overflow:hidden; border:1px solid var(--slate-200); box-shadow:0 4px 12px rgba(0,0,0,0.05); background:var(--slate-100);">
+                    <div class="detail-map-frame">
                         <iframe 
                             src="${mapEmbedUrl}"
                             width="100%" 
@@ -2902,22 +2800,19 @@ function onBudgetChange() {
                 </div>
 
                 <!-- 5. Day-by-Day Timeline -->
-                <div style="margin-bottom:24px;">
-                    <h4 style="font-size:14.5px; font-weight:800; color:var(--slate-800); margin:0 0 12px; display:flex; align-items:center; gap:8px;">
+                <div class="detail-timeline-wrapper">
+                    <h4 class="detail-section-title">
                         <span class="material-symbols-outlined" style="color:var(--teal-600); font-size:20px;">calendar_today</span>
                         Rencana Perjalanan Harian
                     </h4>
-                    <div style="display:flex; flex-direction:column; gap:12px;">
+                    <div class="bookmark-day-list">
                         ${timelineHTML}
                     </div>
                 </div>
 
                 <!-- 6. Action Button (Google Maps Redirect) -->
-                <div style="margin-top:20px; border-top:1.5px solid var(--slate-100); padding-top:20px; display:flex; gap:12px;">
-                    <a href="${mapsUrl}" target="_blank" class="gmaps-btn" style="flex:1; display:flex; align-items:center; justify-content:center; gap:8px; background:var(--teal-600); color:#fff; text-decoration:none; padding:14px; border-radius:12px; font-weight:800; text-align:center; box-shadow:0 4px 12px rgba(13,148,136,0.25); transition:all 0.2s;">
-                        <span class="material-symbols-outlined">map</span>
-                        Navigasi Rute di Google Maps
-                    </a>
+                <div class="detail-footer-actions">
+                    <a href="${mapsUrl}" target="_blank" class="gmaps-btn">Navigasi Rute di Google Maps</a>
                 </div>
             </div>
         `;
@@ -3416,15 +3311,15 @@ function onBudgetChange() {
         if (!modal || !body) return;
 
         let html = `
-            <div style="text-align:left;">
-                <div style="background:rgba(13,148,136,0.08); border:1.5px solid rgba(13,148,136,0.15); border-radius:16px; padding:16px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center; gap:12px;">
+            <div class="pkg-detail-premium">
+                <div class="bookmark-summary-box">
                     <div>
-                        <h4 style="margin:0 0 4px; font-size:15px; font-weight:800; color:var(--slate-800);">${plan.title}</h4>
-                        <span style="font-size:12px; color:var(--slate-500); font-weight:600;">👥 ${plan.persons} Orang | 📅 ${plan.duration} Hari</span>
+                        <h4 class="bookmark-summary-title">${plan.title}</h4>
+                        <span class="bookmark-summary-meta">👥 ${plan.persons} Orang | 📅 ${plan.duration} Hari</span>
                     </div>
-                    <div style="text-align:right; flex-shrink:0;">
-                        <span style="font-size:10px; color:var(--slate-400); font-weight:800; display:block; letter-spacing:0.5px;">ESTIMASI GABUNGAN</span>
-                        <strong style="font-size:18px; color:var(--teal-700); font-weight:900;">${fmtRp(plan.totalCost)}</strong>
+                    <div class="bookmark-summary-price-col">
+                        <span class="bookmark-summary-price-label">ESTIMASI GABUNGAN</span>
+                        <strong class="bookmark-summary-price-val">${fmtRp(plan.totalCost)}</strong>
                     </div>
                 </div>
         `;
@@ -3434,54 +3329,54 @@ function onBudgetChange() {
             if (plan.hotel) {
                 const hFolder = plan.hotel.nama.trim().replace(/ /g, '_');
                 html += `
-                    <div style="font-weight: 800; font-size: 14.5px; color: var(--slate-800); margin-bottom: 12px; border-bottom: 1.5px solid var(--slate-100); padding-bottom: 6px;">🏨 Akomodasi Terpilih (Satu Hotel)</div>
-                    <div class="pkg-item" style="margin-bottom:20px; border:1px solid var(--slate-200); border-radius:12px; padding:12px; display:flex; gap:12px; align-items:center; background:#fff;">
-                        <div class="pkg-item-icon hotel-img-container" style="position:relative; overflow:hidden; width:80px; height:60px; border-radius:8px; flex-shrink:0;">
-                            <img src="/assets/GAMBAR/hotel/${hFolder}/${hFolder}-1.jpg" alt="${plan.hotel.nama}" class="pkg-thumb-img" style="width:100%; height:100%; object-fit:cover;" onerror="handleImgErrorRecom(this, 'hotel')" />
+                    <div class="bookmark-section-title">🏨 Akomodasi Terpilih (Satu Hotel)</div>
+                    <div class="bookmark-item-card">
+                        <div class="bookmark-item-thumb">
+                            <img src="/assets/GAMBAR/hotel/${hFolder}/${hFolder}-1.jpg" alt="${plan.hotel.nama}" class="pkg-thumb-img" onerror="handleImgErrorRecom(this, 'hotel')" />
                         </div>
-                        <div class="pkg-item-info">
-                            <div class="pkg-item-cat" style="font-size:11px; font-weight:700; color:var(--teal-600); margin-bottom:2px;">Hotel / Homestay (${plan.hotel.className.toUpperCase()})</div>
-                            <div class="pkg-item-name" style="font-weight:800; font-size:13.5px; color:var(--slate-800);">${plan.hotel.nama}</div>
-                            <div class="pkg-item-price" style="font-size:12px; color:var(--slate-500); font-weight:600;">${fmtRp(plan.hotel.harga)} <span style="font-size:10px;color:var(--slate-400)">/malam</span></div>
+                        <div class="bookmark-detail-item-info">
+                            <div class="bookmark-item-cat">Hotel / Homestay (${plan.hotel.className.toUpperCase()})</div>
+                            <div class="bookmark-item-name">${plan.hotel.nama}</div>
+                            <div class="bookmark-item-price">${fmtRp(plan.hotel.harga)} <span style="font-size:10px;color:var(--slate-400)">/malam</span></div>
                         </div>
                     </div>
                 `;
             }
         } else {
             // Render split hotels night by night
-            html += `<div style="font-weight: 800; font-size: 14.5px; color: var(--slate-800); margin-bottom: 12px; border-bottom: 1.5px solid var(--slate-100); padding-bottom: 6px;">🏨 Akomodasi Terpilih (Split Malam)</div>`;
+            html += `<div class="bookmark-section-title">🏨 Akomodasi Terpilih (Split Malam)</div>`;
             const nightKeys = Object.keys(plan.hotelsByNight || {});
             nightKeys.forEach(n => {
                 const hot = plan.hotelsByNight[n];
                 const hFolder = hot.nama.trim().replace(/ /g, '_');
                 html += `
-                    <div class="pkg-item" style="margin-bottom:10px; border:1px solid var(--slate-200); border-radius:12px; padding:10px; display:flex; gap:12px; align-items:center; background:#fff;">
-                        <div class="pkg-item-icon hotel-img-container" style="position:relative; overflow:hidden; width:64px; height:48px; border-radius:6px; flex-shrink:0;">
-                            <img src="/assets/GAMBAR/hotel/${hFolder}/${hFolder}-1.jpg" alt="${hot.nama}" class="pkg-thumb-img" style="width:100%; height:100%; object-fit:cover;" onerror="handleImgErrorRecom(this, 'hotel')" />
+                    <div class="bookmark-item-card sm">
+                        <div class="bookmark-item-thumb">
+                            <img src="/assets/GAMBAR/hotel/${hFolder}/${hFolder}-1.jpg" alt="${hot.nama}" class="pkg-thumb-img" onerror="handleImgErrorRecom(this, 'hotel')" />
                         </div>
-                        <div class="pkg-item-info">
-                            <div class="pkg-item-cat" style="font-size:10px; font-weight:700; color:var(--teal-600); margin-bottom:2px;">Hotel Malam ${n} (${hot.className.toUpperCase()})</div>
-                            <div class="pkg-item-name" style="font-weight:800; font-size:12.5px; color:var(--slate-800);">${hot.nama}</div>
-                            <div class="pkg-item-price" style="font-size:11.5px; color:var(--slate-500); font-weight:600;">${fmtRp(hot.harga)} <span style="font-size:9.5px;color:var(--slate-400)">/malam</span></div>
+                        <div class="bookmark-detail-item-info">
+                            <div class="bookmark-item-cat">Hotel Malam ${n} (${hot.className.toUpperCase()})</div>
+                            <div class="bookmark-item-name">${hot.nama}</div>
+                            <div class="bookmark-item-price">${fmtRp(hot.harga)} <span style="font-size:9.5px;color:var(--slate-400)">/malam</span></div>
                         </div>
                     </div>
                 `;
             });
         }
 
-        html += `<div style="font-weight: 800; font-size: 14.5px; color: var(--slate-800); margin: 20px 0 12px; border-bottom: 1.5px solid var(--slate-100); padding-bottom: 6px;">📅 Rencana Perjalanan Harian</div>`;
-        html += `<div style="display:flex; flex-direction:column; gap:10px; margin-bottom:24px;">`;
+        html += `<div class="bookmark-section-title mt">📅 Rencana Perjalanan Harian</div>`;
+        html += `<div class="bookmark-day-list">`;
 
         plan.days.forEach((day, dIdx) => {
             html += `
-                <div style="background:var(--slate-50); border:1.5px solid var(--slate-200); border-radius:14px; padding:14px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                        <span style="font-size:11px; font-weight:800; color:var(--teal-600); letter-spacing:0.5px; text-transform:uppercase;">HARI ${day.day}</span>
+                <div class="bookmark-day-card">
+                    <div class="bookmark-day-card-header">
+                        <span class="bookmark-day-card-title">HARI ${day.day} (${day.className.toUpperCase()})</span>
                         <span class="pkg-badge ${day.className}" style="font-size:9.5px; padding:2px 8px; border-radius:10px; font-weight:800;">${day.className.toUpperCase()}</span>
                     </div>
-                    <div style="font-size:14px; font-weight:800; color:var(--slate-800); margin-bottom:4px;">🌲 Wisata: ${day.wisata}</div>
-                    <div style="font-size:12.5px; font-weight:600; color:var(--slate-500); margin-bottom:4px;">☀️ Makan Siang: ${day.kuliner} <span style="font-size:11px; color:var(--slate-400);">(${fmtRp(day.kuliner_harga || 0)})</span></div>
-                    <div style="font-size:12.5px; font-weight:600; color:var(--slate-500); margin-bottom:6px;">🌙 Makan Malam: ${day.kuliner_malam || 'N/A'} <span style="font-size:11px; color:var(--slate-400);">(${fmtRp(day.kuliner_malam_harga || 0)})</span></div>
+                    <div class="bookmark-day-card-wisata">🌲 Wisata: ${day.wisata}</div>
+                    <div class="bookmark-day-card-kuliner">☀️ Makan Siang: ${day.kuliner} <span>(${fmtRp(day.kuliner_harga || 0)})</span></div>
+                    <div class="bookmark-day-card-kuliner" style="margin-top:2px;">🌙 Makan Malam: ${day.kuliner_malam || 'N/A'} <span>(${fmtRp(day.kuliner_malam_harga || 0)})</span></div>
             `;
 
             // If the plan has exact leg distances calculated
@@ -3491,14 +3386,14 @@ function onBudgetChange() {
                 const dayLegs = plan.legs.slice(dIdx * legsPerDay, dIdx * legsPerDay + legsPerDay);
                 if (dayLegs.length > 0) {
                     html += `
-                        <div style="margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--slate-200);">
-                            <div style="font-size:10px; font-weight:800; color:var(--slate-400); margin-bottom:4px; letter-spacing:0.5px;">RUTE SPASIAL HARIAN:</div>
+                        <div class="bookmark-day-card-legs">
+                            <div class="bookmark-day-card-legs-title">RUTE SPASIAL HARIAN:</div>
                     `;
                     dayLegs.forEach(leg => {
                         html += `
                             <div class="recap-dist-row">
-                                <span class="material-symbols-outlined">directions_car</span>
-                                <span style="font-size:11.5px; font-weight:600; color:var(--slate-600);">${leg.from} → ${leg.to} <strong style="color:var(--teal-600); margin-left:4px;">(${leg.distance?.toFixed(1) || '?'} km)</strong></span>
+                                <span class="material-symbols-outlined" style="margin-top: 2px;">directions_car</span>
+                                <span style="font-size:11.5px; font-weight:600; color:var(--slate-600); flex: 1; min-width: 0; word-break: break-word; line-height: 1.3;">${leg.from} → ${leg.to} <strong style="color:var(--teal-600); margin-left:4px; display: inline-block;">(${leg.distance?.toFixed(1) || '?'} km)</strong></span>
                             </div>
                         `;
                     });
@@ -3822,49 +3717,20 @@ function onBudgetChange() {
 
         const modal = document.createElement('div');
         modal.id = 'spatial-confirm-modal';
-        modal.style = `
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(15, 23, 42, 0.5);
-            backdrop-filter: blur(8px);
-            z-index: 110000;
-            display: flex; align-items: center; justify-content: center;
-            opacity: 0; transition: opacity 0.25s ease;
-            font-family: 'Manrope', sans-serif;
-        `;
+        modal.className = 'spatial-modal-overlay';
 
         modal.innerHTML = `
-            <div style="
-                background: #fff;
-                border-radius: 24px;
-                padding: 28px 24px;
-                width: 90%;
-                max-width: 420px;
-                box-shadow: 0 20px 50px rgba(15, 23, 42, 0.25);
-                transform: scale(0.9) translateY(10px);
-                transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-                display: flex; flex-direction: column; gap: 16px;
-            ">
+            <div class="spatial-modal-content">
                 <div style="display: flex; align-items: center; gap: 12px; color: var(--teal-600);">
                     <span class="material-symbols-outlined" style="font-size: 32px; background: rgba(13,148,136,0.1); padding: 8px; border-radius: 50%;">spatial_tracking</span>
                     <h4 style="margin: 0; font-size: 16px; font-weight: 800; color: var(--slate-800);">${title}</h4>
                 </div>
-                <div style="font-size: 13.5px; color: var(--slate-600); line-height: 1.6; font-weight: 600; background: var(--slate-50); padding: 16px; border-radius: 12px; border: 1.5px solid var(--slate-150);">
+                <div class="spatial-modal-body">
                     ${message}
                 </div>
                 <div style="display: flex; gap: 12px; margin-top: 8px;">
-                    <button id="spatial-cancel-btn" style="
-                        flex: 1; padding: 12px; border-radius: 12px; border: 1.5px solid var(--slate-200);
-                        background: #fff; color: var(--slate-600); font-weight: 750; cursor: pointer; font-size: 13px;
-                        transition: all 0.2s;
-                    ">Batal</button>
-                    <button id="spatial-confirm-btn" style="
-                        flex: 1; padding: 12px; border-radius: 12px; border: none;
-                        background: linear-gradient(135deg, var(--teal-500), var(--teal-700)); color: #fff;
-                        font-weight: 800; cursor: pointer; font-size: 13px;
-                        box-shadow: 0 4px 15px rgba(13,148,136,0.3);
-                        transition: all 0.2s;
-                    ">Konfirmasi</button>
+                    <button id="spatial-cancel-btn" class="spatial-modal-btn-cancel">Batal</button>
+                    <button id="spatial-confirm-btn" class="spatial-modal-btn-confirm">Konfirmasi</button>
                 </div>
             </div>
         `;
@@ -3872,13 +3738,11 @@ function onBudgetChange() {
         document.body.appendChild(modal);
 
         setTimeout(() => {
-            modal.style.opacity = '1';
-            modal.querySelector('div').style.transform = 'scale(1) translateY(0)';
+            modal.classList.add('show');
         }, 10);
 
         const closeModal = () => {
-            modal.style.opacity = '0';
-            modal.querySelector('div').style.transform = 'scale(0.9) translateY(10px)';
+            modal.classList.remove('show');
             setTimeout(() => modal.remove(), 250);
         };
 
@@ -4215,9 +4079,7 @@ function onBudgetChange() {
                 }
 
                 if (dayPlan) {
-                    if (dNum === 1) {
-                        optTotalWisataCost += dayPlan.wisata_harga * persons;
-                    }
+                    optTotalWisataCost += dayPlan.wisata_harga * persons;
                     optTotalKulinerCost += ((dayPlan.kuliner_pagi_harga || 0) + dayPlan.kuliner_harga + (dayPlan.kuliner_malam_harga || 0)) * persons;
 
                     // Hotel Anchors for distance calculation
@@ -4347,11 +4209,11 @@ function onBudgetChange() {
         let modeToggleHTML = '';
         if (nights > 1) {
             modeToggleHTML = `
-                <div class="hotel-mode-toggle-wrap" style="margin-bottom: 20px; background: var(--slate-100); padding: 4px; border-radius: 12px; display: inline-flex; gap: 4px;">
-                    <button class="hotel-mode-btn ${hotelMode === 'same' ? 'active' : ''}" data-mode="same" style="border: none; border-radius: 8px; padding: 8px 16px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s; background: ${hotelMode === 'same' ? '#fff' : 'transparent'}; color: ${hotelMode === 'same' ? 'var(--teal-600)' : 'var(--slate-500)'}; box-shadow: ${hotelMode === 'same' ? '0 2px 6px rgba(0,0,0,0.05)' : 'none'};">
+                <div class="hotel-mode-toggle-wrap">
+                    <button class="hotel-mode-btn ${hotelMode === 'same' ? 'active' : ''}" data-mode="same">
                         Satu Hotel (Sama)
                     </button>
-                    <button class="hotel-mode-btn ${hotelMode === 'split' ? 'active' : ''}" data-mode="split" style="border: none; border-radius: 8px; padding: 8px 16px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s; background: ${hotelMode === 'split' ? '#fff' : 'transparent'}; color: ${hotelMode === 'split' ? 'var(--teal-600)' : 'var(--slate-500)'}; box-shadow: ${hotelMode === 'split' ? '0 2px 6px rgba(0,0,0,0.05)' : 'none'};">
+                    <button class="hotel-mode-btn ${hotelMode === 'split' ? 'active' : ''}" data-mode="split">
                         Ganti Hotel Tiap Malam
                     </button>
                 </div>
@@ -4404,20 +4266,15 @@ function onBudgetChange() {
                 const hFolder = pkg.hotel_nama_real ? pkg.hotel_nama_real.trim().replace(/ /g, '_') : '';
 
                 // Handle visual locking of non-selected package cards
-                let cardStyle = "position:relative; overflow:visible !important;";
-                if (chosenStepPackageIdx !== null && idx !== chosenStepPackageIdx) {
-                    cardStyle += " opacity: 0.25; filter: grayscale(95%) blur(1.5px); pointer-events: none; transition: all 0.3s;";
-                }
-
                 const predictedCost = predictTotalCostForOption('hotel', idx, curStepDef);
                 const isOptionOverBudget = hasBudget && predictedCost > budgetLimit;
 
                 optionsHTML += `
-                    <div class="pkg-card interactive-card ${cls} ${isSelected ? 'selected' : ''}" data-type="hotel" data-idx="${idx}" style="${cardStyle}">
+                    <div class="pkg-card interactive-card ${cls} ${isSelected ? 'selected' : ''} ${chosenStepPackageIdx !== null && idx !== chosenStepPackageIdx ? 'locked-card-overlay' : ''}" data-type="hotel" data-idx="${idx}">
                         <div class="selected-overlay"><span class="material-symbols-outlined">check</span></div>
                         ${isOptionOverBudget ? `
-                        <div class="over-budget-badge-promo" style="position: absolute; top: -10px; right: -10px; background: linear-gradient(135deg, #ef4444, #b91c1c); color: #fff; padding: 6px 12px; font-size: 10.5px; font-weight: 850; border-radius: 30px; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4); z-index: 99; display: flex; align-items: center; gap: 4px; border: 1.5px solid #fff; letter-spacing: 0.5px;">
-                            <span class="material-symbols-outlined" style="font-size: 13px; font-weight: 800;">warning</span>
+                        <div class="over-budget-badge-promo">
+                            <span class="material-symbols-outlined">warning</span>
                             <span>OVER BUDGET</span>
                         </div>
                         ` : ''}
@@ -4425,52 +4282,33 @@ function onBudgetChange() {
                             <span class="pkg-badge ${cls}">${label}</span>
                             <span class="pkg-xbi">Akomodasi</span>
                         </div>
-                        <div class="pkg-body" style="padding:16px; display:flex; flex-direction:column; gap:12px; height: calc(100% - 40px);">
-                            <div class="hotel-img-container shadow-sm" style="position:relative; overflow:hidden; height:100px; border-radius:8px;">
+                        <div class="pkg-body card-body-fixed">
+                            <div class="hotel-img-container shadow-sm img-h100">
                                 <img src="/assets/GAMBAR/hotel/${hFolder}/${hFolder}-1.jpg" alt="${escapeHtmlAttr(pkg.hotel_nama)}" class="pkg-thumb-img" onerror="handleImgErrorRecom(this, 'hotel')" />
                             </div>
                             
                             <!-- Hotel Dropdown Selector -->
-                            <div class="custom-dropdown-wrap" style="margin-bottom:0; position: relative;">
-                                <label class="custom-dropdown-label" style="font-size:11px; font-weight:700;">🏨 Pilih Hotel Alternatif:</label>
-                                <div class="custom-select-wrapper" style="position: relative;">
+                            <div class="custom-dropdown-wrap dropdown-mb-0">
+                                <label class="custom-dropdown-label">🏨 Pilih Hotel Alternatif:</label>
+                                <div class="custom-select-wrapper">
                                     ${chosenStepPackageIdx === null ? `
-                                    <div class="custom-select-trigger-inactive" 
-                                         style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border: 1.5px solid var(--slate-200); border-radius: 8px; font-size: 12px; background: var(--slate-50); color: var(--slate-400); cursor: not-allowed; user-select: none;"
-                                         title="Pilih paket terlebih dahulu untuk merancang">
-                                        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: calc(100% - 20px);">${pkg.hotel_nama_real || pkg.hotel_nama || ''}</span>
-                                        <span class="material-symbols-outlined select-arrow" style="font-size: 16px; color: var(--slate-300);">lock</span>
+                                    <div class="custom-select-trigger-inactive" title="Pilih paket terlebih dahulu untuk merancang">
+                                        <span class="custom-select-trigger-text">${pkg.hotel_nama_real || pkg.hotel_nama || ''}</span>
+                                        <span class="material-symbols-outlined select-arrow custom-select-trigger-icon">lock</span>
                                     </div>
                                     ` : `
-                                    <div class="custom-select-trigger" 
-                                         data-class-idx="${idx}" 
-                                         data-type="hotel" 
-                                         style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border: 1.5px solid var(--slate-200); border-radius: 8px; font-size: 12px; background: #fff; cursor: pointer; user-select: none;">
-                                        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: calc(100% - 20px);">${pkg.hotel_nama_real || pkg.hotel_nama || ''}</span>
-                                        <span class="material-symbols-outlined select-arrow" style="font-size: 16px; color: var(--slate-400);">unfold_more</span>
+                                    <div class="custom-select-trigger" data-class-idx="${idx}" data-type="hotel">
+                                        <span class="custom-select-trigger-text">${pkg.hotel_nama_real || pkg.hotel_nama || ''}</span>
+                                        <span class="material-symbols-outlined select-arrow custom-select-trigger-icon">unfold_more</span>
                                     </div>
-                                    <div class="custom-search-select-dropdown" style="
-                                        position: absolute;
-                                        top: 100%; left: 0; right: 0;
-                                        background: rgba(255, 255, 255, 0.98);
-                                        backdrop-filter: blur(20px);
-                                        -webkit-backdrop-filter: blur(20px);
-                                        border: 1px solid rgba(0, 101, 101, 0.15);
-                                        border-radius: 12px;
-                                        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.15);
-                                        z-index: 1000;
-                                        max-height: 250px;
-                                        overflow-y: auto;
-                                        display: none;
-                                        margin-top: 4px;
-                                    "></div>
+                                    <div class="custom-search-select-dropdown"></div>
                                     `}
                                 </div>
                             </div>
 
-                            <div class="custom-card-divider" style="margin: 8px 0;"></div>
+                            <div class="custom-card-divider"></div>
                             
-                            <div class="custom-card-meta-simple" style="font-size:11px; gap:4px; margin-top:auto;">
+                            <div class="custom-card-meta-simple">
                                 <div class="meta-row">
                                     <span>Tarif Kamar:</span>
                                     <span>${fmtRp(pkg.hotel_harga)} /malam</span>
@@ -4483,22 +4321,22 @@ function onBudgetChange() {
                                     <span>Durasi:</span>
                                     <span>${pkg.nights} Malam</span>
                                 </div>
-                                <div class="meta-row highlight" style="margin-top:2px; padding-top:6px;">
+                                <div class="meta-row highlight">
                                     <span class="text-teal" style="font-weight:750;">Total Akomodasi:</span>
                                     <strong class="text-teal" style="font-weight:800;">${fmtRp(pkg.cost_akomodasi)}</strong>
                                 </div>
                             </div>
                             
                             ${chosenStepPackageIdx === null ? `
-                            <button class="finalize-btn start-draft-btn" style="margin-top:12px; padding:10px; font-size:12px; background: var(--slate-800); border-color: var(--slate-800);" data-idx="${idx}">
+                            <button class="finalize-btn start-draft-btn btn-dark-full" data-idx="${idx}">
                                 Rancang Paket ${label}
                             </button>
                             ` : `
-                            <div style="display:flex; flex-direction:column; gap:8px; margin-top:12px;">
-                                <button class="finalize-btn select-option-btn" style="padding:10px; font-size:12px;" data-type="hotel" data-idx="${idx}">
+                            <div class="btn-group-col">
+                                <button class="finalize-btn select-option-btn btn-confirm-step" data-type="hotel" data-idx="${idx}">
                                     ${isSelected ? 'Akomodasi Terpilih' : 'Konfirmasi Akomodasi & Lanjutkan'}
                                 </button>
-                                <button class="finalize-btn cancel-draft-btn" style="padding:8px; font-size:12px; background:transparent; border:1.5px solid var(--slate-300); color:var(--slate-600);" data-idx="${idx}">
+                                <button class="finalize-btn cancel-draft-btn btn-outline-cancel" data-idx="${idx}">
                                     Batalkan Pilihan / Ganti Paket
                                 </button>
                             </div>
@@ -4527,20 +4365,15 @@ function onBudgetChange() {
                 const hotelAlts = getAlternatives('hotel', classIdx);
 
                 // Handle visual locking of non-selected package cards
-                let cardStyle = "position:relative; overflow:visible !important;";
-                if (chosenStepPackageIdx !== null && idx !== chosenStepPackageIdx) {
-                    cardStyle += " opacity: 0.25; filter: grayscale(95%) blur(1.5px); pointer-events: none; transition: all 0.3s;";
-                }
-
                 const predictedCost = predictTotalCostForOption('split-hotel', idx, curStepDef);
                 const isOptionOverBudget = hasBudget && predictedCost > budgetLimit;
 
                 optionsHTML += `
-                    <div class="pkg-card interactive-card ${cls} ${isSelected ? 'selected' : ''}" data-type="split-hotel" data-idx="${idx}" style="${cardStyle}">
+                    <div class="pkg-card interactive-card ${cls} ${isSelected ? 'selected' : ''} ${chosenStepPackageIdx !== null && idx !== chosenStepPackageIdx ? 'locked-card-overlay' : ''}" data-type="split-hotel" data-idx="${idx}">
                         <div class="selected-overlay"><span class="material-symbols-outlined">check</span></div>
                         ${isOptionOverBudget ? `
-                        <div class="over-budget-badge-promo" style="position: absolute; top: -10px; right: -10px; background: linear-gradient(135deg, #ef4444, #b91c1c); color: #fff; padding: 6px 12px; font-size: 10.5px; font-weight: 850; border-radius: 30px; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4); z-index: 99; display: flex; align-items: center; gap: 4px; border: 1.5px solid #fff; letter-spacing: 0.5px;">
-                            <span class="material-symbols-outlined" style="font-size: 13px; font-weight: 800;">warning</span>
+                        <div class="over-budget-badge-promo">
+                            <span class="material-symbols-outlined">warning</span>
                             <span>OVER BUDGET</span>
                         </div>
                         ` : ''}
@@ -4548,53 +4381,33 @@ function onBudgetChange() {
                             <span class="pkg-badge ${cls}">${label}</span>
                             <span class="pkg-xbi">Malam ${nightNum}</span>
                         </div>
-                        <div class="pkg-body" style="padding:16px; display:flex; flex-direction:column; gap:12px; height: calc(100% - 40px);">
-                            <div class="hotel-img-container shadow-sm" style="position:relative; overflow:hidden; height:100px; border-radius:8px;">
+                        <div class="pkg-body card-body-fixed">
+                            <div class="hotel-img-container shadow-sm img-h100">
                                 <img src="/assets/GAMBAR/hotel/${hFolder}/${hFolder}-1.jpg" alt="${escapeHtmlAttr(pkg.hotel_nama)}" class="pkg-thumb-img" onerror="handleImgErrorRecom(this, 'hotel')" />
                             </div>
                             
                             <!-- Split Hotel Dropdown Selector -->
-                            <div class="custom-dropdown-wrap" style="margin-bottom:0; position: relative;">
-                                <label class="custom-dropdown-label" style="font-size:11px; font-weight:700;">🏨 Pilih Hotel Alternatif:</label>
-                                <div class="custom-select-wrapper" style="position: relative;">
+                            <div class="custom-dropdown-wrap dropdown-mb-0">
+                                <label class="custom-dropdown-label">🏨 Pilih Hotel Alternatif:</label>
+                                <div class="custom-select-wrapper">
                                     ${chosenStepPackageIdx === null ? `
-                                    <div class="custom-select-trigger-inactive" 
-                                         style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border: 1.5px solid var(--slate-200); border-radius: 8px; font-size: 12px; background: var(--slate-50); color: var(--slate-400); cursor: not-allowed; user-select: none;"
-                                         title="Pilih paket terlebih dahulu untuk merancang">
-                                        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: calc(100% - 20px);">${pkg.hotel_nama_real || pkg.hotel_nama || ''}</span>
-                                        <span class="material-symbols-outlined select-arrow" style="font-size: 16px; color: var(--slate-300);">lock</span>
+                                    <div class="custom-select-trigger-inactive" title="Pilih paket terlebih dahulu untuk merancang">
+                                        <span class="custom-select-trigger-text">${pkg.hotel_nama_real || pkg.hotel_nama || ''}</span>
+                                        <span class="material-symbols-outlined select-arrow custom-select-trigger-icon">lock</span>
                                     </div>
                                     ` : `
-                                    <div class="custom-select-trigger" 
-                                         data-class-idx="${idx}" 
-                                         data-night="${nightNum}"
-                                         data-type="split-hotel" 
-                                         style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border: 1.5px solid var(--slate-200); border-radius: 8px; font-size: 12px; background: #fff; cursor: pointer; user-select: none;">
-                                        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: calc(100% - 20px);">${pkg.hotel_nama_real || pkg.hotel_nama || ''}</span>
-                                        <span class="material-symbols-outlined select-arrow" style="font-size: 16px; color: var(--slate-400);">unfold_more</span>
+                                    <div class="custom-select-trigger" data-class-idx="${idx}" data-night="${nightNum}" data-type="split-hotel">
+                                        <span class="custom-select-trigger-text">${pkg.hotel_nama_real || pkg.hotel_nama || ''}</span>
+                                        <span class="material-symbols-outlined select-arrow custom-select-trigger-icon">unfold_more</span>
                                     </div>
-                                    <div class="custom-search-select-dropdown" style="
-                                        position: absolute;
-                                        top: 100%; left: 0; right: 0;
-                                        background: rgba(255, 255, 255, 0.98);
-                                        backdrop-filter: blur(20px);
-                                        -webkit-backdrop-filter: blur(20px);
-                                        border: 1px solid rgba(0, 101, 101, 0.15);
-                                        border-radius: 12px;
-                                        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.15);
-                                        z-index: 1000;
-                                        max-height: 250px;
-                                        overflow-y: auto;
-                                        display: none;
-                                        margin-top: 4px;
-                                    "></div>
+                                    <div class="custom-search-select-dropdown"></div>
                                     `}
                                 </div>
                             </div>
 
-                            <div class="custom-card-divider" style="margin: 8px 0;"></div>
+                            <div class="custom-card-divider"></div>
                             
-                            <div class="custom-card-meta-simple" style="font-size:11px; gap:4px; margin-top:auto;">
+                            <div class="custom-card-meta-simple">
                                 <div class="meta-row">
                                     <span>Tarif Kamar:</span>
                                     <span>${fmtRp(pkg.hotel_harga)} /malam</span>
@@ -4607,22 +4420,22 @@ function onBudgetChange() {
                                     <span>Durasi Malam Ini:</span>
                                     <span>1 Malam</span>
                                 </div>
-                                <div class="meta-row highlight" style="margin-top:2px; padding-top:6px;">
+                                <div class="meta-row highlight">
                                     <span class="text-teal" style="font-weight:750;">Total Malam Ini:</span>
                                     <strong class="text-teal" style="font-weight:800;">${fmtRp(pkg.hotel_harga * pkg.num_rooms)}</strong>
                                 </div>
                             </div>
                             
                             ${chosenStepPackageIdx === null ? `
-                            <button class="finalize-btn start-draft-btn" style="margin-top:12px; padding:10px; font-size:12px; background: var(--slate-800); border-color: var(--slate-800);" data-idx="${idx}">
+                            <button class="finalize-btn start-draft-btn btn-dark-full" data-idx="${idx}">
                                 Rancang Paket ${label}
                             </button>
                             ` : `
-                            <div style="display:flex; flex-direction:column; gap:8px; margin-top:12px;">
-                                <button class="finalize-btn select-option-btn" style="padding:10px; font-size:12px;" data-type="split-hotel" data-idx="${idx}">
+                            <div class="btn-group-col">
+                                <button class="finalize-btn select-option-btn btn-confirm-step" data-type="split-hotel" data-idx="${idx}">
                                     ${isSelected ? 'Akomodasi Terpilih' : 'Pilih Akomodasi Ini'}
                                 </button>
-                                <button class="finalize-btn cancel-draft-btn" style="padding:8px; font-size:12px; background:transparent; border:1.5px solid var(--slate-300); color:var(--slate-600);" data-idx="${idx}">
+                                <button class="finalize-btn cancel-draft-btn btn-outline-cancel" data-idx="${idx}">
                                     Batalkan Pilihan / Ganti Paket
                                 </button>
                             </div>
@@ -4745,15 +4558,15 @@ function onBudgetChange() {
                     cardLegs.push({ from: 'Makan Malam', to: 'Hotel', dist: d6 });
                 }
 
-                let legsHTML = `<div style="margin-top: 6px; padding-top: 6px; border-top: 1px dashed var(--slate-200); font-size: 10px; color: var(--slate-500); display: flex; flex-direction: column; gap: 4px;">`;
+                let legsHTML = `<div class="legs-recap-container">`;
                 let dayTransportCost = 0;
                 cardLegs.forEach(leg => {
                     const cost = Math.round(leg.dist * ratePerKm);
                     dayTransportCost += cost;
                     legsHTML += `
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span>${leg.from} → ${leg.to} (${leg.dist.toFixed(1)} km)</span>
-                            <span style="font-weight: 600; color: var(--slate-600);">${fmtRp(cost)}</span>
+                        <div class="leg-recap-row">
+                            <span class="leg-recap-text">${leg.from} → ${leg.to} (${leg.dist.toFixed(1)} km)</span>
+                            <span class="leg-recap-cost">${fmtRp(cost)}</span>
                         </div>
                     `;
                 });
@@ -4764,20 +4577,15 @@ function onBudgetChange() {
                 const kulinerAlts = getKulinerAlternativesForTier(classIdx, d);
 
                 // Handle visual locking of non-selected package cards
-                let cardStyle = "position:relative; overflow:visible !important;";
-                if (chosenStepPackageIdx !== null && idx !== chosenStepPackageIdx) {
-                    cardStyle += " opacity: 0.25; filter: grayscale(95%) blur(1.5px); pointer-events: none; transition: all 0.3s;";
-                }
-
                 const predictedCost = predictTotalCostForOption('day', idx, curStepDef);
                 const isOptionOverBudget = hasBudget && predictedCost > budgetLimit;
 
                 optionsHTML += `
-                    <div class="pkg-card interactive-card ${cls} ${isSelected ? 'selected' : ''}" data-type="day" data-idx="${idx}" style="${cardStyle}">
+                    <div class="pkg-card interactive-card ${cls} ${isSelected ? 'selected' : ''} ${chosenStepPackageIdx !== null && idx !== chosenStepPackageIdx ? 'locked-card-overlay' : ''}" data-type="day" data-idx="${idx}" style="min-width: 0;">
                         <div class="selected-overlay"><span class="material-symbols-outlined">check</span></div>
                         ${isOptionOverBudget ? `
-                        <div class="over-budget-badge-promo" style="position: absolute; top: -10px; right: -10px; background: linear-gradient(135deg, #ef4444, #b91c1c); color: #fff; padding: 6px 12px; font-size: 10.5px; font-weight: 850; border-radius: 30px; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4); z-index: 99; display: flex; align-items: center; gap: 4px; border: 1.5px solid #fff; letter-spacing: 0.5px;">
-                            <span class="material-symbols-outlined" style="font-size: 13px; font-weight: 800;">warning</span>
+                        <div class="over-budget-badge-promo">
+                            <span class="material-symbols-outlined">warning</span>
                             <span>OVER BUDGET</span>
                         </div>
                         ` : ''}
@@ -4785,149 +4593,92 @@ function onBudgetChange() {
                             <span class="pkg-badge ${cls}">${label}</span>
                             <span class="pkg-xbi">Hari ${d}</span>
                         </div>
-                        <div class="pkg-body" style="padding:16px; display:flex; flex-direction:column; gap:12px; height: calc(100% - 40px);">
-                            <div style="display:flex; gap:8px;">
-                                <div class="wisata-img-container shadow-sm" style="position:relative; overflow:hidden; height:80px; flex:1; border-radius:8px;">
-                                    <img src="/assets/GAMBAR/wisata/${wFolder}/${wFolder}-1.jpg" alt="${escapeHtmlAttr(dayItin.wisata)}" class="pkg-thumb-img" onerror="handleImgErrorRecom(this, 'landscape')" style="width:100%; height:100%; object-fit:cover;" />
+                        <div class="pkg-body card-body-fixed">
+                            <div class="card-img-row">
+                                <div class="wisata-img-container shadow-sm img-h80">
+                                    <img src="/assets/GAMBAR/wisata/${wFolder}/${wFolder}-1.jpg" alt="${escapeHtmlAttr(dayItin.wisata)}" class="pkg-thumb-img" onerror="handleImgErrorRecom(this, 'landscape')" />
                                 </div>
-                                <div class="kuliner-img-container shadow-sm" style="position:relative; overflow:hidden; height:80px; flex:1; border-radius:8px;">
-                                    <img src="/assets/GAMBAR/makan/${kFolder}/${kFolder}-1.jpg" alt="${escapeHtmlAttr(dayItin.kuliner)}" class="pkg-thumb-img" onerror="handleImgErrorRecom(this, 'restaurant')" style="width:100%; height:100%; object-fit:cover;" />
+                                <div class="kuliner-img-container shadow-sm img-h80">
+                                    <img src="/assets/GAMBAR/makan/${kFolder}/${kFolder}-1.jpg" alt="${escapeHtmlAttr(dayItin.kuliner)}" class="pkg-thumb-img" onerror="handleImgErrorRecom(this, 'restaurant')" />
                                 </div>
                             </div>
                             
                             <!-- Wisata Dropdown Split -->
-                            <div class="custom-dropdown-wrap" style="margin-bottom:0; position: relative;">
-                                <label class="custom-dropdown-label" style="font-size:11px; font-weight:700;">🌲 Pilih Wisata:</label>
-                                <div class="custom-select-wrapper" style="position: relative;">
+                            <div class="custom-dropdown-wrap dropdown-mb-0">
+                                <label class="custom-dropdown-label">🌲 Pilih Wisata:</label>
+                                <div class="custom-select-wrapper">
                                     ${chosenStepPackageIdx === null ? `
-                                    <div class="custom-select-trigger-inactive" 
-                                         style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border: 1.5px solid var(--slate-200); border-radius: 8px; font-size: 11.5px; background: var(--slate-50); color: var(--slate-400); cursor: not-allowed; user-select: none;"
-                                         title="Pilih paket terlebih dahulu untuk merancang">
-                                        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: calc(100% - 20px);">${dayItin.wisata || ''}</span>
-                                        <span class="material-symbols-outlined select-arrow" style="font-size: 16px; color: var(--slate-300);">lock</span>
+                                    <div class="custom-select-trigger-inactive" title="Pilih paket terlebih dahulu untuk merancang">
+                                        <span class="custom-select-trigger-text">${dayItin.wisata || ''}</span>
+                                        <span class="material-symbols-outlined select-arrow custom-select-trigger-icon">lock</span>
                                     </div>
                                     ` : (activeWorkflow === 'destination' && d === 1) ? `
-                                    <div class="custom-select-trigger-locked" 
-                                         style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border: 1.5px solid var(--slate-200); border-radius: 8px; font-size: 11.5px; background: var(--slate-100); color: var(--slate-500); cursor: not-allowed; user-select: none;"
-                                         title="Dikunci dari input pencarian destinasi awal">
-                                        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: calc(100% - 20px); font-weight: 600;">🔒 ${dayItin.wisata || ''} (Locked)</span>
-                                        <span class="material-symbols-outlined" style="font-size: 14px; color: var(--slate-400);">lock</span>
+                                    <div class="custom-select-trigger-locked" title="Dikunci dari input pencarian destinasi awal">
+                                        <span class="custom-select-trigger-text">🔒 ${dayItin.wisata || ''} (Locked)</span>
+                                        <span class="material-symbols-outlined select-arrow custom-select-trigger-icon">lock</span>
                                     </div>
                                     ` : `
                                     <div class="custom-select-trigger" 
                                          data-class-idx="${idx}" 
                                          data-day="${d}"
-                                         data-type="wisata" 
-                                         style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border: 1.5px solid var(--slate-200); border-radius: 8px; font-size: 11.5px; background: #fff; cursor: pointer; user-select: none;">
-                                        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: calc(100% - 20px);">${dayItin.wisata || ''}</span>
-                                        <span class="material-symbols-outlined select-arrow" style="font-size: 16px; color: var(--slate-400);">unfold_more</span>
+                                         data-type="wisata">
+                                        <span class="custom-select-trigger-text">${dayItin.wisata || ''}</span>
+                                        <span class="material-symbols-outlined select-arrow custom-select-trigger-icon">unfold_more</span>
                                     </div>
-                                    <div class="custom-search-select-dropdown" style="
-                                        position: absolute;
-                                        top: 100%; left: 0; right: 0;
-                                        background: rgba(255, 255, 255, 0.98);
-                                        backdrop-filter: blur(20px);
-                                        -webkit-backdrop-filter: blur(20px);
-                                        border: 1px solid rgba(0, 101, 101, 0.15);
-                                        border-radius: 12px;
-                                        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.15);
-                                        z-index: 1000;
-                                        max-height: 250px;
-                                        overflow-y: auto;
-                                        display: none;
-                                        margin-top: 4px;
-                                    "></div>
+                                    <div class="custom-search-select-dropdown"></div>
                                     `}
                                 </div>
                             </div>
 
                             <!-- Kuliner Pagi Dropdown Split -->
-                            <div class="custom-dropdown-wrap" style="margin-bottom:0; position: relative;">
-                                <label class="custom-dropdown-label" style="font-size:11px; font-weight:700;">☕ Pilih Kuliner Pagi (Sarapan):</label>
-                                <div class="custom-select-wrapper" style="position: relative;">
+                            <div class="custom-dropdown-wrap dropdown-mb-0">
+                                <label class="custom-dropdown-label">☕ Pilih Kuliner Pagi (Sarapan):</label>
+                                <div class="custom-select-wrapper">
                                     ${chosenStepPackageIdx === null ? `
-                                    <div class="custom-select-trigger-inactive" 
-                                         style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border: 1.5px solid var(--slate-200); border-radius: 8px; font-size: 11.5px; background: var(--slate-50); color: var(--slate-400); cursor: not-allowed; user-select: none;"
-                                         title="Pilih paket terlebih dahulu untuk merancang">
-                                        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: calc(100% - 20px);">${dayItin.kuliner_pagi || ''}</span>
-                                        <span class="material-symbols-outlined select-arrow" style="font-size: 16px; color: var(--slate-300);">lock</span>
+                                    <div class="custom-select-trigger-inactive" title="Pilih paket terlebih dahulu untuk merancang">
+                                        <span class="custom-select-trigger-text">${dayItin.kuliner_pagi || ''}</span>
+                                        <span class="material-symbols-outlined select-arrow custom-select-trigger-icon">lock</span>
                                     </div>
                                     ` : (stepWisataSelected[d] || (activeWorkflow === 'destination' && d === 1)) ? `
                                     <div class="custom-select-trigger" 
                                          data-class-idx="${idx}" 
                                          data-day="${d}"
-                                         data-type="kuliner_pagi" 
-                                         style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border: 1.5px solid var(--slate-200); border-radius: 8px; font-size: 11.5px; background: #fff; cursor: pointer; user-select: none;">
-                                        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: calc(100% - 20px);">${dayItin.kuliner_pagi || ''}</span>
-                                        <span class="material-symbols-outlined select-arrow" style="font-size: 16px; color: var(--slate-400);">unfold_more</span>
+                                         data-type="kuliner_pagi">
+                                        <span class="custom-select-trigger-text">${dayItin.kuliner_pagi || ''}</span>
+                                        <span class="material-symbols-outlined select-arrow custom-select-trigger-icon">unfold_more</span>
                                     </div>
-                                    <div class="custom-search-select-dropdown" style="
-                                        position: absolute;
-                                        top: 100%; left: 0; right: 0;
-                                        background: rgba(255, 255, 255, 0.98);
-                                        backdrop-filter: blur(20px);
-                                        -webkit-backdrop-filter: blur(20px);
-                                        border: 1px solid rgba(0, 101, 101, 0.15);
-                                        border-radius: 12px;
-                                        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.15);
-                                        z-index: 1000;
-                                        max-height: 250px;
-                                        overflow-y: auto;
-                                        display: none;
-                                        margin-top: 4px;
-                                    "></div>
+                                    <div class="custom-search-select-dropdown"></div>
                                     ` : `
-                                    <div class="custom-select-trigger-inactive" 
-                                         style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border: 1.5px dashed var(--slate-300); border-radius: 8px; font-size: 11.5px; background: var(--slate-50); color: var(--slate-400); cursor: not-allowed; user-select: none;"
-                                         title="Pilih wisata terlebih dahulu untuk membuka kuliner">
-                                        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: calc(100% - 20px); font-weight: 600; color: var(--slate-450);">🔒 Pilih Wisata Terlebih Dahulu</span>
-                                        <span class="material-symbols-outlined select-arrow" style="font-size: 16px; color: var(--slate-300);">lock</span>
+                                    <div class="custom-select-trigger-inactive dashed" title="Pilih wisata terlebih dahulu untuk membuka kuliner">
+                                        <span class="custom-select-trigger-text font-locked">🔒 Pilih Wisata Terlebih Dahulu</span>
+                                        <span class="material-symbols-outlined select-arrow custom-select-trigger-icon">lock</span>
                                     </div>
                                     `}
                                 </div>
                             </div>
 
                             <!-- Kuliner Dropdown Split -->
-                            <div class="custom-dropdown-wrap" style="margin-bottom:0; position: relative;">
-                                <label class="custom-dropdown-label" style="font-size:11px; font-weight:700;">🍜 Pilih Kuliner Siang:</label>
-                                <div class="custom-select-wrapper" style="position: relative;">
+                            <div class="custom-dropdown-wrap dropdown-mb-0">
+                                <label class="custom-dropdown-label">🍜 Pilih Kuliner Siang:</label>
+                                <div class="custom-select-wrapper">
                                     ${chosenStepPackageIdx === null ? `
-                                    <div class="custom-select-trigger-inactive" 
-                                         style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border: 1.5px solid var(--slate-200); border-radius: 8px; font-size: 11.5px; background: var(--slate-50); color: var(--slate-400); cursor: not-allowed; user-select: none;"
-                                         title="Pilih paket terlebih dahulu untuk merancang">
-                                        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: calc(100% - 20px);">${dayItin.kuliner || ''}</span>
-                                        <span class="material-symbols-outlined select-arrow" style="font-size: 16px; color: var(--slate-300);">lock</span>
+                                    <div class="custom-select-trigger-inactive" title="Pilih paket terlebih dahulu untuk merancang">
+                                        <span class="custom-select-trigger-text">${dayItin.kuliner || ''}</span>
+                                        <span class="material-symbols-outlined select-arrow custom-select-trigger-icon">lock</span>
                                     </div>
                                     ` : (stepWisataSelected[d] || (activeWorkflow === 'destination' && d === 1)) ? `
                                     <div class="custom-select-trigger" 
                                          data-class-idx="${idx}" 
                                          data-day="${d}"
-                                         data-type="kuliner" 
-                                         style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border: 1.5px solid var(--slate-200); border-radius: 8px; font-size: 11.5px; background: #fff; cursor: pointer; user-select: none;">
-                                        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: calc(100% - 20px);">${dayItin.kuliner || ''}</span>
-                                        <span class="material-symbols-outlined select-arrow" style="font-size: 16px; color: var(--slate-400);">unfold_more</span>
+                                         data-type="kuliner">
+                                        <span class="custom-select-trigger-text">${dayItin.kuliner || ''}</span>
+                                        <span class="material-symbols-outlined select-arrow custom-select-trigger-icon">unfold_more</span>
                                     </div>
-                                    <div class="custom-search-select-dropdown" style="
-                                        position: absolute;
-                                        top: 100%; left: 0; right: 0;
-                                        background: rgba(255, 255, 255, 0.98);
-                                        backdrop-filter: blur(20px);
-                                        -webkit-backdrop-filter: blur(20px);
-                                        border: 1px solid rgba(0, 101, 101, 0.15);
-                                        border-radius: 12px;
-                                        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.15);
-                                        z-index: 1000;
-                                        max-height: 250px;
-                                        overflow-y: auto;
-                                        display: none;
-                                        margin-top: 4px;
-                                    "></div>
+                                    <div class="custom-search-select-dropdown"></div>
                                     ` : `
-                                    <div class="custom-select-trigger-inactive" 
-                                         style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border: 1.5px dashed var(--slate-300); border-radius: 8px; font-size: 11.5px; background: var(--slate-50); color: var(--slate-400); cursor: not-allowed; user-select: none;"
-                                         title="Pilih wisata terlebih dahulu untuk membuka kuliner">
-                                        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: calc(100% - 20px); font-weight: 600; color: var(--slate-450);">🔒 Pilih Wisata Terlebih Dahulu</span>
-                                        <span class="material-symbols-outlined select-arrow" style="font-size: 16px; color: var(--slate-300);">lock</span>
+                                    <div class="custom-select-trigger-inactive dashed" title="Pilih wisata terlebih dahulu untuk membuka kuliner">
+                                        <span class="custom-select-trigger-text font-locked">🔒 Pilih Wisata Terlebih Dahulu</span>
+                                        <span class="material-symbols-outlined select-arrow custom-select-trigger-icon">lock</span>
                                     </div>
                                     `}
                                 </div>
@@ -4935,55 +4686,36 @@ function onBudgetChange() {
                             
                             <!-- Kuliner Malam Dropdown Split -->
                             ${(!isCheckoutOrODT) ? `
-                            <div class="custom-dropdown-wrap" style="margin-bottom:0; position: relative;">
-                                <label class="custom-dropdown-label" style="font-size:11px; font-weight:700;">🌙 Pilih Kuliner Malam:</label>
-                                <div class="custom-select-wrapper" style="position: relative;">
+                            <div class="custom-dropdown-wrap dropdown-mb-0">
+                                <label class="custom-dropdown-label">🌙 Pilih Kuliner Malam:</label>
+                                <div class="custom-select-wrapper">
                                     ${chosenStepPackageIdx === null ? `
-                                    <div class="custom-select-trigger-inactive" 
-                                         style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border: 1.5px solid var(--slate-200); border-radius: 8px; font-size: 11.5px; background: var(--slate-50); color: var(--slate-400); cursor: not-allowed; user-select: none;"
-                                         title="Pilih paket terlebih dahulu untuk merancang">
-                                        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: calc(100% - 20px);">${dayItin.kuliner_malam || dayItin.kuliner_malam_nama || ''}</span>
-                                        <span class="material-symbols-outlined select-arrow" style="font-size: 16px; color: var(--slate-300);">lock</span>
+                                    <div class="custom-select-trigger-inactive" title="Pilih paket terlebih dahulu untuk merancang">
+                                        <span class="custom-select-trigger-text">${dayItin.kuliner_malam || dayItin.kuliner_malam_nama || ''}</span>
+                                        <span class="material-symbols-outlined select-arrow custom-select-trigger-icon">lock</span>
                                     </div>
                                     ` : (stepWisataSelected[d] || (activeWorkflow === 'destination' && d === 1)) ? `
                                     <div class="custom-select-trigger" 
                                          data-class-idx="${idx}" 
                                          data-day="${d}"
-                                         data-type="kuliner_malam" 
-                                         style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border: 1.5px solid var(--slate-200); border-radius: 8px; font-size: 11.5px; background: #fff; cursor: pointer; user-select: none;">
-                                        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: calc(100% - 20px);">${dayItin.kuliner_malam || dayItin.kuliner_malam_nama || ''}</span>
-                                        <span class="material-symbols-outlined select-arrow" style="font-size: 16px; color: var(--slate-400);">unfold_more</span>
+                                         data-type="kuliner_malam">
+                                        <span class="custom-select-trigger-text">${dayItin.kuliner_malam || dayItin.kuliner_malam_nama || ''}</span>
+                                        <span class="material-symbols-outlined select-arrow custom-select-trigger-icon">unfold_more</span>
                                     </div>
-                                    <div class="custom-search-select-dropdown" style="
-                                        position: absolute;
-                                        top: 100%; left: 0; right: 0;
-                                        background: rgba(255, 255, 255, 0.98);
-                                        backdrop-filter: blur(20px);
-                                        -webkit-backdrop-filter: blur(20px);
-                                        border: 1px solid rgba(0, 101, 101, 0.15);
-                                        border-radius: 12px;
-                                        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.15);
-                                        z-index: 1000;
-                                        max-height: 250px;
-                                        overflow-y: auto;
-                                        display: none;
-                                        margin-top: 4px;
-                                    "></div>
+                                    <div class="custom-search-select-dropdown"></div>
                                     ` : `
-                                    <div class="custom-select-trigger-inactive" 
-                                         style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border: 1.5px dashed var(--slate-300); border-radius: 8px; font-size: 11.5px; background: var(--slate-50); color: var(--slate-400); cursor: not-allowed; user-select: none;"
-                                         title="Pilih wisata terlebih dahulu untuk membuka kuliner">
-                                        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: calc(100% - 20px); font-weight: 600; color: var(--slate-450);">🔒 Pilih Wisata Terlebih Dahulu</span>
-                                        <span class="material-symbols-outlined select-arrow" style="font-size: 16px; color: var(--slate-300);">lock</span>
+                                    <div class="custom-select-trigger-inactive dashed" title="Pilih wisata terlebih dahulu untuk membuka kuliner">
+                                        <span class="custom-select-trigger-text font-locked">🔒 Pilih Wisata Terlebih Dahulu</span>
+                                        <span class="material-symbols-outlined select-arrow custom-select-trigger-icon">lock</span>
                                     </div>
                                     `}
                                 </div>
                             </div>
                             ` : ''}
 
-                            <div class="custom-card-divider" style="margin: 8px 0;"></div>
+                            <div class="custom-card-divider"></div>
                             
-                            <div class="custom-card-meta-simple" style="font-size:11px; gap:4px; margin-top:auto;">
+                            <div class="custom-card-meta-simple">
                                 <div class="meta-row">
                                     <span>Tiket Wisata:</span>
                                     <span>${fmtRp(dayWisataCost)}</span>
@@ -4993,26 +4725,26 @@ function onBudgetChange() {
                                     <span>${fmtRp(dayKulinerCost)}</span>
                                 </div>
                                 <div class="meta-row" title="${vehDesc}">
-                                    <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 130px;">Transportasi (${vehDesc.split(' ')[0]}):</span>
+                                    <span>Transportasi (${vehDesc.split(' ')[0]}):</span>
                                     <span>${fmtRp(dayTransportCost)}</span>
                                 </div>
                                 ${legsHTML}
-                                <div class="meta-row highlight" style="margin-top:2px; padding-top:6px;">
+                                <div class="meta-row highlight">
                                     <span class="text-teal" style="font-weight:750;">Subtotal Hari ${d}:</span>
                                     <strong class="text-teal" style="font-weight:800;">${fmtRp(dayTotal)}</strong>
                                 </div>
                             </div>
                             
                             ${chosenStepPackageIdx === null ? `
-                            <button class="finalize-btn start-draft-btn" style="margin-top:12px; padding:10px; font-size:12px; background: var(--slate-800); border-color: var(--slate-800);" data-idx="${idx}">
+                            <button class="finalize-btn start-draft-btn btn-dark-full" data-idx="${idx}">
                                 Rancang Paket ${label}
                             </button>
                             ` : `
-                            <div style="display:flex; flex-direction:column; gap:8px; margin-top:12px;">
-                                <button class="finalize-btn select-option-btn" style="padding:10px; font-size:12px;" data-type="day" data-idx="${idx}">
+                            <div class="btn-group-col">
+                                <button class="finalize-btn select-option-btn btn-confirm-step" data-type="day" data-idx="${idx}">
                                     ${isSelected ? 'Rute Terpilih' : 'Pilih Rute Hari Ini'}
                                 </button>
-                                <button class="finalize-btn cancel-draft-btn" style="padding:8px; font-size:12px; background:transparent; border:1.5px solid var(--slate-300); color:var(--slate-600);" data-idx="${idx}">
+                                <button class="finalize-btn cancel-draft-btn btn-outline-cancel" data-idx="${idx}">
                                     Batalkan Pilihan / Ganti Paket
                                 </button>
                             </div>
@@ -5144,8 +4876,8 @@ function onBudgetChange() {
                 const d1 = haversineDist(kpLat, kpLon, wLat, wLon);
                 const d2 = haversineDist(wLat, wLon, ksLat, ksLon);
                 totalDistance += d1 + d2; // Accumulate circular route distance
-                legs.push({ from: dayPlan.kuliner_pagi, to: dayPlan.wisata, distance: d1 });
-                legs.push({ from: dayPlan.wisata, to: dayPlan.kuliner, distance: d2 });
+                    legs.push({ from: dayPlan.kuliner_pagi, to: dayPlan.wisata, distance: d1, from_coords: [kpLat, kpLon], to_coords: [wLat, wLon] });
+                    legs.push({ from: dayPlan.wisata, to: dayPlan.kuliner, distance: d2, from_coords: [wLat, wLon], to_coords: [ksLat, ksLon] });
             } else if (dNum === 1) {
                 const d1 = haversineDist(kpLat, kpLon, wLat, wLon);
                 const d2 = haversineDist(wLat, wLon, ksLat, ksLon);
@@ -5153,19 +4885,19 @@ function onBudgetChange() {
                 const d4 = haversineDist(nhLat, nhLon, kmLat, kmLon);
                 const d5 = haversineDist(kmLat, kmLon, nhLat, nhLon);
                 totalDistance += d1 + d2 + d3 + d4 + d5;
-                legs.push({ from: dayPlan.kuliner_pagi, to: dayPlan.wisata, distance: d1 });
-                legs.push({ from: dayPlan.wisata, to: dayPlan.kuliner, distance: d2 });
-                legs.push({ from: dayPlan.kuliner, to: nextHotel.nama, distance: d3 });
-                legs.push({ from: nextHotel.nama, to: dayPlan.kuliner_malam, distance: d4 });
-                legs.push({ from: dayPlan.kuliner_malam, to: nextHotel.nama, distance: d5 });
+                    legs.push({ from: dayPlan.kuliner_pagi, to: dayPlan.wisata, distance: d1, from_coords: [kpLat, kpLon], to_coords: [wLat, wLon] });
+                    legs.push({ from: dayPlan.wisata, to: dayPlan.kuliner, distance: d2, from_coords: [wLat, wLon], to_coords: [ksLat, ksLon] });
+                    legs.push({ from: dayPlan.kuliner, to: nextHotel.nama, distance: d3, from_coords: [ksLat, ksLon], to_coords: [nhLat, nhLon] });
+                    legs.push({ from: nextHotel.nama, to: dayPlan.kuliner_malam, distance: d4, from_coords: [nhLat, nhLon], to_coords: [kmLat, kmLon] });
+                    legs.push({ from: dayPlan.kuliner_malam, to: nextHotel.nama, distance: d5, from_coords: [kmLat, kmLon], to_coords: [nhLat, nhLon] });
             } else if (dNum === duration) {
                 const d1 = haversineDist(chLat, chLon, kpLat, kpLon);
                 const d2 = haversineDist(kpLat, kpLon, wLat, wLon);
                 const d3 = haversineDist(wLat, wLon, ksLat, ksLon);
                 totalDistance += d1 + d2 + d3;
-                legs.push({ from: currentHotel.nama, to: dayPlan.kuliner_pagi, distance: d1 });
-                legs.push({ from: dayPlan.kuliner_pagi, to: dayPlan.wisata, distance: d2 });
-                legs.push({ from: dayPlan.wisata, to: dayPlan.kuliner, distance: d3 });
+                    legs.push({ from: currentHotel.nama, to: dayPlan.kuliner_pagi, distance: d1, from_coords: [chLat, chLon], to_coords: [kpLat, kpLon] });
+                    legs.push({ from: dayPlan.kuliner_pagi, to: dayPlan.wisata, distance: d2, from_coords: [kpLat, kpLon], to_coords: [wLat, wLon] });
+                    legs.push({ from: dayPlan.wisata, to: dayPlan.kuliner, distance: d3, from_coords: [wLat, wLon], to_coords: [ksLat, ksLon] });
             } else {
                 const d1 = haversineDist(chLat, chLon, kpLat, kpLon);
                 const d2 = haversineDist(kpLat, kpLon, wLat, wLon);
@@ -5174,12 +4906,12 @@ function onBudgetChange() {
                 const d5 = haversineDist(nhLat, nhLon, kmLat, kmLon);
                 const d6 = haversineDist(kmLat, kmLon, nhLat, nhLon);
                 totalDistance += d1 + d2 + d3 + d4 + d5 + d6;
-                legs.push({ from: currentHotel.nama, to: dayPlan.kuliner_pagi, distance: d1 });
-                legs.push({ from: dayPlan.kuliner_pagi, to: dayPlan.wisata, distance: d2 });
-                legs.push({ from: dayPlan.wisata, to: dayPlan.kuliner, distance: d3 });
-                legs.push({ from: dayPlan.kuliner, to: nextHotel.nama, distance: d4 });
-                legs.push({ from: nextHotel.nama, to: dayPlan.kuliner_malam, distance: d5 });
-                legs.push({ from: dayPlan.kuliner_malam, to: nextHotel.nama, distance: d6 });
+                    legs.push({ from: currentHotel.nama, to: dayPlan.kuliner_pagi, distance: d1, from_coords: [chLat, chLon], to_coords: [kpLat, kpLon] });
+                    legs.push({ from: dayPlan.kuliner_pagi, to: dayPlan.wisata, distance: d2, from_coords: [kpLat, kpLon], to_coords: [wLat, wLon] });
+                    legs.push({ from: dayPlan.wisata, to: dayPlan.kuliner, distance: d3, from_coords: [wLat, wLon], to_coords: [ksLat, ksLon] });
+                    legs.push({ from: dayPlan.kuliner, to: nextHotel.nama, distance: d4, from_coords: [ksLat, ksLon], to_coords: [nhLat, nhLon] });
+                    legs.push({ from: nextHotel.nama, to: dayPlan.kuliner_malam, distance: d5, from_coords: [nhLat, nhLon], to_coords: [kmLat, kmLon] });
+                    legs.push({ from: dayPlan.kuliner_malam, to: nextHotel.nama, distance: d6, from_coords: [kmLat, kmLon], to_coords: [nhLat, nhLon] });
             }
         }
 
@@ -5212,9 +4944,7 @@ function onBudgetChange() {
         for (let dNum = 1; dNum <= duration; dNum++) {
             const dayPlan = selectedDays[dNum];
             if (dayPlan) {
-                if (dNum === 1) {
-                    totalWisataCostVisible = dayPlan.wisata_harga * persons;
-                }
+                totalWisataCostVisible += dayPlan.wisata_harga * persons;
                 const isCheckoutOrODT = (duration === 1 || dNum === duration);
                 totalKulinerCostVisible += ((dayPlan.kuliner_pagi_harga || 0) + dayPlan.kuliner_harga + (isCheckoutOrODT ? 0 : (dayPlan.kuliner_malam_harga || 0))) * persons;
 
@@ -5389,17 +5119,17 @@ function onBudgetChange() {
                     const cost = Math.round(leg.dist * ratePerKm);
                     dayTransportCost += cost;
                     legsHTML += `
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span>${leg.from} → ${leg.to} (${leg.dist.toFixed(1)} km)</span>
-                            <span style="font-weight: 600; color: var(--slate-600);">${fmtRp(cost)}</span>
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 4px;">
+                            <span style="flex: 1; min-width: 0; word-break: break-word; line-height: 1.3;">${leg.from} → ${leg.to} (${leg.dist.toFixed(1)} km)</span>
+                            <span style="font-weight: 600; color: var(--slate-600); flex-shrink: 0; text-align: right; padding-left: 4px;">${fmtRp(cost)}</span>
                         </div>
                     `;
                 });
                 legsHTML += `</div>`;
 
-                // Wisata cost (Day 1 only for final total matching)
+                // Wisata cost
                 const wisataCost = dayPlan.wisata_harga * persons;
-                const wisataCostForSubtotal = (dNum === 1) ? wisataCost : 0;
+                const wisataCostForSubtotal = wisataCost;
                 const isCheckoutOrODT = (duration === 1 || dNum === duration);
                 const numMeals = isCheckoutOrODT ? 2 : 3;
                 const kulinerCost = ((dayPlan.kuliner_pagi_harga || 0) + dayPlan.kuliner_harga + (isCheckoutOrODT ? 0 : (dayPlan.kuliner_malam_harga || 0))) * persons;
@@ -5488,8 +5218,8 @@ function onBudgetChange() {
                                 <span>${fmtRp(hotelCost)}</span>
                             </div>
                             <div style="display: flex; justify-content: space-between;">
-                                <span>• Tiket Wisata (${persons} Orang)${dNum > 1 ? ' <span style="font-size: 8.5px; color:var(--slate-400); font-weight:500;">(Hari 1)</span>' : ''}</span>
-                                <span>${fmtRp(dNum === 1 ? wisataCost : 0)}</span>
+                                <span>• Tiket Wisata (${persons} Orang)</span>
+                                <span>${fmtRp(wisataCost)}</span>
                             </div>
                             <div style="display: flex; justify-content: space-between;">
                                 <span>• Kuliner (${persons} Orang × ${numMeals}x Makan)</span>
@@ -5514,8 +5244,8 @@ function onBudgetChange() {
                                 <span>${fmtRp(hotelCost)}</span>
                             </div>
                             <div style="display: flex; justify-content: space-between;">
-                                <span>• Tiket Wisata (${persons} Orang)${dNum > 1 ? ' <span style="font-size: 8.5px; color:var(--slate-400); font-weight:500;">(Hari 1)</span>' : ''}</span>
-                                <span>${fmtRp(dNum === 1 ? wisataCost : 0)}</span>
+                                <span>• Tiket Wisata (${persons} Orang)</span>
+                                <span>${fmtRp(wisataCost)}</span>
                             </div>
                             <div style="display: flex; justify-content: space-between;">
                                 <span>• Kuliner (${persons} Orang × ${numMeals}x Makan)</span>
@@ -5615,25 +5345,38 @@ function onBudgetChange() {
                     <span class="material-symbols-outlined" style="color:var(--teal-600)">analytics</span>
                     <span>Live Tracker Rencana</span>
                 </h4>
-                <div style="font-size:12px; color:var(--slate-400); margin-bottom:12px; font-weight:600;">👥 ${persons} Orang | 📅 ${duration} Hari</div>
+                <div class="summary-header-meta">👥 ${persons} Orang | 📅 ${duration} Hari</div>
                 
-                <div class="panel-divider" style="margin-bottom: 4px;"></div>
+                <div class="panel-divider summary-section-divider-sm"></div>
                 ${daysSummaryHTML}
                 
-                <div class="panel-divider"></div>
+                <div class="panel-divider summary-section-divider-lg"></div>
+                <div class="summary-category-title">Subtotal Per Kategori</div>
                 <div class="selected-day-row" style="margin-bottom: 4px;">
-                    <span>🚗 Transportasi (${vehDesc})</span>
+                    <span>🏨 Total Akomodasi (${nights > 0 ? nights + ' Malam' : '0 Malam'})</span>
+                    <span>${fmtRp(accommodationCostVisible)}</span>
+                </div>
+                <div class="selected-day-row" style="margin-bottom: 4px;">
+                    <span>🌲 Total Tiket Wisata</span>
+                    <span>${fmtRp(totalWisataCostVisible)}</span>
+                </div>
+                <div class="selected-day-row" style="margin-bottom: 4px;">
+                    <span>🍜 Total Konsumsi & Kuliner</span>
+                    <span>${fmtRp(totalKulinerCostVisible)}</span>
+                </div>
+                <div class="selected-day-row" style="margin-bottom: 4px;">
+                    <span>🚗 Total Transportasi (${vehDesc.split(' ')[0]})</span>
                     <span>${fmtRp(transportCostVisible)}</span>
                 </div>
-                <div style="font-size:11.5px; color:var(--slate-500); font-weight:700; display:flex; align-items:center; gap:4px;">
+                <div style="font-size:11.5px; color:var(--slate-500); font-weight:700; display:flex; align-items:center; gap:4px; margin-bottom: 8px;">
                     <span class="material-symbols-outlined" style="font-size:14px;color:var(--teal-600)">route</span>
-                    <span>Jarak Spasial: <span style="color:var(--slate-700)">${totalDistanceVisible.toFixed(1)} km</span></span>
+                    <span>Total Jarak Spasial: <span style="color:var(--slate-700)">${totalDistanceVisible.toFixed(1)} km</span></span>
                 </div>
                 
                 <div class="panel-divider"></div>
-                <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div class="summary-total-row">
                     <span style="font-size:12.5px; font-weight:800; color:var(--slate-750);">ESTIMASI TOTAL</span>
-                    <strong style="font-size:18px; font-weight:900; color:var(--teal-700);">${fmtRp(runningCostVisible)}</strong>
+                    <strong class="summary-total-val">${fmtRp(runningCostVisible)}</strong>
                 </div>
                 ${budgetOverageHTML}
 
@@ -5704,15 +5447,6 @@ function onBudgetChange() {
             });
         });
 
-        // Close searchable suggestions on clicking outside
-        document.addEventListener('click', (e) => {
-            wizardContainer.querySelectorAll('.custom-search-select-dropdown').forEach(dropdownEl => {
-                const triggerEl = dropdownEl.closest('.custom-select-wrapper')?.querySelector('.custom-select-trigger');
-                if (dropdownEl && triggerEl && !triggerEl.contains(e.target) && !dropdownEl.contains(e.target)) {
-                    dropdownEl.style.display = 'none';
-                }
-            });
-        });
 
         // Confirmation clicks on select-option buttons
         wizardContainer.querySelectorAll('.select-option-btn').forEach(btn => {
@@ -5797,12 +5531,12 @@ function onBudgetChange() {
                         message += `🌙 Makan Malam: <strong>${dayItin.kuliner_malam || 'N/A'}</strong><br>`;
                     }
                     
-                    const ticketCost = (d === 1) ? dayItin.wisata_harga * pkg.num_persons : 0;
+                    const ticketCost = (dayItin.wisata_harga || 0) * pkg.num_persons;
                     const mealsCost = ((dayItin.kuliner_pagi_harga || 0) + dayItin.kuliner_harga + (duration > 1 && d < duration ? (dayItin.kuliner_malam_harga || 0) : 0)) * pkg.num_persons;
                     message += `<br>💰 Total HTM & Makan: <strong>${fmtRp(ticketCost + mealsCost)}</strong>`;
 
                     showSpatialConfirmationModal(title, message, () => {
-                        const dayWisataCost = (d === 1) ? dayItin.wisata_harga * pkg.num_persons : 0;
+                        const dayWisataCost = (dayItin.wisata_harga || 0) * pkg.num_persons;
                         const dayKulinerCost = ((dayItin.kuliner_pagi_harga || 0) + dayItin.kuliner_harga + (duration > 1 && d < duration ? (dayItin.kuliner_malam_harga || 0) : 0)) * pkg.num_persons;
                         
                         // Calculate actual route distance for dayTransportCost calculation
@@ -5989,9 +5723,100 @@ function onBudgetChange() {
     }
 
     // Finalize Travel Plan logic
-    function finalizeTravelPlan(totalCost, legs, totalDistance, transportCost, vehDesc) {
+    async function finalizeTravelPlan(totalCost, legs, totalDistance, transportCost, vehDesc) {
+        const btn = document.getElementById('finalize-plan-btn');
+        const originalText = btn ? btn.innerHTML : '';
+        
+        try {
+            if(btn) {
+                btn.disabled = true;
+                btn.innerHTML = `<span class="material-symbols-outlined" style="animation: spin 1s linear infinite;">sync</span><span>Menghitung Rute OSRM...</span>`;
+            }
+
+            // 1. Build unique coordinate sequence for OSRM
+            const routeCoords = [];
+            legs.forEach((leg) => {
+                if (leg.from_coords && (leg.from_coords[0] !== 0 || leg.from_coords[1] !== 0)) {
+                    if (routeCoords.length === 0 || routeCoords[routeCoords.length-1][0] !== leg.from_coords[0] || routeCoords[routeCoords.length-1][1] !== leg.from_coords[1]) {
+                        routeCoords.push(leg.from_coords);
+                    }
+                }
+                if (leg.to_coords && (leg.to_coords[0] !== 0 || leg.to_coords[1] !== 0)) {
+                    if (routeCoords.length === 0 || routeCoords[routeCoords.length-1][0] !== leg.to_coords[0] || routeCoords[routeCoords.length-1][1] !== leg.to_coords[1]) {
+                        routeCoords.push(leg.to_coords);
+                    }
+                }
+            });
+
+            // 2. Fetch Distance riil dari OSRM
+            let finalDistance = totalDistance;
+            let finalTransportCost = transportCost;
+            let finalTotalCost = totalCost;
+            let osrmSuccess = false;
+
+            if (routeCoords.length >= 2) {
+                const coordsStr = routeCoords.map(c => `${c[1]},${c[0]}`).join(';');
+                const url = `https://router.project-osrm.org/route/v1/driving/${coordsStr}?overview=false`;
+                
+                try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 6000);
+                    const res = await fetch(url, { signal: controller.signal });
+                    clearTimeout(timeoutId);
+                    
+                    const data = await res.json();
+                    if (data.code === 'Ok' && data.routes && data.routes.length > 0) {
+                        finalDistance = data.routes[0].distance / 1000.0;
+                        osrmSuccess = true;
+                    }
+                } catch(e) {
+                    console.warn("OSRM Fetch Failed, fallback to Haversine");
+                }
+            }
+
         const duration = activeOptionPackages[0].duration;
         const persons = activeOptionPackages[0].num_persons;
+        
+        // 3. Recalculate & Skalakan Ulang Legs sesuai OSRM Distance
+        let ratePerKm = 2250;
+        if (persons <= 1) ratePerKm = 2250;
+        else if (persons <= 4) ratePerKm = 5150;
+        else ratePerKm = 6000;
+
+        if (osrmSuccess) {
+            finalTransportCost = Math.round(finalDistance * ratePerKm);
+            const distScale = totalDistance > 0 ? (finalDistance / totalDistance) : 0;
+            const costScale = totalDistance > 0 ? (finalTransportCost / totalDistance) : 0;
+            
+            let accCost = 0;
+            legs.forEach(leg => {
+                leg.distance = leg.distance * distScale;
+                leg.cost = Math.round(leg.distance * costScale);
+                accCost += leg.cost;
+            });
+            if (legs.length > 0 && finalTransportCost > 0) {
+                legs[legs.length - 1].cost += (finalTransportCost - accCost);
+            }
+            finalTotalCost = (totalCost - transportCost) + finalTransportCost;
+        } else {
+            let accCost = 0;
+            legs.forEach(leg => {
+                leg.cost = Math.round(leg.distance * ratePerKm);
+                accCost += leg.cost;
+            });
+            if (legs.length > 0 && transportCost > 0) {
+                legs[legs.length - 1].cost += (transportCost - accCost);
+            }
+        }
+        
+        const formattedLegs = legs.map(l => ({
+            from: l.from,
+            to: l.to,
+            from_coords: l.from_coords ? `${l.from_coords[0]},${l.from_coords[1]}` : "",
+            to_coords: l.to_coords ? `${l.to_coords[0]},${l.to_coords[1]}` : "",
+            distance: l.distance,
+            cost: l.cost
+        }));
 
         // Build the days summary array
         const daysArr = [];
@@ -6010,7 +5835,7 @@ function onBudgetChange() {
             title: `Rencana Kustom Wisata Malang (${duration} Hari)`,
             persons: persons,
             duration: duration,
-            totalCost: totalCost,
+            totalCost: finalTotalCost,
             hotelMode: hotelMode,
             hotel: selectedHotel ? {
                 nama: selectedHotel.nama,
@@ -6020,9 +5845,9 @@ function onBudgetChange() {
             } : null,
             hotelsByNight: selectedHotelsByNight,
             days: daysArr,
-            legs: legs,
-            totalDistance: totalDistance,
-            transportCost: transportCost,
+            legs: formattedLegs,
+            totalDistance: finalDistance,
+            transportCost: finalTransportCost,
             vehDesc: vehDesc
         };
 
@@ -6035,6 +5860,16 @@ function onBudgetChange() {
 
         // Show Confetti Success Splash overlay
         showSuccessSplash();
+        
+        } catch (error) {
+            console.error("Gagal Finalize", error);
+            alert("Terjadi kesalahan saat mengkalkulasi dan menyimpan rencana.");
+        } finally {
+            if(btn) {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        }
     }
 
     // Drawer triggers

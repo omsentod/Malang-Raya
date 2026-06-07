@@ -192,8 +192,8 @@
                     dayLegs.forEach(leg => {
                         html += `
                             <div class="recap-dist-row">
-                                <span class="material-symbols-outlined">directions_car</span>
-                                <span style="font-size:11.5px; font-weight:600; color:var(--color-slate-600);">${leg.from} → ${leg.to} <strong style="color:var(--color-primary); margin-left:4px;">(${leg.distance?.toFixed(1) || '?'} km)</strong></span>
+                            <span class="material-symbols-outlined" style="margin-top: 2px;">directions_car</span>
+                            <span style="font-size:11.5px; font-weight:600; color:var(--color-slate-600); flex: 1; min-width: 0; word-break: break-word; line-height: 1.3;">${leg.from} → ${leg.to} <strong style="color:var(--color-primary); margin-left:4px; display: inline-block;">(${leg.distance?.toFixed(1) || '?'} km)</strong></span>
                             </div>
                         `;
                     });
@@ -356,7 +356,7 @@
 
         let itineraryHTML = '';
         (plan.days || []).forEach((day, dIdx) => {
-            const dayWisataCost = (day.day === 1) ? day.wisata_harga * persons : 0;
+            const dayWisataCost = (day.wisata_harga || 0) * persons;
             const dayKulinerCost = ((day.kuliner_harga || 0) + (day.kuliner_malam_harga || 0)) * persons;
             const dayTransportCost = plan.transportCost ? Math.round(plan.transportCost / duration) : 0;
             const daySubtotal = dayWisataCost + dayKulinerCost + dayTransportCost;
@@ -367,7 +367,7 @@
                         <span class="day-title">HARI ${day.day} (${(day.className || '').toUpperCase()})</span>
                         <span class="day-badge">${day.className || ''}</span>
                     </div>
-                    <div class="day-wisata">🌲 Wisata: ${day.wisata} <span style="font-weight:600; font-size:12px; color:#64748b;">(Tiket: ${day.day === 1 ? fmtRp(day.wisata_harga) + '/org' : 'Gratis (Sudah di Hari 1)'})</span></div>
+                    <div class="day-wisata">🌲 Wisata: ${day.wisata} <span style="font-weight:600; font-size:12px; color:#64748b;">(Tiket: ${fmtRp(day.wisata_harga)} /org)</span></div>
                     <div class="day-kuliner">☀️ Makan Siang: ${day.kuliner} <span style="font-weight:600; font-size:12px; color:#64748b;">(Harga: ${fmtRp(day.kuliner_harga)} /org)</span></div>
                     <div class="day-kuliner" style="margin-top:2px;">🌙 Makan Malam: ${day.kuliner_malam || 'N/A'} <span style="font-weight:600; font-size:12px; color:#64748b;">(Harga: ${fmtRp(day.kuliner_malam_harga || 0)} /org)</span></div>
             `;
