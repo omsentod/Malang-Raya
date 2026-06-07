@@ -23,7 +23,7 @@ from config import (
     DEFAULT_RATIO_SCHEME, RATIO_SCHEMES,
 )
 from fcm_clustering import run_budget_anchored_fcm, run_percentile_fcm
-from transport_api import calculate_route_cost, haversine_distance
+from transport_api import calculate_route_cost, haversine_distance, get_osrm_route_distance
 
 
 LAST_CLUSTERED = None
@@ -104,7 +104,8 @@ def recalculate_pkg_legs(pkg_formatted, itinerary, num_persons):
         transport_desc = "Mobil GoCar XL (5-6 orang)"
         
     legs_detail = []
-    total_dist = 0.0
+    haversine_total_dist = 0.0
+    route_coords = []
     
     if duration == 1:
         day_data = itinerary[0]
@@ -132,7 +133,12 @@ def recalculate_pkg_legs(pkg_formatted, itinerary, num_persons):
                 "vehicle": transport_desc
             }
         ]
-        total_dist = dist1 + dist2
+        route_coords.extend([
+            (day_data.get("kuliner_pagi_lat", 0.0), day_data.get("kuliner_pagi_lon", 0.0)),
+            (day_data.get("wisata_lat", 0.0), day_data.get("wisata_lon", 0.0)),
+            (day_data.get("kuliner_lat", 0.0), day_data.get("kuliner_lon", 0.0))
+        ])
+        haversine_total_dist = dist1 + dist2
     else:
         for d_num in range(1, duration + 1):
             day_label = f" (Hari {d_num})"
@@ -181,7 +187,15 @@ def recalculate_pkg_legs(pkg_formatted, itinerary, num_persons):
                         "vehicle": transport_desc
                     }
                 ])
-                total_dist += (d1_1 + d1_2 + d1_3 + d1_4 + d1_5)
+                route_coords.extend([
+                    (day_data.get("kuliner_pagi_lat", 0.0), day_data.get("kuliner_pagi_lon", 0.0)),
+                    (day_data.get("wisata_lat", 0.0), day_data.get("wisata_lon", 0.0)),
+                    (day_data.get("kuliner_lat", 0.0), day_data.get("kuliner_lon", 0.0)),
+                    (day_data.get("hotel_lat", 0.0), day_data.get("hotel_lon", 0.0)),
+                    (day_data.get("kuliner_malam_lat", 0.0), day_data.get("kuliner_malam_lon", 0.0)),
+                    (day_data.get("hotel_lat", 0.0), day_data.get("hotel_lon", 0.0))
+                ])
+                haversine_total_dist += (d1_1 + d1_2 + d1_3 + d1_4 + d1_5)
             elif d_num == duration:
                 # Checkout day (3 Segmen): Hotel -> Makan Pagi -> Wisata -> Makan Siang
                 prev_day_data = itinerary[d_num - 2]
@@ -211,7 +225,13 @@ def recalculate_pkg_legs(pkg_formatted, itinerary, num_persons):
                         "vehicle": transport_desc
                     }
                 ])
-                total_dist += (dc1 + dc2 + dc3)
+                route_coords.extend([
+                    (prev_day_data.get("hotel_lat", 0.0), prev_day_data.get("hotel_lon", 0.0)),
+                    (day_data.get("kuliner_pagi_lat", 0.0), day_data.get("kuliner_pagi_lon", 0.0)),
+                    (day_data.get("wisata_lat", 0.0), day_data.get("wisata_lon", 0.0)),
+                    (day_data.get("kuliner_lat", 0.0), day_data.get("kuliner_lon", 0.0))
+                ])
+                haversine_total_dist += (dc1 + dc2 + dc3)
             else:
                 # Middle Stay Days (6 Segmen): Hotel -> Makan Pagi -> Wisata -> Makan Siang -> Hotel -> Makan Malam -> Hotel
                 prev_day_data = itinerary[d_num - 2]
@@ -265,12 +285,44 @@ def recalculate_pkg_legs(pkg_formatted, itinerary, num_persons):
                         "vehicle": transport_desc
                     }
                 ])
-                total_dist += (dm1 + dm2 + dm3 + dm4 + dm5 + dm6)
+                route_coords.extend([
+                    (prev_day_data.get("hotel_lat", 0.0), prev_day_data.get("hotel_lon", 0.0)),
+                    (day_data.get("kuliner_pagi_lat", 0.0), day_data.get("kuliner_pagi_lon", 0.0)),
+                    (day_data.get("wisata_lat", 0.0), day_data.get("wisata_lon", 0.0)),
+                    (day_data.get("kuliner_lat", 0.0), day_data.get("kuliner_lon", 0.0)),
+                    (day_data.get("hotel_lat", 0.0), day_data.get("hotel_lon", 0.0)),
+                    (day_data.get("kuliner_malam_lat", 0.0), day_data.get("kuliner_malam_lon", 0.0)),
+                    (day_data.get("hotel_lat", 0.0), day_data.get("hotel_lon", 0.0))
+                ])
+                haversine_total_dist += (dm1 + dm2 + dm3 + dm4 + dm5 + dm6)
 
-    cost_transport = round(total_dist * rate_per_km)
-    scale_factor = (cost_transport / total_dist) if total_dist > 0 else 0
+    # 1. Bersihkan koordinat (hindari duplikat berurutan & data kosong)
+    clean_coords = []
+    for lat, lon in route_coords:
+        if lat == 0.0 and lon == 0.0:
+            continue
+        if not clean_coords or clean_coords[-1] != (lat, lon):
+            clean_coords.append((lat, lon))
+
+    # 2. Panggil OSRM
+    osrm_dist = get_osrm_route_distance(clean_coords)
+    if osrm_dist is not None:
+        final_total_dist = osrm_dist
+        source = "OSRM Route API (Akurat)"
+    else:
+        final_total_dist = haversine_total_dist
+        source = "Haversine (Spatial Optimized)"
+
+    cost_transport = round(final_total_dist * rate_per_km)
+    
+    # 3. Hitung proporsi untuk segmen rincian (legs) di UI
+    dist_scale_factor = (final_total_dist / haversine_total_dist) if haversine_total_dist > 0 else 0
+    cost_scale_factor = (cost_transport / haversine_total_dist) if haversine_total_dist > 0 else 0
+
     for leg in legs_detail:
-        leg["cost"] = round(float(leg["distance_km"]) * scale_factor)
+        original_dist = float(leg["distance_km"])
+        leg["distance_km"] = round(original_dist * dist_scale_factor, 2)
+        leg["cost"] = round(original_dist * cost_scale_factor)
         
     if legs_detail and cost_transport > 0:
         total_leg_cost = sum(float(leg["cost"]) for leg in legs_detail)
@@ -281,9 +333,9 @@ def recalculate_pkg_legs(pkg_formatted, itinerary, num_persons):
     pkg_formatted["cost_transport"] = float(cost_transport)
     pkg_formatted["transport_detail"] = {
         "total_cost": cost_transport,
-        "total_distance_km": total_dist,
+        "total_distance_km": round(final_total_dist, 2),
         "legs": legs_detail,
-        "source": "Haversine (Spatial Optimized)"
+        "source": source
     }
 
 
@@ -3240,4 +3292,3 @@ def export_to_excel_recom(options_list, workflow, budget, persons, duration):
                     df_kuliner.to_excel(writer, sheet_name="Klaster Kuliner (Kustom)", index=False)
                     
         print(f"   [Excel Exported with Cluster Sheets] -> {filepath}")
-

@@ -234,15 +234,58 @@
             const waypointsNames = routeCoords.slice(1, -1).join('|');
             mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(originSearch)}&destination=${encodeURIComponent(destName)}&waypoints=${encodeURIComponent(waypointsNames)}&travelmode=driving`;
         } else {
-            // Fallback ke logika lama jika legs tidak tersedia
-            let origin = plan.hotel ? plan.hotel.nama : (plan.days && plan.days[0] ? plan.days[0].wisata : "");
-            if (plan.hotelMode === 'split' && plan.hotelsByNight && plan.hotelsByNight[1]) {
-                origin = plan.hotelsByNight[1].nama;
-            }
-            mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(origin)}`;
-            if (plan.days && plan.days.length > 0) {
-                let waypoints = plan.days.map(d => `${d.wisata}|${d.kuliner}`).join('|');
-                mapsUrl += `&waypoints=${encodeURIComponent(waypoints)}&travelmode=driving`;
+            // Fallback logika rute terurut untuk mode Kustom (Rancang Sendiri)
+            let stops = [];
+            let hotelName = plan.hotel ? plan.hotel.nama : null;
+            
+            (plan.days || []).forEach((day, dIdx) => {
+                let dayHotel = hotelName;
+                if (plan.hotelMode === 'split' && plan.hotelsByNight) {
+                    dayHotel = plan.hotelsByNight[day.day] ? plan.hotelsByNight[day.day].nama : 'Checkout';
+                }
+
+                // 1. Berangkat dari hotel
+                if (dayHotel && dayHotel !== 'Checkout') stops.push(dayHotel);
+
+                // 2. Makan Pagi
+                if (day.kuliner_pagi && day.kuliner_pagi !== 'N/A') stops.push(day.kuliner_pagi);
+                // 3. Wisata
+                if (day.wisata && day.wisata !== 'N/A') stops.push(day.wisata);
+                // 4. Makan Siang
+                if (day.kuliner && day.kuliner !== 'N/A') stops.push(day.kuliner);
+                
+                // 5. Kembali ke hotel (istirahat sore)
+                if (dayHotel && dayHotel !== 'Checkout') stops.push(dayHotel);
+                // 6. Makan Malam
+                if (day.kuliner_malam && day.kuliner_malam !== 'N/A') stops.push(day.kuliner_malam);
+                // 7. Kembali ke hotel untuk tidur
+                if (dayHotel && dayHotel !== 'Checkout') stops.push(dayHotel);
+            });
+
+            // Bersihkan duplikat berurutan agar URL Google Maps valid dan tidak error
+            let cleanStops = [];
+            stops.forEach(s => {
+                if (s && s !== 'N/A' && s !== 'Checkout') {
+                    if (cleanStops.length === 0 || cleanStops[cleanStops.length - 1] !== s) {
+                        cleanStops.push(s);
+                    }
+                }
+            });
+
+            if (cleanStops.length >= 2) {
+                const originSearch = cleanStops[0];
+                const destName = cleanStops[cleanStops.length - 1];
+                const waypointsNames = cleanStops.slice(1, -1).join('|');
+                
+                mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(originSearch)}&destination=${encodeURIComponent(destName)}`;
+                if (waypointsNames) {
+                    mapsUrl += `&waypoints=${encodeURIComponent(waypointsNames)}`;
+                }
+                mapsUrl += `&travelmode=driving`;
+            } else if (cleanStops.length === 1) {
+                mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(cleanStops[0])}`;
+            } else {
+                mapsUrl = `https://www.google.com/maps`;
             }
         }
 

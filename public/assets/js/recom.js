@@ -882,6 +882,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 item.isOverBudget = (hypRunningCost > budgetLimit);
             });
+
+            // Urutkan ulang: opsi yang aman budget-nya ditaruh di atas, yang over budget dilempar ke bawah
+            visibleAlts.sort((a, b) => {
+                if (a.isOverBudget && !b.isOverBudget) return 1;
+                if (!a.isOverBudget && b.isOverBudget) return -1;
+                return a.distFromAnchor - b.distFromAnchor;
+            });
         }
 
         dropdownEl.style.display = 'block';
@@ -3286,6 +3293,13 @@ function onBudgetChange() {
 
                     item.isOverBudget = (hypRunningCost > budgetLimit);
                 });
+
+                // Urutkan ulang: opsi yang aman budget-nya ditaruh di atas, yang over budget dilempar ke bawah
+                visibleAlts.sort((a, b) => {
+                    if (a.isOverBudget && !b.isOverBudget) return 1;
+                    if (!a.isOverBudget && b.isOverBudget) return -1;
+                    return a.distFromAnchor - b.distFromAnchor;
+                });
             }
         }
 
@@ -5623,7 +5637,11 @@ function onBudgetChange() {
                 </div>
                 ${budgetOverageHTML}
 
-                <button class="finalize-btn" id="finalize-plan-btn" ${isStepperFinished ? '' : 'disabled'}>
+                <button type="button" class="preview-gmaps-btn" id="preview-custom-maps-btn" style="margin-top: 18px;">
+                    <span class="material-symbols-outlined">map</span>
+                    Preview Rute di Maps
+                </button>
+                <button class="finalize-btn" id="finalize-plan-btn" ${isStepperFinished ? '' : 'disabled'} style="margin-top: 10px;">
                     <span class="material-symbols-outlined">bookmark_added</span>
                     <span>Kunci & Simpan Rencana</span>
                 </button>
@@ -5918,6 +5936,42 @@ function onBudgetChange() {
 
                 renderPlannerStep();
             });
+        });
+
+        // Preview Custom Maps Button listener
+        document.getElementById('preview-custom-maps-btn')?.addEventListener('click', () => {
+            let routeStops = [];
+            if (legs && legs.length > 0) {
+                const resolvedStops = legs.map(leg => leg.from);
+                resolvedStops.push(legs[legs.length - 1].to);
+                
+                resolvedStops.forEach(name => {
+                    const cleanName = name ? name.trim() : "";
+                    // Bersihkan duplikat berurutan agar rute Google Maps tidak error
+                    if (cleanName && cleanName !== 'N/A' && cleanName !== 'Checkout') {
+                        if (routeStops.length === 0 || routeStops[routeStops.length - 1] !== cleanName) {
+                            routeStops.push(cleanName);
+                        }
+                    }
+                });
+            }
+
+            if (routeStops.length >= 2) {
+                const originSearch = routeStops[0];
+                const destName = routeStops[routeStops.length - 1];
+                const waypointsNames = routeStops.slice(1, -1).join('|');
+                
+                let mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(originSearch)}&destination=${encodeURIComponent(destName)}`;
+                if (waypointsNames) {
+                    mapsUrl += `&waypoints=${encodeURIComponent(waypointsNames)}`;
+                }
+                mapsUrl += `&travelmode=driving`;
+                window.open(mapsUrl, '_blank');
+            } else if (routeStops.length === 1) {
+                window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(routeStops[0])}`, '_blank');
+            } else {
+                alert("Pilih minimal akomodasi atau 1 destinasi terlebih dahulu untuk melihat rute.");
+            }
         });
 
         // Finalize Plan Button listener

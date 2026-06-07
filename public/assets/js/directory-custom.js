@@ -105,7 +105,13 @@ function updatePriceTierLabels(category) {
 const gridElement = document.getElementById('directory-grid');
 const countLabel = document.getElementById('results-count-label');
 const paginationControls = document.getElementById('pagination-controls');
-const searchInput = document.getElementById('dir-search-input');
+
+// Kumpulkan semua kemungkinan input pencarian (Desktop, Mobile Spesifik, dan Mobile Navbar)
+const dirSearchInputs = [
+    document.getElementById('dir-search-input'),
+    document.getElementById('mobile-dir-search-input'),
+    document.getElementById('mobile-nav-search-input')
+].filter(Boolean);
 
 // Fetch dataset index dynamically
 fetch('/assets/search_index.json')
@@ -116,8 +122,8 @@ fetch('/assets/search_index.json')
         // Parse URL query parameter for search if exists!
         const urlParams = new URLSearchParams(window.location.search);
         const searchParam = urlParams.get('search') || urlParams.get('q');
-        if (searchParam && searchInput) {
-            searchInput.value = searchParam;
+        if (searchParam) {
+            dirSearchInputs.forEach(input => input.value = searchParam);
             searchQuery = searchParam.toLowerCase().trim();
         }
         
@@ -129,12 +135,18 @@ fetch('/assets/search_index.json')
     });
 
 // Search Input listener
-if (searchInput) {
-    searchInput.addEventListener('input', (e) => {
+dirSearchInputs.forEach(input => {
+    input.addEventListener('input', (e) => {
         searchQuery = e.target.value.toLowerCase().trim();
+        
+        // Sinkronisasi teks otomatis ke semua kotak pencarian lain yang ada di layar
+        dirSearchInputs.forEach(other => {
+            if (other !== input) other.value = e.target.value;
+        });
+        
         applyFilters();
     });
-}
+});
 
 // Category buttons listeners
 const catButtons = document.querySelectorAll('[data-cat]');
@@ -295,9 +307,13 @@ if (sortTriggerBtn && customSortDropdown) {
 }
 
 window.applyAutocorrect = function(correctedWord) {
-    const searchInput = document.getElementById('dir-search-input');
-    if (searchInput) {
-        searchInput.value = correctedWord;
+    let updated = false;
+    dirSearchInputs.forEach(input => {
+        input.value = correctedWord;
+        updated = true;
+    });
+    
+    if (updated) {
         searchQuery = correctedWord.toLowerCase().trim();
         applyFilters();
     }

@@ -268,25 +268,49 @@ function renderPackages(packages, budget) {
     packages.forEach(pkg => {
         const cls = catCls[pkg.kategori] || 'hemat';
         const remaining = budget - pkg.total_cost;
+        
+        const isOneDay = pkg.nights === 0 || pkg.cost_akomodasi === 0 || pkg.duration === 1;
+
+        const hotelHtml = !isOneDay ? `
+                <div class="pkg-row">
+                    <div class="pkg-icon hotel"><span class="material-symbols-outlined">hotel</span></div>
+                    <div>
+                        <div class="pkg-info-cat">Hotel / Akomodasi</div>
+                        <div class="pkg-info-name">${pkg.hotel_nama_real || pkg.hotel_nama}</div>
+                        <div class="pkg-info-price">${fmtRp(pkg.hotel_harga)}<span style="font-size:11px;color:var(--slate-400)">/malam</span></div>
+                    </div>
+                </div>
+        ` : '';
+
+        let subsequentDaysHTML = '';
+        if (pkg.duration > 1 && pkg.itinerary && pkg.itinerary.length > 1) {
+            subsequentDaysHTML = `<div style="margin-top:12px; padding-top:12px; border-top:1px dashed var(--slate-200); display:flex; flex-direction:column; gap:8px;">
+                <div style="font-size:10px; font-weight:800; color:var(--slate-400);">HARI SELANJUTNYA</div>`;
+            pkg.itinerary.slice(1).forEach(day => {
+                subsequentDaysHTML += `
+                    <div style="font-size:11.5px; color:var(--slate-600); background:var(--slate-50); padding:10px; border-radius:8px; border:1px solid var(--slate-200);">
+                        <strong style="color:var(--teal-600); display:block; margin-bottom:4px;">Hari ${day.day}</strong> 
+                        ${day.hotel && day.hotel !== 'Checkout' ? `<div style="margin-bottom:2px;">🏨 <strong>Hotel:</strong> ${day.hotel}</div>` : ''}
+                        <div style="margin-bottom:2px;">🎯 <strong>Wisata:</strong> ${day.wisata}</div>
+                        <div>🍜 <strong>Makan:</strong> ${day.kuliner_pagi || 'N/A'} (Pagi), ${day.kuliner} (Siang), ${day.kuliner_malam || 'N/A'} (Malam)</div>
+                    </div>
+                `;
+            });
+            subsequentDaysHTML += `</div>`;
+        }
+
         html += `
         <div class="pkg-card">
             <div class="pkg-banner ${cls}">
                 <span class="pkg-badge ${cls}">${pkg.kategori}</span>
-                <span style="font-size:11px;color:var(--slate-400)">FCM Optimal</span>
+                <span style="font-size:11px;color:var(--slate-400)">FCM Optimal (${pkg.duration} Hari)</span>
             </div>
             <div class="pkg-body">
-                <div class="pkg-row">
-                    <div class="pkg-icon hotel"><span class="material-symbols-outlined">hotel</span></div>
-                    <div>
-                        <div class="pkg-info-cat">Hotel</div>
-                        <div class="pkg-info-name">${pkg.hotel_nama}</div>
-                        <div class="pkg-info-price">${fmtRp(pkg.hotel_harga)}<span style="font-size:11px;color:var(--slate-400)">/malam</span></div>
-                    </div>
-                </div>
+                ${hotelHtml}
                 <div class="pkg-row">
                     <div class="pkg-icon wisata"><span class="material-symbols-outlined">landscape</span></div>
                     <div>
-                        <div class="pkg-info-cat">Wisata</div>
+                        <div class="pkg-info-cat">Wisata (Hari 1)</div>
                         <div class="pkg-info-name">${pkg.wisata_nama}</div>
                         <div class="pkg-info-price">${fmtRp(pkg.wisata_harga)}<span style="font-size:11px;color:var(--slate-400)">/tiket</span></div>
                     </div>
@@ -294,12 +318,16 @@ function renderPackages(packages, budget) {
                 <div class="pkg-row">
                     <div class="pkg-icon kuliner"><span class="material-symbols-outlined">restaurant</span></div>
                     <div>
-                        <div class="pkg-info-cat">Kuliner</div>
-                        <div class="pkg-info-name">${pkg.kuliner_nama}</div>
-                        <div class="pkg-info-price">${fmtRp(pkg.kuliner_harga)}<span style="font-size:11px;color:var(--slate-400)">/porsi</span></div>
+                        <div class="pkg-info-cat">Kuliner (Hari 1)</div>
+                        <div class="pkg-info-name" style="font-size:11px; margin-bottom:2px;"><strong>Pagi:</strong> ${pkg.kuliner_pagi_nama || 'N/A'}</div>
+                        <div class="pkg-info-name" style="font-size:11px; margin-bottom:2px;"><strong>Siang:</strong> ${pkg.kuliner_nama}</div>
+                        <div class="pkg-info-name" style="font-size:11px;"><strong>Malam:</strong> ${pkg.kuliner_malam_nama || 'N/A'}</div>
                     </div>
                 </div>
-                <div class="pkg-total-bar">
+                
+                ${subsequentDaysHTML}
+
+                <div class="pkg-total-bar" style="margin-top: 16px;">
                     <div>
                         <div class="pkg-total-label">TOTAL PAKET</div>
                         <div class="pkg-total-val">${fmtRp(pkg.total_cost)}</div>
@@ -309,8 +337,8 @@ function renderPackages(packages, budget) {
                         <div style="font-size:14px;font-weight:800;color:${remaining >= 0 ? 'var(--emerald-400)' : 'var(--rose-500)'}">${remaining >= 0 ? '+' : '-'}${fmtRp(Math.abs(remaining))}</div>
                     </div>
                 </div>
-                <div style="font-size:11px;color:var(--slate-500);margin-top:10px;text-align:center">
-                    🚗 Transportasi: ${fmtRp(pkg.cost_transport)} | 📏 ${pkg.transport_detail?.total_distance_km?.toFixed(1) || '?'} km
+                <div style="font-size:11px;color:var(--slate-500);margin-top:10px;text-align:center; padding-top:10px; border-top:1px dashed var(--slate-200);">
+                    🚗 <strong>Transportasi:</strong> ${fmtRp(pkg.cost_transport)} | 📏 <strong>Jarak:</strong> ${pkg.transport_detail?.total_distance_km?.toFixed(1) || '?'} km
                 </div>
             </div>
         </div>`;

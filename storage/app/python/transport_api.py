@@ -15,6 +15,32 @@ from config import GOOGLE_MAPS_API_KEY, TRANSPORT_RATES
 
 
 # ============================================================
+# OSRM ROUTING API (OPEN SOURCE ROUTING MACHINE)
+# ============================================================
+def get_osrm_route_distance(coords):
+    """
+    Memanggil OSRM Public API (Demo Server) untuk mendapatkan jarak rute riil (driving).
+    coords: list of tuples [(lat, lon), (lat, lon), ...] berurutan.
+    """
+    if not coords or len(coords) < 2:
+        return None
+        
+    # OSRM format membutuhkan Longitude dahulu, baru Latitude: lon,lat;lon,lat;...
+    coords_str = ";".join([f"{lon},{lat}" for lat, lon in coords])
+    # URL server publik OSRM. Jika sudah setup Docker lokal, ubah ke "http://localhost:5000"
+    url = f"http://router.project-osrm.org/route/v1/driving/{coords_str}?overview=false"
+    
+    try:
+        res = requests.get(url, timeout=5).json()
+        if res.get("code") == "Ok":
+            return res["routes"][0]["distance"] / 1000.0  # Ubah meter menjadi kilometer
+    except Exception as e:
+        print(f"  ⚠ OSRM Error: {e}")
+        pass
+        
+    return None
+
+# ============================================================
 # 1. HAVERSINE DISTANCE (FALLBACK)
 # ============================================================
 def haversine_distance(lat1, lon1, lat2, lon2):
@@ -120,7 +146,7 @@ def _fallback_distance(origins, destinations):
     Fallback menggunakan Haversine saat API tidak tersedia.
     Haversine dikalikan faktor 1.45 untuk estimasi jarak jalan raya.
     """
-    ROAD_FACTOR = 1.58 # Estimasi jarak jalan ≈ 1.45x jarak lurus
+    ROAD_FACTOR = 1.45 # Estimasi jarak jalan ≈ 1.45 jarak lurus
 
     distances_km = []
     durations_min = []

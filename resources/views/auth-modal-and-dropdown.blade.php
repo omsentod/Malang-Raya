@@ -56,7 +56,7 @@
                         <label for="register-name">Nama Lengkap</label>
                         <div class="auth-input-wrap">
                             <span class="material-symbols-outlined auth-input-icon">person</span>
-                            <input type="text" id="register-name" name="name" placeholder="Sarah Amara" required />
+                            <input type="text" id="register-name" name="name" placeholder="Manuel Neuer" required />
                         </div>
                     </div>
                     <div class="auth-input-group">
