@@ -35,6 +35,10 @@ def calculate_min_budget(persons, duration):
     avg_w = wisatas_15["Estimasi_Harga"].mean() if not wisatas_15.empty else 0
     avg_k = kuliners_15["Estimasi_Harga"].mean() if not kuliners_15.empty else 0
 
+    # Tambahkan baseline minimum untuk rata-rata agar tidak bias oleh data Rp0 (Gratis)
+    avg_w = max(avg_w, 25000)
+    avg_k = max(avg_k, 22000)
+
     nights = duration - 1
     num_rooms = math.ceil(persons / 2)
     rate_per_km = 2250 if persons <= 1 else (5150 if persons <= 4 else 6000)
@@ -122,10 +126,10 @@ def calculate_min_budget(persons, duration):
                     min_total = total
                     
     if min_total == float('inf'):
-        fallback_h = 60000 * nights * num_rooms if duration > 1 else 0
-        fallback_w = 15000 * duration * persons
-        fallback_k = 15000 * total_meals * persons
-        fallback_t = 25 * duration * rate_per_km
+        fallback_h = 135000 * nights * num_rooms if duration > 1 else 0
+        fallback_w = 35000 * duration * persons
+        fallback_k = 30000 * total_meals * persons
+        fallback_t = 40 * duration * rate_per_km # Jarak harian 40km untuk durasi panjang
         min_total = fallback_h + fallback_w + fallback_k + fallback_t
 
     # ─────────────────────────────────────────────
@@ -154,8 +158,8 @@ def calculate_min_budget(persons, duration):
 
     max_total = max_cost_hotel + max_cost_wisata + max_cost_kuliner + max_cost_transport
 
-    # Bulatkan ke atas 50rb untuk buffer dengan safety margin 30% agar paket hemat riil selalu under budget
-    min_budget = math.ceil((min_total * 1.30) / 50000) * 50000
+    # Bulatkan ke atas 50rb untuk buffer dengan safety margin 45% agar paket hemat riil selalu masuk budget
+    min_budget = math.ceil((min_total * 1.45) / 50000) * 50000
     max_budget = math.ceil(max_total / 50000) * 50000 if max_total > 0 else 0
     
     # Pastikan slider max selalu lebih besar dari min untuk mencegah JS Range slider rusak

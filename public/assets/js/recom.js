@@ -34,6 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let activeWorkflow = 'budget';
     let allOptions = [];
     let searchIndex = [];
+    let isSyncingBudget = false; // TAHAP 11: State sinkronisasi untuk integrasi response
 
     // Helper: Resolve real names of places to strip generic labels and get correct locations
     const resolveRealName = (label, pkg) => {
@@ -1284,11 +1285,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (persons > 4) ratePerKm = 6000;
         else if (persons > 1) ratePerKm = 5150;
 
-        const minHotelPrice = 50000;
+        const minHotelPrice = 135000; // Harga homestay/kost harian rata-rata yang lebih realistis untuk durasi panjang
         const minWisataPrice = 0;
-        const avgWisataPrice = 5000;
-        const minKulinerPrice = 8000;
-        const avgKulinerPrice = 10000;
+        const avgWisataPrice = 30000; // Rata-rata tiket wisata (beberapa gratis, beberapa berbayar)
+        const minKulinerPrice = 18000; // Minimal makan layak (nasi bungkus/warung)
+        const avgKulinerPrice = 25000; // Rata-rata makan untuk variasi menu harian
 
         const nights = duration - 1;
         const rooms = Math.ceil(persons / 2);
@@ -1313,9 +1314,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         let minDistanceBase = 0;
-        if (duration === 1) minDistanceBase = 10;
-        else if (duration === 2) minDistanceBase = 20 + 10;
-        else minDistanceBase = 20 + 20 * (duration - 2) + 10;
+        if (duration === 1) minDistanceBase = 20; 
+        else if (duration === 2) minDistanceBase = 25 + 15;
+        else minDistanceBase = 35 + 35 * (duration - 2) + 20; // Naikkan estimasi jarak harian menjadi 35km untuk mobilitas riil
 
         // Ekstra mobilitas / jarak untuk perpindahan lokasi hotel baru
         if (hotelMode === 'split' && duration > 2) minDistanceBase += (15 * (duration - 2));
@@ -1323,7 +1324,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const costTransport = Math.round(minDistanceBase * ratePerKm);
 
     const totalMin = costHotel + costWisata + costKuliner + costTransport;
-        return Math.ceil((totalMin * 1.30) / 50000) * 50000;
+        return Math.ceil((totalMin * 1.45) / 50000) * 50000; // Naikkan safety margin ke 45%
     }
 
     function calculateScaledMaxBudget(persons, duration, hotelMode = 'same') {
@@ -1642,7 +1643,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (typeof isSyncingBudget !== 'undefined' && isSyncingBudget) {
             box.innerHTML = `
                 <span class="material-symbols-outlined" style="font-size:18px;flex-shrink:0;animation:spin 1s linear infinite;">sync</span>
-                <span>Sedang mensinkronkan batas anggaran minimum dengan AI...</span>
+                <span>Sedang mensinkronkan batas anggaran minimum ...</span>
             `;
             box.style.display = 'flex';
             return;
@@ -1725,6 +1726,10 @@ let minBudgetDebounceTimer = null;
 let budgetFetchSeq = 0;
 
 function fetchApiMinMaxUpdate() {
+    // Aktifkan state syncing agar "Response Sistem" segera bereaksi secara visual
+    isSyncingBudget = true;
+    onBudgetChange();
+
     // Beri indikator visual agar user mengerti Python sedang mengkalkulasi batas asli
     const bMaxLbl = document.getElementById('b-budget-max-label');
     if (bMaxLbl) bMaxLbl.innerHTML = '<span style="color:var(--teal-600);font-weight:700">Sinkronisasi Budget...</span>';
@@ -1750,8 +1755,6 @@ function fetchApiMinMaxUpdate() {
         ]);
 
         if (seq !== budgetFetchSeq) return;
-
-        isSyncingBudget = false;
 
         // ── Update b-slider ──
         if (bRange) {
@@ -1813,6 +1816,8 @@ function fetchApiMinMaxUpdate() {
             }
         }
 
+        // Selesai sinkronisasi, tampilkan angka final
+        isSyncingBudget = false;
         onBudgetChange();
     }, 800);
 }
@@ -2167,11 +2172,23 @@ function onBudgetChange() {
         grid.innerHTML = '';
 
         if (!packages || packages.length === 0) {
+            // TAHAP 11: INTEGRASI RESPONSE SISTEM (EMPTY STATE DYNAMISM)
+            // Ambil parameter input saat ini untuk memberikan saran yang akurat di area hasil
+            const persons = (activeWorkflow === 'budget' ? +document.getElementById('b-persons')?.value : +document.getElementById('d-persons')?.value) || 1;
+            const duration = (activeWorkflow === 'budget' ? +document.getElementById('b-duration')?.value : +document.getElementById('d-duration')?.value) || 1;
+            const budgetId = (activeWorkflow === 'budget' ? 'b-budget' : 'd-budget');
+            const hotelModeId = (activeWorkflow === 'budget' ? 'b-hotel-mode' : 'd-hotel-mode');
+            const currentHotelMode = document.getElementById(hotelModeId)?.value || 'same';
+            
+            const slider = document.getElementById(budgetId);
+            let minBudget = calculateScaledMinBudget(persons, duration, currentHotelMode);
+            if (slider && slider.dataset.aiMin) minBudget = parseInt(slider.dataset.aiMin);
+
             grid.innerHTML = `
                 <div class="empty-state" style="grid-column:1/-1">
                     <span class="material-symbols-outlined">sentiment_dissatisfied</span>
-                    <h3>Tidak Ada Paket Sesuai Budget</h3>
-                    <p>Coba naikkan budget atau kurangi durasi. Budget minimal ±Rp 500.000 untuk 1 hari 1 orang.</p>
+                    <h3>Anggaran Belum Mencukupi</h3>
+                    <p>Maaf, kami tidak dapat menemukan paket yang sesuai. Analisis AI menunjukkan bahwa budget minimal yang disarankan untuk <strong>${persons} orang</strong>, <strong>${duration} hari</strong> adalah sekitar <strong>${fmtRp(minBudget)}</strong>.</p>
                 </div>`;
         } else {
             packages.forEach(pkg => grid.appendChild(buildPkgCard(pkg)));
