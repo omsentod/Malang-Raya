@@ -184,15 +184,17 @@ class RecommenderController extends Controller
 public function minBudget(Request $request)
 {
     $validated = $request->validate([
-        'persons'  => 'required|integer|min:1|max:20',
-        'duration' => 'required|integer|min:1|max:30',
+        'persons'    => 'required|integer|min:1|max:20',
+        'duration'   => 'required|integer|min:1|max:30',
+        'hotel_mode' => 'nullable|in:same,split',
     ]);
 
     $args = [
         $this->pythonBinary(),
         storage_path('app/python/min_budget_api.py'),
-        '--persons',  $validated['persons'],
-        '--duration', $validated['duration'],
+        '--persons',    $validated['persons'],
+        '--duration',   $validated['duration'],
+        '--hotel_mode', $validated['hotel_mode'] ?? 'same',
     ];
 
     $process = new Process($args);

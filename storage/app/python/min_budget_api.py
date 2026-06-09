@@ -6,7 +6,7 @@ import pandas as pd
 from fcm_clustering import run_percentile_fcm
 from recommender import find_k_pagi, find_k_malam, haversine_road_distance
 
-def calculate_min_budget(persons, duration):
+def calculate_min_budget(persons, duration, hotel_mode="same"):
     # Load dataset
     df_hotel = pd.read_excel("hotel_clean.xlsx")
     df_wisata = pd.read_excel("wisata_clean.xlsx")
@@ -53,8 +53,9 @@ def calculate_min_budget(persons, duration):
                 k_dict = k.to_dict()
                 k_list = k_list_hemat
 
-                # Biaya akomodasi
-                cost_hotel = h["Estimasi_Harga"] * nights * num_rooms if duration > 1 else 0
+                # Biaya akomodasi (split mode pakai 1.2x karena tidak bisa lock satu hotel termurah tiap malam)
+                hotel_multiplier = 1.2 if hotel_mode == "split" and nights > 1 else 1.0
+                cost_hotel = h["Estimasi_Harga"] * nights * num_rooms * hotel_multiplier if duration > 1 else 0
 
                 # Biaya wisata (Day 1 real + rata-rata top 15 untuk mensimulasikan rute dinamis selanjutnya)
                 cost_wisata = (w["Estimasi_Harga"] + avg_w * (duration - 1)) * persons
@@ -180,7 +181,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--persons", type=int, required=True)
     parser.add_argument("--duration", type=int, required=True)
+    parser.add_argument("--hotel_mode", type=str, default="same")
     args = parser.parse_args()
 
-    result = calculate_min_budget(args.persons, args.duration)
+    result = calculate_min_budget(args.persons, args.duration, args.hotel_mode)
     print(json.dumps(result, ensure_ascii=False))

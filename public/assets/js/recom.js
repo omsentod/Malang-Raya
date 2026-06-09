@@ -1706,11 +1706,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    async function fetchBudgetRange(persons, duration) {
+    async function fetchBudgetRange(persons, duration, hotelMode = 'same') {
         try {
             const fd = new FormData();
             fd.append('persons', persons);
             fd.append('duration', duration);
+            fd.append('hotel_mode', hotelMode);
             const res = await fetch('/api/min-budget', {
                 method: 'POST',
                 body: fd,
@@ -1743,15 +1744,17 @@ function fetchApiMinMaxUpdate() {
         // ── Fetch untuk Budget-First ──
         const bPersons = +document.getElementById('b-persons')?.value || 1;
         const bDuration = +document.getElementById('b-duration')?.value || 1;
+        const bHotelModeVal = document.getElementById('b-hotel-mode')?.value || 'same';
 
         // ── Fetch untuk Destination-First (pakai nilai d- bukan b-) ──
         const dPersons = +document.getElementById('d-persons')?.value || 1;
         const dDuration = +document.getElementById('d-duration')?.value || 1;
+        const dHotelModeVal = document.getElementById('d-hotel-mode')?.value || 'same';
 
         // Fetch keduanya paralel
         const [bRange, dRange] = await Promise.all([
-            fetchBudgetRange(bPersons, bDuration),
-            fetchBudgetRange(dPersons, dDuration)
+            fetchBudgetRange(bPersons, bDuration, bHotelModeVal),
+            fetchBudgetRange(dPersons, dDuration, dHotelModeVal)
         ]);
 
         if (seq !== budgetFetchSeq) return;
@@ -1852,9 +1855,19 @@ function onBudgetChange() {
         const isBudgetCapValid = checkCapacity('b-persons', 'b-transport', 'b-capacity-warning');
         const isDestCapValid = checkCapacity('d-persons', 'd-transport', 'd-capacity-warning');
 
-        // Enable/disable submit buttons based on capacity checks
+        // Enable/disable submit buttons based on capacity + minimum budget checks
         const bSubmit = document.getElementById('b-submit');
-        if (bSubmit) bSubmit.disabled = !isBudgetCapValid;
+        if (bSubmit) {
+            const bBudgetVal = getRawBudget('b-budget');
+            const bPersonsVal = +document.getElementById('b-persons')?.value || 1;
+            const bDurationVal = +document.getElementById('b-duration')?.value || 1;
+            const bHotMode = document.getElementById('b-hotel-mode')?.value || 'same';
+            let bMinBudget = calculateScaledMinBudget(bPersonsVal, bDurationVal, bHotMode);
+            const bSliderEl = document.getElementById('b-budget');
+            if (bSliderEl && bSliderEl.dataset.aiMin) bMinBudget = parseInt(bSliderEl.dataset.aiMin);
+            const bBudgetTooLow = bBudgetVal <= 0 || bBudgetVal < bMinBudget;
+            bSubmit.disabled = !isBudgetCapValid || bBudgetTooLow;
+        }
 
         const dSubmit = document.getElementById('d-submit');
         if (dSubmit) dSubmit.disabled = !isDestCapValid;
