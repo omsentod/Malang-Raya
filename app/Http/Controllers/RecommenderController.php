@@ -10,8 +10,15 @@ class RecommenderController extends Controller
 {
     private function pythonBinary(): string
     {
-        $venv = storage_path('app/python/venv/bin/python');
-        return file_exists($venv) ? $venv : 'python3';
+        // Prioritas 1: venv permanen di luar direktori deployment (tidak terhapus saat deploy)
+        $persistentVenv = '/home/u707667165/python_venv/malang_raya/bin/python';
+        if (file_exists($persistentVenv)) return $persistentVenv;
+
+        // Prioritas 2: venv lama di dalam storage (fallback jika persistent belum dibuat)
+        $localVenv = storage_path('app/python/venv/bin/python');
+        if (file_exists($localVenv)) return $localVenv;
+
+        return 'python3';
     }
 
     private function workingDir(): string
