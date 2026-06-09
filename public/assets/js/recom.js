@@ -5709,10 +5709,22 @@ function onBudgetChange() {
 
             if (routeStops.length >= 2) {
                 const originSearch = routeStops[0];
-                const destName = routeStops[routeStops.length - 1];
-                const waypointsNames = routeStops.slice(1, -1).join('|');
+                const destinationSearch = routeStops[routeStops.length - 1];
                 
-                let mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(originSearch)}&destination=${encodeURIComponent(destName)}`;
+                // Google Maps memiliki limit 25 intermediate waypoints.
+                // Jika rute > 27 titik (Origin + 25 Waypoints + Dest), kita ambil sampel titik penting saja.
+                let waypointsArray = routeStops.slice(1, -1);
+                if (waypointsArray.length > 25) {
+                    // Ambil 25 titik secara merata (sampling) agar rute tetap merepresentasikan perjalanan panjang
+                    const sampledWaypoints = [];
+                    for (let i = 0; i < 25; i++) {
+                        sampledWaypoints.push(waypointsArray[Math.floor(i * waypointsArray.length / 25)]);
+                    }
+                    waypointsArray = sampledWaypoints;
+                }
+                const waypointsNames = waypointsArray.join('|');
+                
+                let mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(originSearch)}&destination=${encodeURIComponent(destinationSearch)}`;
                 if (waypointsNames) {
                     mapsUrl += `&waypoints=${encodeURIComponent(waypointsNames)}`;
                 }
