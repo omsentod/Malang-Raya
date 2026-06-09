@@ -3,7 +3,7 @@ import json
 import math
 import numpy as np
 import pandas as pd
-from fcm_clustering import run_percentile_fcm
+from fcm_clustering import run_percentile_fcm, find_best_c_offline
 from recommender import find_k_pagi, find_k_malam, haversine_road_distance
 
 def calculate_min_budget(persons, duration, hotel_mode="same"):
@@ -14,12 +14,17 @@ def calculate_min_budget(persons, duration, hotel_mode="same"):
 
     datasets = {"hotel": df_hotel, "wisata": df_wisata, "kuliner": df_kuliner}
 
+    # Tentukan c optimal via Xie-Beni (offline)
+    datasets_prices = {cat: datasets[cat]["Estimasi_Harga"].values for cat in ["hotel", "wisata", "kuliner"]}
+    best_c = find_best_c_offline(datasets_prices)
+    premium_idx = best_c - 1  # Klaster tertinggi (Premium)
+
     # Jalankan FCM persentil (offline, tidak butuh budget input)
     clustered = {}
     for cat in ["hotel", "wisata", "kuliner"]:
         df = datasets[cat]
         prices = df["Estimasi_Harga"].values
-        result = run_percentile_fcm(prices)
+        result = run_percentile_fcm(prices, n_clusters=best_c)
         df_c = df.copy()
         df_c["Cluster"] = result["labels"]
         clustered[cat] = df_c
@@ -134,14 +139,12 @@ def calculate_min_budget(persons, duration, hotel_mode="same"):
         min_total = fallback_h + fallback_w + fallback_k + fallback_t
 
     # ─────────────────────────────────────────────
-    # Hitung MAX budget dari klaster Premium (2)
+    # Hitung MAX budget dari klaster Premium (indeks tertinggi = best_c - 1)
     # Pakai 1 item termahal tiap kategori → batas teoretis
-    # Gabungan item termahal tiap var (hotel + wisata + kuliner)
-    # tanpa kendala kombinasi sehingga ≥ paket termahal asli dari recommender
     # ─────────────────────────────────────────────
-    h_max = clustered["hotel"][clustered["hotel"]["Cluster"] == 2]["Estimasi_Harga"].max()
-    w_max = clustered["wisata"][clustered["wisata"]["Cluster"] == 2]["Estimasi_Harga"].max()
-    k_max = clustered["kuliner"][clustered["kuliner"]["Cluster"] == 2]["Estimasi_Harga"].max()
+    h_max = clustered["hotel"][clustered["hotel"]["Cluster"] == premium_idx]["Estimasi_Harga"].max()
+    w_max = clustered["wisata"][clustered["wisata"]["Cluster"] == premium_idx]["Estimasi_Harga"].max()
+    k_max = clustered["kuliner"][clustered["kuliner"]["Cluster"] == premium_idx]["Estimasi_Harga"].max()
 
     if pd.isna(h_max): h_max = 0
     if pd.isna(w_max): w_max = 0

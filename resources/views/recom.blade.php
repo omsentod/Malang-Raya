@@ -94,12 +94,12 @@
                         <div class="form-card-icon"><span class="material-symbols-outlined">calculate</span></div>
                         <div>
                             <div class="form-card-title">Budget-First Workflow</div>
-                            <div class="form-card-sub">Masukkan total anggaran → FCM menemukan paket Hemat / Balanced / Premium</div>
+                            <div class="form-card-sub">Masukkan total anggaran → FCM + Xie-Beni menemukan paket optimal untukmu</div>
                         </div>
                     </div>
                     <div class="wf-info-box">
                         <span class="material-symbols-outlined">info</span>
-                        <span>FCM akan dijalankan secara <strong>real-time</strong> menggunakan budgetmu sebagai anchor centroid (0.6× Hemat, 1.0× Balanced, 1.4× Premium). Tiga paket terbaik akan ditampilkan.</span>
+                        <span>FCM dijalankan <strong>real-time</strong> dengan budgetmu sebagai anchor centroid. Xie-Beni Index menentukan jumlah klaster optimal (c=2 atau lebih) — paket yang muncul menyesuaikan hasilnya.</span>
                     </div>
                     <form class="form-body" id="form-budget" novalidate>
                         <div class="form-group">
@@ -214,7 +214,7 @@
                     </div>
                     <div class="wf-info-box" style="background:#f5f3ff;border-color:#ddd6fe;color:#7c3aed">
                         <span class="material-symbols-outlined">info</span>
-                        <span>Sistem menggunakan <strong>Offline FCM</strong> berbasis persentil dataset (Q1/Median/Q3). Kamu akan melihat estimasi biaya paket Hemat, Balanced, dan Premium untuk merencanakan budget.</span>
+                        <span>Sistem menggunakan <strong>Offline FCM</strong> berbasis persentil dataset. Xie-Beni Index menentukan jumlah klaster optimal — paket yang muncul menyesuaikan hasilnya secara otomatis.</span>
                     </div>
                     <form class="form-body" id="form-flexible" novalidate>
                         <div class="form-row">
@@ -448,6 +448,8 @@
                     </div>
                     <!-- Interactive Day-by-Day Selection Board (Wizard) -->
                     <div class="planner-wizard-container" id="planner-wizard-container" style="display: none;"></div>
+                    <!-- Filter Toggle Klaster -->
+                    <div class="kategori-filter-bar" id="kategori-filter-bar" style="display:none;"></div>
                     <div class="packages-grid" id="packages-grid"></div>
                 </div>
 

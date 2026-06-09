@@ -433,6 +433,45 @@
         }
 
         /* ─── OPTIONS TABS ─── */
+        /* ── Kategori Filter Toggle ── */
+        .kategori-filter-bar {
+            padding: 12px 28px 0;
+            animation: fadeUp 0.25s ease;
+        }
+        .kat-filter-inner {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .kat-filter-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--slate-500);
+            text-transform: uppercase;
+            letter-spacing: .04em;
+        }
+        .kat-filter-btn {
+            padding: 5px 14px;
+            border-radius: 999px;
+            border: 1.5px solid var(--slate-200);
+            background: #fff;
+            color: var(--slate-600);
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.18s ease;
+        }
+        .kat-filter-btn:hover { border-color: var(--slate-400); }
+        .kat-filter-btn.active {
+            color: #fff;
+            border-color: transparent;
+            background: var(--slate-600);
+        }
+        .kat-filter-btn.hemat.active  { background: var(--emerald-500); }
+        .kat-filter-btn.balanced.active { background: #3b82f6; }
+        .kat-filter-btn.premium.active { background: var(--amber-500); color: #fff; }
+
         .options-tabs-container {
             padding: 24px 28px 4px;
             display: flex;

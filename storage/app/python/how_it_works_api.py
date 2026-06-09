@@ -28,9 +28,9 @@ import pandas as pd
 
 warnings.filterwarnings('ignore')
 
-from fcm_clustering import run_budget_anchored_fcm, run_fcm, calculate_xie_beni
+from fcm_clustering import run_budget_anchored_fcm, run_fcm, calculate_xie_beni, find_best_c_for_budget
 from recommender import generate_packages
-from config import RATIO_SCHEMES, CLUSTER_RANGE
+from config import RATIO_SCHEMES, CLUSTER_RANGE, RATIO_SCHEMES_BY_C, get_cluster_labels
 
 
 def load_datasets():
@@ -69,16 +69,7 @@ def xbi_per_c(datasets, budget_anchor_map):
         anchor = budget_anchor_map[cat]
         for c in CLUSTER_RANGE:
             try:
-                # Inisialisasi centroid berbasis budget (skema B: 0.6, 1.0, 1.4)
-                if c == 3:
-                    ratios = [0.6, 1.0, 1.4]
-                elif c == 2:
-                    ratios = [0.6, 1.4]
-                elif c == 4:
-                    ratios = [0.5, 0.75, 1.25, 1.5]
-                else:  # c == 5
-                    ratios = [0.4, 0.7, 1.0, 1.3, 1.6]
-
+                ratios = RATIO_SCHEMES_BY_C.get(c, RATIO_SCHEMES_BY_C[3])
                 init_centers = [anchor * r for r in ratios]
                 res_fcm = run_fcm(prices, n_clusters=c, init_centroids=init_centers)
                 cntr = res_fcm["cntr"]
@@ -128,37 +119,31 @@ def ratio_validation(datasets, budget_anchor_map):
     return results
 
 
-def clustering_result(datasets, budget_anchor_map):
+def clustering_result(datasets, budget_anchor_map, best_c=3):
     """
-    Hasil clustering akhir (Skema B default) untuk c=3.
-    Returns: dict {category: {centroids, distribution, sample_data}}
+    Hasil clustering akhir dengan jumlah klaster optimal (auto-c).
+    Returns: dict {category: {best_c, centroids, distribution, cluster_prices, xbi}}
     """
+    cluster_labels = get_cluster_labels(best_c)
     results = {}
     for cat, df in datasets.items():
         prices = df["Estimasi_Harga"].values
         anchor = budget_anchor_map[cat]
         try:
-            res = run_budget_anchored_fcm(prices, anchor, ratio_scheme="B")
+            res = run_budget_anchored_fcm(prices, anchor, n_clusters=best_c)
             labels = res["labels"]
             cntr   = res["cntr"]
+
+            centroids = {cluster_labels[i]: round(float(cntr[i]), 0) for i in range(best_c)}
+            distribution = {cluster_labels[i]: int((labels == i).sum()) for i in range(best_c)}
+            cluster_prices = {cluster_labels[i]: [int(p) for p in prices[labels == i][:20].tolist()] for i in range(best_c)}
+
             results[cat] = {
-                "centroids": {
-                    "hemat":    round(float(cntr[0]), 0),
-                    "balanced": round(float(cntr[1]), 0),
-                    "premium":  round(float(cntr[2]), 0),
-                },
-                "distribution": {
-                    "hemat":    int((labels == 0).sum()),
-                    "balanced": int((labels == 1).sum()),
-                    "premium":  int((labels == 2).sum()),
-                },
+                "best_c": best_c,
+                "centroids": centroids,
+                "distribution": distribution,
                 "xbi": round(float(res["xb"]), 6),  # type: ignore
-                # Harga masing2 klaster (untuk grafik scatter)
-                "cluster_prices": {
-                    "hemat":    [int(p) for p in prices[labels == 0][:20].tolist()],
-                    "balanced": [int(p) for p in prices[labels == 1][:20].tolist()],
-                    "premium":  [int(p) for p in prices[labels == 2][:20].tolist()],
-                }
+                "cluster_prices": cluster_prices,
             }
         except Exception as e:
             results[cat] = {"error": str(e)}
@@ -210,22 +195,28 @@ def main():
         # Langkah 1: Statistik dataset
         stats = dataset_stats(datasets)
 
-        # Langkah 2: XBI per c
+        # Langkah 2: XBI per c (untuk semua c=2,3,4,5)
         xbi_table = xbi_per_c(datasets, budget_anchor_map)
 
-        # Langkah 3: Validasi skema ratio
+        # Langkah 3: Tentukan c optimal via rata-rata XBI
+        datasets_prices = {cat: datasets[cat]["Estimasi_Harga"].values for cat in ["hotel", "wisata", "kuliner"]}
+        best_c = find_best_c_for_budget(datasets_prices, args.budget, verbose=False)
+        cluster_labels_map = get_cluster_labels(best_c)
+
+        # Langkah 4: Validasi skema ratio
         ratio_val = ratio_validation(datasets, budget_anchor_map)
 
-        # Langkah 4: Hasil clustering akhir
-        cluster_res = clustering_result(datasets, budget_anchor_map)
+        # Langkah 5: Hasil clustering akhir dengan c optimal
+        cluster_res = clustering_result(datasets, budget_anchor_map, best_c=best_c)
 
-        # Langkah 5: Hasil rekomendasi
+        # Langkah 6: Hasil rekomendasi
         packages = generate_packages(
             total_budget=args.budget,
             num_persons=args.persons,
             duration=args.duration,
             datasets=datasets,
-            verbose=False
+            verbose=False,
+            best_c=best_c,
         )
 
         print(json.dumps({
@@ -241,6 +232,8 @@ def main():
                 },
                 "budget_alloc":   {k: round(v, 0) for k, v in budget_alloc.items()},
             },
+            "best_c":            best_c,
+            "cluster_labels":    cluster_labels_map,
             "dataset_stats":     stats,
             "xbi_per_c":         xbi_table,
             "ratio_validation":  ratio_val,

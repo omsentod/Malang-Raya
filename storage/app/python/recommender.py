@@ -21,8 +21,9 @@ from config import (
     GOOGLE_MAPS_API_KEY, CLUSTER_LABELS,
     MAX_PACKAGES_DISPLAY, MEALS_PER_DAY, MAX_PERSONS_PER_ROOM,
     DEFAULT_RATIO_SCHEME, RATIO_SCHEMES,
+    get_cluster_labels, get_ratio_scheme,
 )
-from fcm_clustering import run_budget_anchored_fcm, run_percentile_fcm
+from fcm_clustering import run_budget_anchored_fcm, run_percentile_fcm, find_best_c_for_budget, find_best_c_offline
 from transport_api import calculate_route_cost, haversine_distance, get_osrm_route_distance
 
 
@@ -514,7 +515,7 @@ def calculate_package_cost(hotel, wisata, kuliner, num_persons, duration,
 def generate_packages(total_budget, num_persons, duration, datasets,
                        api_key=None, ratio_scheme=DEFAULT_RATIO_SCHEME,
                        max_packages=MAX_PACKAGES_DISPLAY, verbose=True,
-                       transport_mode=None, hotel_mode='same'):
+                       transport_mode=None, hotel_mode='same', best_c=None):
     """
     Alur utama Budget-First Workflow (Diselaraskan Eksak dengan Uji_Gabungan.py):
     1. Alokasikan budget ke komponen secara proporsional.
@@ -537,6 +538,17 @@ def generate_packages(total_budget, num_persons, duration, datasets,
 
     if api_key is None:
         api_key = GOOGLE_MAPS_API_KEY
+
+    # --- Auto-c: Tentukan jumlah klaster optimal via Xie-Beni ---
+    if best_c is None:
+        datasets_prices = {cat: datasets[cat]["Estimasi_Harga"].values for cat in ["hotel", "wisata", "kuliner"]}
+        best_c = find_best_c_for_budget(datasets_prices, total_budget, verbose=verbose)
+
+    cluster_labels = get_cluster_labels(best_c)
+    ratios_for_c = get_ratio_scheme(best_c)
+
+    if verbose:
+        print(f"  Auto-c: best_c = {best_c} | Label: {list(cluster_labels.values())}")
 
     # --- Langkah 1: Alokasi Budget ---
     budget_alloc = allocate_budget(total_budget, num_persons, duration)
@@ -574,7 +586,6 @@ def generate_packages(total_budget, num_persons, duration, datasets,
         }
 
     clustered = {}
-    ratios = RATIO_SCHEMES[ratio_scheme]
 
     for cat_name in ["hotel", "wisata", "kuliner"]:
         df = datasets[cat_name]
@@ -582,18 +593,17 @@ def generate_packages(total_budget, num_persons, duration, datasets,
         budget_anchor = budget_per_category[cat_name]
 
         if verbose:
-            print(f"  Clustering {cat_name.capitalize()} (anchor: Rp {budget_anchor:,.0f})...")
+            print(f"  Clustering {cat_name.capitalize()} (anchor: Rp {budget_anchor:,.0f}, c={best_c})...")
 
         try:
             result = run_budget_anchored_fcm(
-                prices, budget_anchor, ratio_scheme=ratio_scheme
+                prices, budget_anchor, n_clusters=best_c
             )
             df_clustered = df.copy()
             df_clustered["Cluster"] = result["labels"]
-            # Calculate and attach exact fuzzy membership degree to the assigned cluster
             u_matrix = result["u"]
             df_clustered["Membership_Degree"] = [float(u_matrix[result["labels"][j], j]) for j in range(len(prices))]
-            df_clustered["Kategori"] = df_clustered["Cluster"].map(CLUSTER_LABELS)
+            df_clustered["Kategori"] = df_clustered["Cluster"].map(cluster_labels)
             df_clustered["Region"] = df_clustered.apply(lambda row: classify_region(row.get("Latitude", 0), row.get("Longitude", 0)), axis=1)
             clustered[cat_name] = {
                 "df": df_clustered,
@@ -606,17 +616,17 @@ def generate_packages(total_budget, num_persons, duration, datasets,
 
     # --- Langkah 3: Ambil Kandidat Wilayah Terdistribusi Spasial dari FCM ---
     candidates = {
-        "hotel": {i: [] for i in range(3)},
-        "wisata": {i: [] for i in range(3)},
-        "kuliner": {i: [] for i in range(3)}
+        "hotel": {i: [] for i in range(best_c)},
+        "wisata": {i: [] for i in range(best_c)},
+        "kuliner": {i: [] for i in range(best_c)}
     }
 
     for key in ["hotel", "wisata", "kuliner"]:
         df = clustered[key]["df"]
         cat_anchor = budget_per_category[key]
-        for i in range(3):
+        for i in range(best_c):
             items_in_c = df[df["Cluster"] == i].copy()
-            target_price = cat_anchor * ratios[i]
+            target_price = cat_anchor * ratios_for_c[i]
             
             best_items_list = []
             regions = ["Kota Batu", "Kota Malang", "Kabupaten Malang"]
@@ -640,10 +650,10 @@ def generate_packages(total_budget, num_persons, duration, datasets,
             candidates[key][i] = best_items.to_dict("records")
 
     # --- Langkah 4 & 5: Combinatorial Search & Sensor Anggaran Ketat ---
-    package_options = {0: [], 1: [], 2: []}
-    max_options_to_show = {0: 15, 1: 15, 2: 15}
+    package_options = {i: [] for i in range(best_c)}
+    max_options_to_show = {i: 15 for i in range(best_c)}
 
-    for i in range(3):
+    for i in range(best_c):
         hotel_list = candidates["hotel"][i]
         wisata_list = candidates["wisata"][i]
         kuliner_list = candidates["kuliner"][i]
@@ -769,17 +779,17 @@ def generate_packages(total_budget, num_persons, duration, datasets,
         if i == 0:
             # Hemat: Jarak spasial terkecil
             valid_combinations = sorted(valid_combinations, key=lambda x: (x.get("selisih", 0) < 0, x["total_dist"]))
-        elif i == 1:
+        elif i == best_c - 1:
+            # Premium/kelas tertinggi: Rating + kemewahan hotel (harga tinggi)
+            valid_combinations = sorted(
+                valid_combinations,
+                key=lambda x: (x.get("selisih", 0) < 0, -get_val(x["wisata"], "Rating"), -get_val(x["hotel"], "Estimasi_Harga"), x["total_dist"])
+            )
+        else:
             # Balanced: Hybrid rating + jarak
             valid_combinations = sorted(
                 valid_combinations,
                 key=lambda x: (x.get("selisih", 0) < 0, -get_val(x["wisata"], "Rating") * 10 - get_val(x["kuliner"], "Rating") * 2 + x["total_dist"] / 10.0)
-            )
-        else:
-            # Premium: Rating + kemewahan hotel (harga tinggi)
-            valid_combinations = sorted(
-                valid_combinations,
-                key=lambda x: (x.get("selisih", 0) < 0, -get_val(x["wisata"], "Rating"), -get_val(x["hotel"], "Estimasi_Harga"), x["total_dist"])
             )
 
         # Fallback jika kosong (diselaraskan eksak dengan uji_gabungan.py)
@@ -928,18 +938,18 @@ def generate_packages(total_budget, num_persons, duration, datasets,
         package_options[i] = diverse_combinations
 
     # --- Langkah 7: Pemetaan Ke Tab Opsi Alternatif (Hingga 15 Opsi Unik) ---
-    max_opts_avail = max(len(package_options[0]), len(package_options[1]), len(package_options[2]))
+    max_opts_avail = max((len(package_options[i]) for i in range(best_c)), default=0)
     num_options = min(max_opts_avail, 15)
     if num_options < 1:
         num_options = 1
 
     options_list = []
     seen_signatures = set()
-    
+
     for opt_idx in range(num_options):
         packages_for_option = []
-        
-        for i, label in CLUSTER_LABELS.items():
+
+        for i, label in cluster_labels.items():
             opts = package_options[i]
             if not opts:
                 continue
@@ -1312,16 +1322,18 @@ def generate_packages(total_budget, num_persons, duration, datasets,
         # Enforce uniqueness of option combinations
         sorted_pkgs = sorted(packages_for_option, key=lambda x: x.get("cluster_id", 0))
         sig = tuple((p.get("hotel_nama_real", ""), p.get("wisata_nama", ""), p.get("kuliner_nama", "")) for p in sorted_pkgs)
-        
+
         if sig not in seen_signatures:
             seen_signatures.add(sig)
             options_list.append({
                 "option_index": len(options_list) + 1,
                 "packages": sorted_pkgs,
+                "best_c": best_c,
+                "cluster_labels": cluster_labels,
                 "clustered_items": {
-                    "hotel": {i: candidates["hotel"][i] for i in range(3)},
-                    "wisata": {i: candidates["wisata"][i] for i in range(3)},
-                    "kuliner": {i: candidates["kuliner"][i] for i in range(3)}
+                    "hotel": {i: candidates["hotel"][i] for i in range(best_c)},
+                    "wisata": {i: candidates["wisata"][i] for i in range(best_c)},
+                    "kuliner": {i: candidates["kuliner"][i] for i in range(best_c)}
                 }
             })
 
@@ -1413,12 +1425,18 @@ def generate_flexible_exploration_packages(num_persons, duration, datasets,
     if api_key is None:
         api_key = GOOGLE_MAPS_API_KEY
 
+    # --- Auto-c: Tentukan jumlah klaster optimal via Xie-Beni (offline) ---
+    datasets_prices_flex = {cat: datasets[cat]["Estimasi_Harga"].values for cat in ["hotel", "wisata", "kuliner"]}
+    best_c = find_best_c_offline(datasets_prices_flex, verbose=verbose)
+    cluster_labels = get_cluster_labels(best_c)
+
     if verbose:
         print(f"\n{'='*60}")
         print(f"  FLEXIBLE EXPLORATION WORKFLOW")
         print(f"{'='*60}")
         print(f"  Peserta       : {num_persons} orang")
         print(f"  Durasi        : {duration} hari")
+        print(f"  Auto-c        : best_c = {best_c} | Label: {list(cluster_labels.values())}")
         print(f"  Skema         : Centroid Persentil (Offline)\n")
 
     clustered = {}
@@ -1427,15 +1445,15 @@ def generate_flexible_exploration_packages(num_persons, duration, datasets,
         prices = df["Estimasi_Harga"].values
 
         if verbose:
-            print(f"  Clustering {cat_name.capitalize()} (Persentil)...")
+            print(f"  Clustering {cat_name.capitalize()} (Persentil, c={best_c})...")
 
         try:
-            result = run_percentile_fcm(prices)
+            result = run_percentile_fcm(prices, n_clusters=best_c)
             df_clustered = df.copy()
             df_clustered["Cluster"] = result["labels"]
             u_matrix = result["u"]
             df_clustered["Membership_Degree"] = [float(u_matrix[result["labels"][j], j]) for j in range(len(prices))]
-            df_clustered["Kategori"] = df_clustered["Cluster"].map(CLUSTER_LABELS)
+            df_clustered["Kategori"] = df_clustered["Cluster"].map(cluster_labels)
             df_clustered["Region"] = df_clustered.apply(lambda row: classify_region(row.get("Latitude", 0), row.get("Longitude", 0)), axis=1)
             clustered[cat_name] = {
                 "df": df_clustered,
@@ -1447,15 +1465,15 @@ def generate_flexible_exploration_packages(num_persons, duration, datasets,
 
     # --- Langkah 3: Ambil Kandidat Wilayah Terdistribusi Spasial (Offline FCM) ---
     candidates = {
-        "hotel": {i: [] for i in range(3)},
-        "wisata": {i: [] for i in range(3)},
-        "kuliner": {i: [] for i in range(3)}
+        "hotel": {i: [] for i in range(best_c)},
+        "wisata": {i: [] for i in range(best_c)},
+        "kuliner": {i: [] for i in range(best_c)}
     }
 
     for key in ["hotel", "wisata", "kuliner"]:
         df = clustered[key]["df"]
         cntrs = clustered[key]["cntr"]
-        for i in range(3):
+        for i in range(best_c):
             items_in_c = df[df["Cluster"] == i].copy()
             
             best_items_list = []
@@ -1482,12 +1500,12 @@ def generate_flexible_exploration_packages(num_persons, duration, datasets,
                 
             candidates[key][i] = best_items.to_dict("records")
 
-    package_options = {0: [], 1: [], 2: []}
-    max_options_to_show = {0: 15, 1: 15, 2: 15}
+    package_options = {i: [] for i in range(best_c)}
+    max_options_to_show = {i: 15 for i in range(best_c)}
     num_rooms = math.ceil(num_persons / MAX_PERSONS_PER_ROOM)
     nights = duration - 1
 
-    for i in range(3):
+    for i in range(best_c):
         hotel_list = candidates["hotel"][i]
         wisata_list = candidates["wisata"][i]
         kuliner_list = candidates["kuliner"][i]
@@ -1606,17 +1624,17 @@ def generate_flexible_exploration_packages(num_persons, duration, datasets,
         if i == 0:
             # Hemat: Jarak spasial terkecil
             valid_combinations = sorted(valid_combinations, key=lambda x: (x.get("selisih", 0) < 0, x["total_dist"]))
-        elif i == 1:
+        elif i == best_c - 1:
+            # Premium/kelas tertinggi: Rating + kemewahan hotel (harga tinggi)
+            valid_combinations = sorted(
+                valid_combinations,
+                key=lambda x: (x.get("selisih", 0) < 0, -get_val(x["wisata"], "Rating"), -get_val(x["hotel"], "Estimasi_Harga"), x["total_dist"])
+            )
+        else:
             # Balanced: Hybrid rating + jarak
             valid_combinations = sorted(
                 valid_combinations,
                 key=lambda x: (x.get("selisih", 0) < 0, -get_val(x["wisata"], "Rating") * 10 - get_val(x["kuliner"], "Rating") * 2 + x["total_dist"] / 10.0)
-            )
-        else:
-            # Premium: Rating + kemewahan hotel (harga tinggi)
-            valid_combinations = sorted(
-                valid_combinations,
-                key=lambda x: (x.get("selisih", 0) < 0, -get_val(x["wisata"], "Rating"), -get_val(x["hotel"], "Estimasi_Harga"), x["total_dist"])
             )
 
         # --- Seleksi Beragam (Diversity Filter) untuk Keberagaman Paket ---
@@ -1656,26 +1674,26 @@ def generate_flexible_exploration_packages(num_persons, duration, datasets,
         package_options[i] = diverse_combinations
 
     # --- Pemetaan Ke Tab Opsi Alternatif (Hingga 15 Opsi Unik) ---
-    max_opts_avail = max(len(package_options[0]), len(package_options[1]), len(package_options[2]))
+    max_opts_avail = max((len(package_options[i]) for i in range(best_c)), default=0)
     num_options = min(max_opts_avail, 15)
     if num_options < 1:
         num_options = 1
 
     options_list = []
     seen_signatures = set()
-    
+
     for opt_idx in range(num_options):
         packages_for_option = []
-        
-        for i, label in CLUSTER_LABELS.items():
+
+        for i, label in cluster_labels.items():
             opts = package_options[i]
             if not opts:
                 continue
-            
+
             if opt_idx >= len(opts):
                 continue
             selected = opts[opt_idx]
-            
+
             h_item = selected["hotel"]
             w_item = selected["wisata"]
             k_item = selected["kuliner"]
@@ -2045,16 +2063,18 @@ def generate_flexible_exploration_packages(num_persons, duration, datasets,
         # Enforce uniqueness of option combinations
         sorted_pkgs = sorted(packages_for_option, key=lambda x: x.get("cluster_id", 0))
         sig = tuple((p.get("hotel_nama_real", ""), p.get("wisata_nama", ""), p.get("kuliner_nama", "")) for p in sorted_pkgs)
-        
+
         if sig not in seen_signatures:
             seen_signatures.add(sig)
             options_list.append({
                 "option_index": len(options_list) + 1,
                 "packages": sorted_pkgs,
+                "best_c": best_c,
+                "cluster_labels": cluster_labels,
                 "clustered_items": {
-                    "hotel": {i: candidates["hotel"][i] for i in range(3)},
-                    "wisata": {i: candidates["wisata"][i] for i in range(3)},
-                    "kuliner": {i: candidates["kuliner"][i] for i in range(3)}
+                    "hotel": {i: candidates["hotel"][i] for i in range(best_c)},
+                    "wisata": {i: candidates["wisata"][i] for i in range(best_c)},
+                    "kuliner": {i: candidates["kuliner"][i] for i in range(best_c)}
                 }
             })
 
@@ -2094,7 +2114,6 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
 
     anchor_hotel = None
     anchor_kul = None
-    ratios = RATIO_SCHEMES[DEFAULT_RATIO_SCHEME]
 
     if api_key is None:
         api_key = GOOGLE_MAPS_API_KEY
@@ -2133,6 +2152,14 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
     harga_tiket = best_wisata["Estimasi_Harga"]
     tiket_total = harga_tiket * num_persons
 
+    # --- Auto-c: Tentukan jumlah klaster optimal ---
+    dest_datasets_prices = {cat: datasets[cat]["Estimasi_Harga"].values for cat in ["hotel", "kuliner"]}
+    if total_budget is not None:
+        best_c = find_best_c_for_budget(dest_datasets_prices, total_budget, verbose=False)
+    else:
+        best_c = find_best_c_offline(dest_datasets_prices, verbose=False)
+    cluster_labels = get_cluster_labels(best_c)
+
     if verbose:
         print(f"\n{'='*60}")
         print(f"  DESTINATION-FIRST WORKFLOW")
@@ -2160,7 +2187,7 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
             df_c["Cluster"] = res["labels"]
             u_matrix = res["u"]
             df_c["Membership_Degree"] = [float(u_matrix[res["labels"][j], j]) for j in range(len(prices))]
-            df_c["Kategori"] = df_c["Cluster"].map(CLUSTER_LABELS)
+            df_c["Kategori"] = df_c["Cluster"].map(cluster_labels)
             df_c["Region"] = df_c.apply(lambda row: classify_region(row.get("Latitude", 0), row.get("Longitude", 0)), axis=1)
             clustered[cat_name] = {"df": df_c, "cntr": res["cntr"]}
     else:
@@ -2170,40 +2197,40 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
             if verbose:
                 print(f"  ⚠ Budget Rp {total_budget:,.0f} tidak cukup bahkan hanya untuk tiket wisata!")
             return []
-            
+
         # Asumsi sisa budget dibagi proporsional (Hotel vs Kuliner)
         num_rooms = math.ceil(num_persons / MAX_PERSONS_PER_ROOM)
         nights = duration - 1
-        
+
         if duration == 1:
             budget_hotel_total = sisa_budget * (40/85)
             budget_kul_total = sisa_budget * (20/45)
-            
+
             anchor_hotel = budget_hotel_total / (1 * num_rooms)
             anchor_kul = budget_kul_total / (num_persons * MEALS_PER_DAY * duration)
         else:
             budget_hotel_total = sisa_budget * (40/85)
             budget_kul_total = sisa_budget * (20/85)
-            
+
             anchor_hotel = budget_hotel_total / np.fmax(nights * num_rooms, 1.0)
             anchor_kul = budget_kul_total / (num_persons * MEALS_PER_DAY * duration)
-        
+
         for cat_name, anchor in [("hotel", anchor_hotel), ("kuliner", anchor_kul)]:
             df = datasets[cat_name]
             prices = df["Estimasi_Harga"].values
-            res = run_budget_anchored_fcm(prices, anchor)
+            res = run_budget_anchored_fcm(prices, anchor, n_clusters=best_c)
             df_c = df.copy()
             df_c["Cluster"] = res["labels"]
             u_matrix = res["u"]
             df_c["Membership_Degree"] = [float(u_matrix[res["labels"][j], j]) for j in range(len(prices))]
-            df_c["Kategori"] = df_c["Cluster"].map(CLUSTER_LABELS)
+            df_c["Kategori"] = df_c["Cluster"].map(cluster_labels)
             df_c["Region"] = df_c.apply(lambda row: classify_region(row.get("Latitude", 0), row.get("Longitude", 0)), axis=1)
             clustered[cat_name] = {"df": df_c, "cntr": res["cntr"]}
 
     candidates = {
-        "hotel": {i: [] for i in range(3)},
-        "kuliner": {i: [] for i in range(3)},
-        "wisata": {i: [] for i in range(3)}
+        "hotel": {i: [] for i in range(best_c)},
+        "kuliner": {i: [] for i in range(best_c)},
+        "wisata": {i: [] for i in range(best_c)}
     }
 
     # Saring kandidat per kategori dan per klaster kelas (0=Hemat, 1=Balanced, 2=Premium)
@@ -2214,13 +2241,14 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
         # Calculate target prices subjective to budget if budget exists
         if total_budget is not None:
             anchor = anchor_hotel if key == "hotel" else anchor_kul
-            ratios = RATIO_SCHEMES["B"]
+            ratios_dest = get_ratio_scheme(best_c)
         else:
             anchor = None
-            
-        for i in range(3):
+            ratios_dest = None
+
+        for i in range(best_c):
             items_in_c = df[df["Cluster"] == i].copy()
-            target_price = anchor * ratios[i] if anchor is not None else cntrs[i]
+            target_price = anchor * ratios_dest[i] if anchor is not None and ratios_dest is not None else cntrs[i]
             
             best_items_list = []
             regions = ["Kota Batu", "Kota Malang", "Kabupaten Malang"]
@@ -2243,7 +2271,7 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
                 
             candidates[key][i] = best_items.to_dict("records")
 
-    for i in range(3):
+    for i in range(best_c):
         wisatas_in_c = df_wisata[df_wisata["Cluster"] == i].copy()
         if wisatas_in_c.empty:
             best_items = df_wisata.head(15)
@@ -2251,12 +2279,12 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
             best_items = wisatas_in_c.head(15)
         candidates["wisata"][i] = best_items.to_dict("records")
 
-    package_options = {0: [], 1: [], 2: []}
-    max_options_to_show = {0: 15, 1: 15, 2: 15}
+    package_options = {i: [] for i in range(best_c)}
+    max_options_to_show = {i: 15 for i in range(best_c)}
     num_rooms = math.ceil(num_persons / MAX_PERSONS_PER_ROOM)
     nights = duration - 1
 
-    for i in range(3):
+    for i in range(best_c):
         hotel_list = candidates["hotel"][i]
         kuliner_list = candidates["kuliner"][i]
         
@@ -2379,17 +2407,17 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
         if i == 0:
             # Hemat: Jarak spasial terkecil
             valid_combinations = sorted(valid_combinations, key=lambda x: (x.get("selisih", 0) < 0, x["total_dist"]))
-        elif i == 1:
+        elif i == best_c - 1:
+            # Premium/kelas tertinggi: Rating + kemewahan hotel (harga tinggi)
+            valid_combinations = sorted(
+                valid_combinations,
+                key=lambda x: (x.get("selisih", 0) < 0, -get_val(x["wisata"], "Rating"), -get_val(x["hotel"], "Estimasi_Harga"), x["total_dist"])
+            )
+        else:
             # Balanced: Hybrid rating + jarak
             valid_combinations = sorted(
                 valid_combinations,
                 key=lambda x: (x.get("selisih", 0) < 0, -get_val(x["wisata"], "Rating") * 10 - get_val(x["kuliner"], "Rating") * 2 + x["total_dist"] / 10.0)
-            )
-        else:
-            # Premium: Rating + kemewahan hotel (harga tinggi)
-            valid_combinations = sorted(
-                valid_combinations,
-                key=lambda x: (x.get("selisih", 0) < 0, -get_val(x["wisata"], "Rating"), -get_val(x["hotel"], "Estimasi_Harga"), x["total_dist"])
             )
 
         # Fallback jika kosong (diselaraskan eksak dengan uji_gabungan.py)
@@ -2537,18 +2565,18 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
         package_options[i] = diverse_combinations
 
     # --- Pemetaan Ke Tab Opsi Alternatif (Hingga 15 Opsi Unik) ---
-    max_opts_avail = max(len(package_options[0]), len(package_options[1]), len(package_options[2]))
+    max_opts_avail = max((len(package_options[i]) for i in range(best_c)), default=0)
     num_options = min(max_opts_avail, 15)
     if num_options < 1:
         num_options = 1
 
     options_list = []
     seen_signatures = set()
-    
+
     for opt_idx in range(num_options):
         packages_for_option = []
-        
-        for i, label in CLUSTER_LABELS.items():
+
+        for i, label in cluster_labels.items():
             opts = package_options[i]
             if not opts:
                 continue
@@ -2936,16 +2964,18 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
         # Enforce uniqueness of option combinations
         sorted_pkgs = sorted(packages_for_option, key=lambda x: x.get("cluster_id", 0))
         sig = tuple((p.get("hotel_nama_real", ""), p.get("wisata_nama", ""), p.get("kuliner_nama", "")) for p in sorted_pkgs)
-        
+
         if sig not in seen_signatures:
             seen_signatures.add(sig)
             options_list.append({
                 "option_index": len(options_list) + 1,
                 "packages": sorted_pkgs,
+                "best_c": best_c,
+                "cluster_labels": cluster_labels,
                 "clustered_items": {
-                    "hotel": {i: candidates["hotel"][i] for i in range(3)},
-                    "wisata": {i: candidates["wisata"][i] for i in range(3)},
-                    "kuliner": {i: candidates["kuliner"][i] for i in range(3)}
+                    "hotel": {i: candidates["hotel"][i] for i in range(best_c)},
+                    "wisata": {i: candidates["wisata"][i] for i in range(best_c)},
+                    "kuliner": {i: candidates["kuliner"][i] for i in range(best_c)}
                 }
             })
 

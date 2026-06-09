@@ -41,20 +41,28 @@ FCM_ERROR = 1e-5          # Toleransi error (epsilon) untuk konvergensi
 CLUSTER_RANGE = [2, 3, 4, 5]
 
 # ============================================================
-# SKEMA RASIO INISIALISASI CENTROID
-# Sesuai Tabel Sub-bab 3.3.4 skripsi
-# Format: (ratio_hemat, ratio_balanced, ratio_premium)
+# SKEMA RASIO INISIALISASI CENTROID PER NILAI c
+# Rasio menentukan posisi awal centroid relatif terhadap budget input
 # ============================================================
-RATIO_SCHEMES = {
-    "A": (0.5, 1.0, 1.5),   # Sangat Lebar (100%)
-    "B": (0.6, 1.0, 1.4),   # Moderat (80%) — Pilihan utama
-    "C": (0.7, 1.0, 1.3),   # Sempit (60%)
-    "D": (0.5, 1.0, 2.0),   # Ekstrem (150%)
-    "E": (0.8, 1.0, 1.2),   # Sangat Sempit (40%)
+RATIO_SCHEMES_BY_C = {
+    2: (0.8, 1.2),                    # c=2: Hemat, Premium
+    3: (0.6, 1.0, 1.4),               # c=3: Hemat, Balanced, Premium
+    4: (0.5, 0.8, 1.2, 1.5),          # c=4: Hemat, Balanced, Premium, Luxury
+    5: (0.4, 0.7, 1.0, 1.3, 1.6),     # c=5
 }
 
-# Skema default yang digunakan sistem
+# Skema c=3 legacy (dipertahankan untuk referensi skripsi)
+RATIO_SCHEMES = {
+    "A": (0.5, 1.0, 1.5),
+    "B": (0.6, 1.0, 1.4),
+    "C": (0.7, 1.0, 1.3),
+    "D": (0.5, 1.0, 2.0),
+    "E": (0.8, 1.0, 1.2),
+}
 DEFAULT_RATIO_SCHEME = "B"
+
+def get_ratio_scheme(c: int) -> tuple:
+    return RATIO_SCHEMES_BY_C.get(c, RATIO_SCHEMES_BY_C[3])
 
 # ============================================================
 # TARIF TRANSPORTASI ONLINE
@@ -85,13 +93,20 @@ TRANSPORT_RATES = {
 }
 
 # ============================================================
-# LABEL KATEGORI KLASTER
+# LABEL KATEGORI KLASTER (dinamis per nilai c)
 # ============================================================
-CLUSTER_LABELS = {
-    0: "Hemat",
-    1: "Balanced",
-    2: "Premium",
+CLUSTER_LABELS_BY_C = {
+    2: {0: "Hemat", 1: "Premium"},
+    3: {0: "Hemat", 1: "Balanced", 2: "Premium"},
+    4: {0: "Hemat", 1: "Balanced", 2: "Premium", 3: "Luxury"},
+    5: {0: "Hemat", 1: "Balanced", 2: "Premium", 3: "Luxury", 4: "Elite"},
 }
+
+# Legacy — dipertahankan agar import lama tidak error sebelum dimigrasi
+CLUSTER_LABELS = CLUSTER_LABELS_BY_C[3]
+
+def get_cluster_labels(c: int) -> dict:
+    return CLUSTER_LABELS_BY_C.get(c, CLUSTER_LABELS_BY_C[3])
 
 # ============================================================
 # SAMPLE BUDGET UNTUK PENGUJIAN

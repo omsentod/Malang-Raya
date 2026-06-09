@@ -2185,14 +2185,13 @@ function onBudgetChange() {
         grid.innerHTML = '';
 
         if (!packages || packages.length === 0) {
-            // TAHAP 11: INTEGRASI RESPONSE SISTEM (EMPTY STATE DYNAMISM)
-            // Ambil parameter input saat ini untuk memberikan saran yang akurat di area hasil
+            hideKategoriFilter();
             const persons = (activeWorkflow === 'budget' ? +document.getElementById('b-persons')?.value : +document.getElementById('d-persons')?.value) || 1;
             const duration = (activeWorkflow === 'budget' ? +document.getElementById('b-duration')?.value : +document.getElementById('d-duration')?.value) || 1;
             const budgetId = (activeWorkflow === 'budget' ? 'b-budget' : 'd-budget');
             const hotelModeId = (activeWorkflow === 'budget' ? 'b-hotel-mode' : 'd-hotel-mode');
             const currentHotelMode = document.getElementById(hotelModeId)?.value || 'same';
-            
+
             const slider = document.getElementById(budgetId);
             let minBudget = calculateScaledMinBudget(persons, duration, currentHotelMode);
             if (slider && slider.dataset.aiMin) minBudget = parseInt(slider.dataset.aiMin);
@@ -2205,7 +2204,48 @@ function onBudgetChange() {
                 </div>`;
         } else {
             packages.forEach(pkg => grid.appendChild(buildPkgCard(pkg)));
+            buildKategoriFilter(packages);
         }
+    }
+
+    function buildKategoriFilter(packages) {
+        const bar = document.getElementById('kategori-filter-bar');
+        if (!bar) return;
+
+        // Ambil kategori unik dalam urutan kemunculan (Hemat → Balanced → Premium)
+        const seen = new Set();
+        const kategoriList = [];
+        packages.forEach(pkg => {
+            const k = (pkg.kategori || 'Hemat');
+            if (!seen.has(k)) { seen.add(k); kategoriList.push(k); }
+        });
+
+        // Hanya tampilkan filter jika ada lebih dari 1 kategori
+        if (kategoriList.length <= 1) { bar.style.display = 'none'; return; }
+
+        const buttons = ['Semua', ...kategoriList].map(k => {
+            const cls = k === 'Semua' ? '' : k.toLowerCase();
+            return `<button class="kat-filter-btn ${cls} ${k === 'Semua' ? 'active' : ''}" data-kat="${k === 'Semua' ? 'semua' : k.toLowerCase()}">${k.toUpperCase()}</button>`;
+        }).join('');
+
+        bar.innerHTML = `<div class="kat-filter-inner"><span class="kat-filter-label">Filter:</span>${buttons}</div>`;
+        bar.style.display = 'block';
+
+        bar.querySelectorAll('.kat-filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                bar.querySelectorAll('.kat-filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const kat = btn.dataset.kat;
+                document.querySelectorAll('#packages-grid .pkg-card').forEach(card => {
+                    card.style.display = (kat === 'semua' || card.dataset.kategori === kat) ? '' : 'none';
+                });
+            });
+        });
+    }
+
+    function hideKategoriFilter() {
+        const bar = document.getElementById('kategori-filter-bar');
+        if (bar) bar.style.display = 'none';
     }
 
     // ─────────────────────────────────────────────────
@@ -2213,7 +2253,7 @@ function onBudgetChange() {
     // ─────────────────────────────────────────────────
     function buildPkgCard(pkg) {
         const kat = (pkg.kategori || 'Hemat').toLowerCase();
-        const katMap = { hemat: 'hemat', balanced: 'balanced', premium: 'premium' };
+        const katMap = { hemat: 'hemat', balanced: 'balanced', premium: 'premium', luxury: 'premium', elite: 'premium' };
         const cls = katMap[kat] || 'hemat';
         let budget = 0;
         if (activeWorkflow === 'budget') {
@@ -2370,6 +2410,7 @@ function onBudgetChange() {
 
         const card = document.createElement('div');
         card.className = 'pkg-card';
+        card.dataset.kategori = kat;
         card.innerHTML = `
             <div class="pkg-banner ${cls}">
                 <span class="pkg-badge ${cls}">${pkg.kategori || 'HEMAT'}</span>
@@ -3869,7 +3910,7 @@ function onBudgetChange() {
                             cost: pkg.cost_akomodasi,
                             lat: pkg.hotel_lat || 0,
                             lon: pkg.hotel_lon || 0,
-                            className: ['hemat', 'balanced', 'premium'][classIdx],
+                            className: (pkg.kategori || 'Hemat').toLowerCase(),
                             classIdx: classIdx
                         });
                     }
@@ -3882,7 +3923,7 @@ function onBudgetChange() {
                                 harga: dayItin.wisata_harga,
                                 lat: dayItin.wisata_lat || 0,
                                 lon: dayItin.wisata_lon || 0,
-                                className: ['hemat', 'balanced', 'premium'][classIdx],
+                                className: (pkg.kategori || 'Hemat').toLowerCase(),
                                 classIdx: classIdx
                             });
                         }
@@ -3893,7 +3934,7 @@ function onBudgetChange() {
                                 harga: pkg.wisata_harga,
                                 lat: pkg.wisata_lat || 0,
                                 lon: pkg.wisata_lon || 0,
-                                className: ['hemat', 'balanced', 'premium'][classIdx],
+                                className: (pkg.kategori || 'Hemat').toLowerCase(),
                                 classIdx: classIdx
                             });
                         }
@@ -3907,7 +3948,7 @@ function onBudgetChange() {
                                 harga: dayItin.kuliner_harga,
                                 lat: dayItin.kuliner_lat || 0,
                                 lon: dayItin.kuliner_lon || 0,
-                                className: ['hemat', 'balanced', 'premium'][classIdx],
+                                className: (pkg.kategori || 'Hemat').toLowerCase(),
                                 classIdx: classIdx
                             });
                         }
@@ -3918,7 +3959,7 @@ function onBudgetChange() {
                                 harga: pkg.kuliner_harga,
                                 lat: pkg.kuliner_lat || 0,
                                 lon: pkg.kuliner_lon || 0,
-                                className: ['hemat', 'balanced', 'premium'][classIdx],
+                                className: (pkg.kategori || 'Hemat').toLowerCase(),
                                 classIdx: classIdx
                             });
                         }
@@ -3998,8 +4039,8 @@ function onBudgetChange() {
 
         const duration = activeOptionPackages[0].duration;
         const nights = duration - 1;
-        const classNames = ['hemat', 'balanced', 'premium'];
-        const classLabels = ['HEMAT', 'BALANCED', 'PREMIUM'];
+        const classNames = activeOptionPackages.map(pkg => (pkg.kategori || 'Hemat').toLowerCase());
+        const classLabels = activeOptionPackages.map(pkg => (pkg.kategori || 'HEMAT').toUpperCase());
 
         // Calculate Budget limit
         let budgetLimit = 0;

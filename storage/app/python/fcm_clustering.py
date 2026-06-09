@@ -17,6 +17,7 @@ from config import (
     DATASET_WISATA, DATASET_HOTEL, DATASET_MAKAN,
     FCM_FUZZIFIER, FCM_MAX_ITER, FCM_ERROR,
     CLUSTER_RANGE, RATIO_SCHEMES, CLUSTER_LABELS,
+    RATIO_SCHEMES_BY_C, get_ratio_scheme, get_cluster_labels,
 )
 
 
@@ -275,30 +276,34 @@ def find_optimal_clusters(data_prices, c_range=CLUSTER_RANGE,
 # ============================================================
 # 5. FCM DENGAN INISIALISASI CENTROID BERBASIS BUDGET
 # ============================================================
-def run_budget_anchored_fcm(data_prices, budget, ratio_scheme="B",
+def run_budget_anchored_fcm(data_prices, budget, n_clusters=3, ratio_scheme="B",
                             m=FCM_FUZZIFIER):
     """
     Menjalankan FCM dengan inisialisasi centroid berbasis anggaran pengguna.
     Sesuai Sub-bab 3.3.3 skripsi: centroid diinisialisasi secara proporsional
-    dari budget (misal: 0.6x, 1.0x, 1.4x untuk Skema B).
+    dari budget (misal: 0.6x, 1.0x, 1.4x untuk c=3 Skema B).
 
     Args:
         data_prices: numpy array 1D berisi harga
         budget: total anggaran pengguna (Rupiah)
-        ratio_scheme: kode skema ratio (A/B/C/D/E)
+        n_clusters: jumlah klaster (c) — default 3; jika diisi, ratio dari RATIO_SCHEMES_BY_C
+        ratio_scheme: kode skema ratio (A/B/C/D/E) — hanya dipakai jika n_clusters=3
         m: fuzzifier
 
     Returns:
         dict: hasil FCM + XBI + info centroid awal
     """
-    ratios = RATIO_SCHEMES[ratio_scheme]
-    n_clusters = len(ratios)  # Selalu 3 (Hemat, Balanced, Premium)
+    if budget <= 0:
+        raise ValueError("Budget harus lebih besar dari 0")
+
+    # Pilih ratio: RATIO_SCHEMES_BY_C untuk semua c; fallback ke scheme letter hanya c=3
+    if n_clusters in RATIO_SCHEMES_BY_C:
+        ratios = RATIO_SCHEMES_BY_C[n_clusters]
+    else:
+        ratios = RATIO_SCHEMES.get(ratio_scheme, RATIO_SCHEMES["B"])
 
     # Hitung centroid awal berdasarkan budget × ratio
     init_centers = np.array([budget * r for r in ratios]).reshape(-1, 1)
-
-    if budget <= 0:
-        raise ValueError("Budget harus lebih besar dari 0")
 
     # Jalankan FCM dengan centroid awal
     fcm_result = run_fcm(
@@ -310,7 +315,7 @@ def run_budget_anchored_fcm(data_prices, budget, ratio_scheme="B",
         data_prices, fcm_result["cntr"], fcm_result["u"], m=m
     )
 
-    # Urutkan centroid & re-label (0=Hemat, 1=Balanced, 2=Premium)
+    # Urutkan centroid & re-label (0=Hemat, ..., c-1=Premium)
     sorted_indices = np.argsort(fcm_result["cntr"])
     sorted_cntr = fcm_result["cntr"][sorted_indices]
     sorted_u = fcm_result["u"][sorted_indices]
@@ -327,51 +332,131 @@ def run_budget_anchored_fcm(data_prices, budget, ratio_scheme="B",
         "n_iter": fcm_result["n_iter"],
         "init_centers": [budget * r for r in ratios],
         "ratio_scheme": ratio_scheme,
+        "n_clusters": n_clusters,
         "budget": budget,
     }
+
+
+# ============================================================
+# 5B. CARI c OPTIMAL BERBASIS BUDGET (AUTO-C)
+# ============================================================
+def find_best_c_for_budget(datasets_prices: dict, budget: float,
+                           c_range=CLUSTER_RANGE, m=FCM_FUZZIFIER,
+                           verbose=False) -> int:
+    """
+    Menentukan jumlah klaster optimal (c) untuk budget tertentu menggunakan
+    rata-rata Xie-Beni Index dari semua kategori (hotel, wisata, kuliner).
+
+    Args:
+        datasets_prices: dict {'hotel': array, 'wisata': array, 'kuliner': array}
+        budget: total anggaran pengguna
+        c_range: list nilai c yang diuji (default: [2,3,4,5])
+        m: fuzzifier
+        verbose: cetak detail
+
+    Returns:
+        int: nilai c optimal (best_c)
+    """
+    avg_xb_per_c: dict[int, float] = {}
+
+    for c in c_range:
+        xb_values = []
+        for cat_name, prices in datasets_prices.items():
+            try:
+                result = run_budget_anchored_fcm(prices, budget, n_clusters=c, m=m)
+                xb_values.append(result["xb"])
+            except Exception:
+                xb_values.append(float("inf"))
+
+        avg_xb = float(np.mean(xb_values)) if xb_values else float("inf")
+        avg_xb_per_c[c] = avg_xb
+
+        if verbose:
+            print(f"    c={c}: avg XBI = {avg_xb:.6f} "
+                  f"({', '.join(f'{v:.4f}' for v in xb_values)})")
+
+    best_c = min(avg_xb_per_c, key=lambda c: avg_xb_per_c[c])
+
+    if verbose:
+        print(f"    ★ Best c = {best_c} (avg XBI = {avg_xb_per_c[best_c]:.6f})")
+
+    return best_c
 
 # ============================================================
 # 5A. FCM DENGAN INISIALISASI CENTROID BERBASIS PERSENTIL (OFFLINE)
 # ============================================================
-def run_percentile_fcm(data_prices, m=FCM_FUZZIFIER):
+def run_percentile_fcm(data_prices, n_clusters=3, m=FCM_FUZZIFIER):
     """
-    Menjalankan FCM dengan inisialisasi centroid berdasarkan distribusi statistik harga.
-    Q1 (25th percentile) untuk Hemat.
-    Median (50th percentile) untuk Balanced.
-    Q3 (75th percentile) untuk Premium.
-    
+    Menjalankan FCM dengan inisialisasi centroid berdasarkan persentil distribusi harga.
+    Persentil dihitung secara merata: linspace(100/(c+1), 100c/(c+1), c)
+    - c=2: [33.3th, 66.7th]
+    - c=3: [25th, 50th, 75th]  ← default, sesuai Q1/Median/Q3
+    - c=4: [20th, 40th, 60th, 80th]
+
     Argumen:
         data_prices: array 1D harga
+        n_clusters: jumlah klaster (c), default 3
         m: fuzzifier
     """
-    # Hitung persentil
-    q1 = np.percentile(data_prices, 25)
-    median = np.percentile(data_prices, 50)
-    q3 = np.percentile(data_prices, 75)
-    
-    init_centers = np.array([q1, median, q3]).reshape(-1, 1)
-    
-    # Jalankan FCM
+    pct_positions = np.linspace(100 / (n_clusters + 1), 100 * n_clusters / (n_clusters + 1), n_clusters)
+    init_vals = np.percentile(data_prices, pct_positions)
+    init_centers = init_vals.reshape(-1, 1)
+
     fcm_result = run_fcm(
-        data_prices, n_clusters=3, m=m, init_centroids=init_centers
+        data_prices, n_clusters=n_clusters, m=m, init_centroids=init_centers
     )
-    
+
     xb_result = calculate_xie_beni(
         data_prices, fcm_result["cntr"], fcm_result["u"], m=m
     )
-    
+
     sorted_indices = np.argsort(fcm_result["cntr"])
     sorted_cntr = fcm_result["cntr"][sorted_indices]
     sorted_u = fcm_result["u"][sorted_indices]
     sorted_labels = np.argmax(sorted_u, axis=0)
-    
+
     return {
         "cntr": sorted_cntr,
         "u": sorted_u,
         "labels": sorted_labels,
         "xb": xb_result["xb"],
-        "init_centers": [q1, median, q3],
+        "init_centers": init_vals.tolist(),
+        "n_clusters": n_clusters,
     }
+
+# ============================================================
+# 5C. CARI c OPTIMAL TANPA BUDGET (FLEXIBLE/DESTINATION WORKFLOW)
+# ============================================================
+def find_best_c_offline(datasets_prices: dict, c_range=CLUSTER_RANGE,
+                        m=FCM_FUZZIFIER, verbose=False) -> int:
+    """
+    Menentukan c optimal menggunakan rata-rata XBI dari persentil FCM
+    tanpa budget anchor (untuk Flexible/Destination-First workflow).
+    """
+    avg_xb_per_c: dict[int, float] = {}
+
+    for c in c_range:
+        xb_values = []
+        for cat_name, prices in datasets_prices.items():
+            try:
+                result = run_percentile_fcm(prices, n_clusters=c, m=m)
+                xb_values.append(result["xb"])
+            except Exception:
+                xb_values.append(float("inf"))
+
+        avg_xb = float(np.mean(xb_values)) if xb_values else float("inf")
+        avg_xb_per_c[c] = avg_xb
+
+        if verbose:
+            print(f"    c={c}: avg XBI (offline) = {avg_xb:.6f}")
+
+    best_c = min(avg_xb_per_c, key=lambda c: avg_xb_per_c[c])
+
+    if verbose:
+        print(f"    ★ Best c (offline) = {best_c}")
+
+    return best_c
+
 
 # ============================================================
 # 6. VALIDASI 5 SKEMA RASIO
