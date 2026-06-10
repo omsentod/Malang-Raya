@@ -2584,85 +2584,45 @@ function onBudgetChange() {
             return cleanName.trim().replace(/ /g, '_');
         };
 
-        // Extract ordered route points (hanya hapus duplikat berurutan untuk menjaga rute pulang-pergi hotel)
-        const uniqueRealNames = [];
-        const uniqueRealCoords = [];
-        if (legs.length > 0) {
-            const realNames = legs.map(leg => resolveRealName(leg.from, pkg));
-            const realCoords = legs.map(leg => resolveCoords(leg.from, pkg));
-            realNames.push(resolveRealName(legs[legs.length - 1].to, pkg));
-            realCoords.push(resolveCoords(legs[legs.length - 1].to, pkg));
+        // Bangun daftar waypoint berurutan dengan nama, koordinat, dan tipe tempat
+        const routeWaypoints = []; // [{name, coord, type, label}]
+        const pushWp = (name, coord, type, label) => {
+            if (!name || name === 'N/A' || name === 'Checkout' || !coord) return;
+            const clean = name.trim();
+            const last = routeWaypoints[routeWaypoints.length - 1];
+            if (!last || last.name !== clean) routeWaypoints.push({ name: clean, coord, type, label });
+        };
 
-            realNames.forEach((name, idx) => {
-                const cleanName = name ? name.trim() : "";
-                const coord = realCoords[idx];
-                if (cleanName && cleanName !== 'N/A' && cleanName !== 'Checkout' && coord) {
-                    if (uniqueRealNames.length === 0 || uniqueRealNames[uniqueRealNames.length - 1] !== cleanName) {
-                        uniqueRealNames.push(cleanName);
-                        uniqueRealCoords.push(coord);
-                    }
-                }
+        if (legs.length > 0) {
+            const typeMap = { 'Hotel': 'hotel', 'Wisata': 'wisata', 'Makan Pagi': 'kuliner-pagi', 'Makan Siang': 'kuliner-siang', 'Makan Malam': 'kuliner-malam', 'Kuliner': 'kuliner-siang' };
+            legs.forEach(leg => {
+                const n = resolveRealName(leg.from, pkg);
+                const c = resolveCoords(leg.from, pkg);
+                const t = typeMap[leg.from?.split('(')[0]?.trim()] || 'place';
+                pushWp(n, c, t, leg.from);
             });
+            const lastLeg = legs[legs.length - 1];
+            const ln = resolveRealName(lastLeg.to, pkg);
+            const lc = resolveCoords(lastLeg.to, pkg);
+            const lt = typeMap[lastLeg.to?.split('(')[0]?.trim()] || 'place';
+            pushWp(ln, lc, lt, lastLeg.to);
         } else {
             if (pkg.duration > 1 && pkg.hotel_nama && pkg.hotel_nama !== 'Tanpa Akomodasi (One Day Trip)') {
-                uniqueRealNames.push(pkg.hotel_nama_real || pkg.hotel_nama);
-                uniqueRealCoords.push(`${pkg.hotel_lat || 0},${pkg.hotel_lon || 0}`);
+                pushWp(pkg.hotel_nama_real || pkg.hotel_nama, `${pkg.hotel_lat || 0},${pkg.hotel_lon || 0}`, 'hotel', 'Hotel');
             }
             pkg.itinerary?.forEach(day => {
-                if (day.kuliner_pagi && day.kuliner_pagi !== 'N/A') {
-                    const clean = day.kuliner_pagi.trim();
-                    if (uniqueRealNames.length === 0 || uniqueRealNames[uniqueRealNames.length - 1] !== clean) {
-                        uniqueRealNames.push(clean);
-                        uniqueRealCoords.push(`${day.kuliner_pagi_lat || 0},${day.kuliner_pagi_lon || 0}`);
-                    }
-                }
-                if (day.wisata && day.wisata !== 'N/A') {
-                    const clean = day.wisata.trim();
-                    if (uniqueRealNames.length === 0 || uniqueRealNames[uniqueRealNames.length - 1] !== clean) {
-                        uniqueRealNames.push(clean);
-                        uniqueRealCoords.push(`${day.wisata_lat || 0},${day.wisata_lon || 0}`);
-                    }
-                }
-                if (day.kuliner && day.kuliner !== 'N/A') {
-                    const clean = day.kuliner.trim();
-                    if (uniqueRealNames.length === 0 || uniqueRealNames[uniqueRealNames.length - 1] !== clean) {
-                        uniqueRealNames.push(clean);
-                        uniqueRealCoords.push(`${day.kuliner_lat || 0},${day.kuliner_lon || 0}`);
-                    }
-                }
-                if (day.kuliner_malam && day.kuliner_malam !== 'N/A') {
-                    const clean = day.kuliner_malam.trim();
-                    if (uniqueRealNames.length === 0 || uniqueRealNames[uniqueRealNames.length - 1] !== clean) {
-                        uniqueRealNames.push(clean);
-                        uniqueRealCoords.push(`${day.kuliner_malam_lat || 0},${day.kuliner_malam_lon || 0}`);
-                    }
-                }
-                if (day.hotel && day.hotel !== 'Checkout') {
-                    const clean = day.hotel.trim();
-                    if (uniqueRealNames.length === 0 || uniqueRealNames[uniqueRealNames.length - 1] !== clean) {
-                        uniqueRealNames.push(clean);
-                        uniqueRealCoords.push(`${day.hotel_lat || pkg.hotel_lat || 0},${day.hotel_lon || pkg.hotel_lon || 0}`);
-                    }
-                }
+                pushWp(day.kuliner_pagi, `${day.kuliner_pagi_lat || 0},${day.kuliner_pagi_lon || 0}`, 'kuliner-pagi', 'Makan Pagi');
+                pushWp(day.wisata, `${day.wisata_lat || 0},${day.wisata_lon || 0}`, 'wisata', 'Wisata');
+                pushWp(day.kuliner, `${day.kuliner_lat || 0},${day.kuliner_lon || 0}`, 'kuliner-siang', 'Makan Siang');
+                pushWp(day.kuliner_malam, `${day.kuliner_malam_lat || 0},${day.kuliner_malam_lon || 0}`, 'kuliner-malam', 'Makan Malam');
+                if (day.hotel && day.hotel !== 'Checkout')
+                    pushWp(day.hotel, `${day.hotel_lat || pkg.hotel_lat || 0},${day.hotel_lon || pkg.hotel_lon || 0}`, 'hotel', 'Hotel');
             });
         }
 
-        // Generate Maps directions URL & embed map URL menggunakan koordinat agar sangat akurat
-        let mapEmbedUrl = "";
-        let mapsUrl = "";
-        if (uniqueRealCoords.length >= 2) {
-            const originSearch = uniqueRealCoords[0];
-            const embedDAddr = uniqueRealCoords.slice(1).map(w => encodeURIComponent(w)).join("+to:");
-            mapEmbedUrl = `https://maps.google.com/maps?saddr=${encodeURIComponent(originSearch)}&daddr=${embedDAddr}&t=&z=13&ie=UTF8&iwloc=&output=embed`;
-            
-            const destName = uniqueRealCoords[uniqueRealCoords.length - 1];
-            const waypointsNames = uniqueRealCoords.slice(1, -1).join('|');
-            mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(originSearch)}&destination=${encodeURIComponent(destName)}&waypoints=${encodeURIComponent(waypointsNames)}&travelmode=driving`;
-        } else if (uniqueRealCoords.length === 1) {
-            const searchQ = uniqueRealCoords[0];
-            mapEmbedUrl = `https://maps.google.com/maps?q=${encodeURIComponent(searchQ)}&hl=id&z=15&t=&ie=UTF8&iwloc=&output=embed`;
-            mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(searchQ)}`;
-        }
+        // Koordinat array untuk backward-compat (masih dipakai di bookmark)
+        const uniqueRealNames  = routeWaypoints.map(w => w.name);
+        const uniqueRealCoords = routeWaypoints.map(w => w.coord);
 
         // Build unique places image list for gallery view
         const uniquePics = [];
@@ -2852,22 +2812,20 @@ function onBudgetChange() {
                     </div>
                 </div>
 
-                <!-- 4. Google Maps Route Embed (Potongan Rute) -->
+                <!-- 4. Leaflet Route Map (OSRM geometry + OSM tiles) -->
                 <div class="detail-map-wrapper">
                     <h4 class="detail-section-title">
                         <span class="material-symbols-outlined" style="color:var(--teal-600); font-size:20px;">map</span>
-                        Potongan Peta Rute Perjalanan Spasial
+                        Peta Rute Perjalanan (OSRM + OpenStreetMap)
                     </h4>
-                    <div class="detail-map-frame">
-                        <iframe 
-                            src="${mapEmbedUrl}"
-                            width="100%" 
-                            height="100%" 
-                            style="border:0;" 
-                            allowfullscreen="" 
-                            loading="lazy">
-                        </iframe>
+                    <div id="leaflet-route-map" style="height:400px; border-radius:12px; overflow:hidden; border:1px solid var(--slate-200); background:#f1f5f9;">
+                        <div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--slate-400);font-size:13px;gap:8px;">
+                            <span class="material-symbols-outlined" style="font-size:20px;">sync</span> Memuat peta…
+                        </div>
                     </div>
+                    <p style="margin:6px 0 0;font-size:11px;color:var(--slate-400);">
+                        Peta berbasis OpenStreetMap · Rute dihitung via OSRM · Klik marker untuk validasi di Google Maps
+                    </p>
                 </div>
 
                 <!-- 5. Day-by-Day Timeline -->
@@ -2881,15 +2839,126 @@ function onBudgetChange() {
                     </div>
                 </div>
 
-                <!-- 6. Action Button (Google Maps Redirect) -->
+                <!-- 6. Action Buttons -->
                 <div class="detail-footer-actions">
-                    <a href="${mapsUrl}" target="_blank" class="gmaps-btn">Navigasi Rute di Google Maps</a>
+                    <button onclick="document.getElementById('route-modal').classList.remove('show')" class="gmaps-btn" style="background:var(--slate-600);">Tutup</button>
                 </div>
             </div>
         `;
 
         modal.classList.add('show');
+        // Render Leaflet setelah DOM modal sudah ada
+        requestAnimationFrame(() => initLeafletRouteMap('leaflet-route-map', routeWaypoints));
     }
+
+    // ─── Leaflet + OSRM Route Map ───────────────────────────────────────
+    let _leafletMapInstance = null;
+
+    const WAYPOINT_STYLE = {
+        'hotel':        { color: '#2563eb', emoji: '🏨', label: 'Hotel' },
+        'wisata':       { color: '#16a34a', emoji: '🏞️', label: 'Wisata' },
+        'kuliner-pagi': { color: '#d97706', emoji: '☀️', label: 'Makan Pagi' },
+        'kuliner-siang':{ color: '#ea580c', emoji: '🍽️', label: 'Makan Siang' },
+        'kuliner-malam':{ color: '#7c3aed', emoji: '🌙', label: 'Makan Malam' },
+        'place':        { color: '#475569', emoji: '📍', label: 'Tempat' },
+    };
+
+    function makeLeafletIcon(type, seq) {
+        const s = WAYPOINT_STYLE[type] || WAYPOINT_STYLE.place;
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="42" viewBox="0 0 32 42">
+            <ellipse cx="16" cy="40" rx="6" ry="2" fill="rgba(0,0,0,0.2)"/>
+            <path d="M16 0C9.4 0 4 5.4 4 12c0 9 12 28 12 28S28 21 28 12C28 5.4 22.6 0 16 0z" fill="${s.color}"/>
+            <circle cx="16" cy="12" r="7" fill="#fff"/>
+            <text x="16" y="16" text-anchor="middle" font-size="9" font-weight="700" fill="${s.color}">${seq}</text>
+        </svg>`;
+        return L.divIcon({
+            html: svg, className: '', iconSize: [32, 42], iconAnchor: [16, 42], popupAnchor: [0, -44]
+        });
+    }
+
+    async function fetchOSRMGeometry(waypoints) {
+        if (waypoints.length < 2) return null;
+        const coordStr = waypoints
+            .map(w => { const [lat, lon] = w.coord.split(','); return `${parseFloat(lon)},${parseFloat(lat)}`; })
+            .join(';');
+        const url = `https://router.project-osrm.org/route/v1/driving/${coordStr}?overview=full&geometries=geojson`;
+        try {
+            const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
+            const data = await res.json();
+            if (data.code === 'Ok') return data.routes[0].geometry;
+        } catch (e) {
+            console.warn('OSRM geometry fetch failed:', e);
+        }
+        return null;
+    }
+
+    async function initLeafletRouteMap(containerId, waypoints) {
+        if (typeof L === 'undefined') return;
+
+        // Hancurkan instance lama jika ada
+        if (_leafletMapInstance) {
+            _leafletMapInstance.remove();
+            _leafletMapInstance = null;
+        }
+
+        const container = document.getElementById(containerId);
+        if (!container || waypoints.length === 0) return;
+
+        const map = L.map(container, { zoomControl: true });
+        _leafletMapInstance = map;
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© <a href="https://openstreetmap.org" target="_blank">OpenStreetMap</a> contributors',
+            maxZoom: 18,
+        }).addTo(map);
+
+        const latLngs = waypoints.map(w => {
+            const [lat, lon] = w.coord.split(',').map(Number);
+            return [lat, lon];
+        }).filter(([lat, lon]) => lat !== 0 || lon !== 0);
+
+        if (latLngs.length === 0) return;
+
+        // Tambahkan marker dulu (langsung, tidak tunggu OSRM)
+        waypoints.forEach((wp, idx) => {
+            const [lat, lon] = wp.coord.split(',').map(Number);
+            if (lat === 0 && lon === 0) return;
+            const s = WAYPOINT_STYLE[wp.type] || WAYPOINT_STYLE.place;
+            const gmapsUrl = `https://www.google.com/maps/search/${encodeURIComponent(wp.name)}/@${lat},${lon},17z`;
+            L.marker([lat, lon], { icon: makeLeafletIcon(wp.type, idx + 1) })
+                .addTo(map)
+                .bindPopup(`
+                    <div style="min-width:190px;font-family:system-ui,sans-serif;">
+                        <div style="font-size:13px;font-weight:700;color:#1e293b;margin-bottom:4px;">
+                            ${s.emoji} ${wp.name}
+                        </div>
+                        <span style="font-size:10px;background:${s.color}22;color:${s.color};padding:2px 7px;border-radius:99px;font-weight:600;">
+                            ${s.label}
+                        </span>
+                        <hr style="margin:7px 0;border:none;border-top:1px solid #e2e8f0;">
+                        <a href="${gmapsUrl}" target="_blank"
+                           style="font-size:11px;color:#0ea5e9;text-decoration:none;display:flex;align-items:center;gap:4px;font-weight:600;">
+                            🔗 Validasi di Google Maps
+                        </a>
+                    </div>
+                `);
+        });
+
+        map.fitBounds(latLngs, { padding: [24, 24] });
+
+        // Fetch OSRM geometry secara async — gambar polyline setelah dapat
+        const geometry = await fetchOSRMGeometry(waypoints.filter(w => {
+            const [lat, lon] = w.coord.split(',').map(Number);
+            return lat !== 0 || lon !== 0;
+        }));
+
+        if (geometry && _leafletMapInstance === map) {
+            const routeLatLngs = geometry.coordinates.map(([lon, lat]) => [lat, lon]);
+            L.polyline(routeLatLngs, { color: '#2563eb', weight: 4, opacity: 0.75 }).addTo(map);
+            map.fitBounds(routeLatLngs, { padding: [24, 24] });
+        }
+    }
+    // ────────────────────────────────────────────────────────────────────
 
     document.getElementById('modal-close-btn')?.addEventListener('click', () => {
         document.getElementById('route-modal')?.classList.remove('show');
