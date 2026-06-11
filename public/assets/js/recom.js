@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const dayNum = dayMatch ? parseInt(dayMatch[1]) : 1;
         const dayItin = pkg.itinerary?.find(d => d.day === dayNum);
         const cleanLabel = label.replace(/\s*\(Hari \d+\)/gi, '').trim().toLowerCase();
-        
+
         if (cleanLabel.includes('wisata')) {
             return dayItin ? dayItin.wisata : pkg.wisata_nama;
         }
@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const dayNum = dayMatch ? parseInt(dayMatch[1]) : 1;
         const dayItin = pkg.itinerary?.find(d => d.day === dayNum);
         const cleanLabel = label.replace(/\s*\(Hari \d+\)/gi, '').trim().toLowerCase();
-        
+
         let lat = 0, lon = 0;
         if (cleanLabel.includes('wisata')) {
             lat = dayItin ? (dayItin.wisata_lat || 0) : (pkg.wisata_lat || 0);
@@ -106,7 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
         function getOptionGraphic(val, text) {
             const textLower = text.toLowerCase();
             const valLower = String(val).toLowerCase();
-            
+
             // Otomatis / AI
             if (valLower === '' && textLower.includes('otomatis')) {
                 return `
@@ -199,18 +199,18 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('select.form-input-select').forEach(selectEl => {
             if (selectEl.dataset.customized || selectEl.id === 'ai-alternatives-select') return;
             selectEl.dataset.customized = 'true';
-            
+
             selectEl.style.display = 'none';
-            
+
             const container = document.createElement('div');
             container.className = 'custom-select-dropdown-container';
             container.style.cssText = 'position: relative; width: 100%;';
-            
+
             const options = Array.from(selectEl.options);
             const activeOption = selectEl.options[selectEl.selectedIndex] || selectEl.options[0];
             const selectedLabel = activeOption ? activeOption.text : '';
             const activeGraphic = activeOption ? getOptionGraphic(activeOption.value, activeOption.text) : '';
-            
+
             let menuItemsHTML = options.map((opt, i) => {
                 const isSelected = selectEl.selectedIndex === i;
                 const optGraphic = getOptionGraphic(opt.value, opt.text);
@@ -224,7 +224,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </button>
                 `;
             }).join('');
-            
+
             container.innerHTML = `
                 <button type="button" class="custom-select-trigger">
                     <div class="trigger-inner">
@@ -240,17 +240,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     ${menuItemsHTML}
                 </div>
             `;
-            
+
             selectEl.parentNode.insertBefore(container, selectEl.nextSibling);
-            
+
             const triggerBtn = container.querySelector('.custom-select-trigger');
             const menuList = container.querySelector('.custom-select-menu');
             const arrowIcon = triggerBtn.querySelector('.select-arrow-icon');
-            
+
             triggerBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const isOpen = menuList.classList.contains('open');
-                
+
                 // Close other open custom select menus
                 document.querySelectorAll('.custom-select-menu').forEach(m => {
                     if (m !== menuList) {
@@ -261,7 +261,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.querySelectorAll('.select-arrow-icon').forEach(a => {
                     if (a !== arrowIcon) a.style.transform = 'rotate(0deg)';
                 });
-                
+
                 if (isOpen) {
                     menuList.classList.remove('open');
                     menuList.style.display = 'none';
@@ -272,41 +272,41 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (arrowIcon) arrowIcon.style.transform = 'rotate(180deg)';
                 }
             });
-            
+
             menuList.querySelectorAll('.custom-select-item').forEach((itemEl, idx) => {
                 itemEl.addEventListener('click', (e) => {
                     e.stopPropagation();
                     menuList.classList.remove('open');
                     menuList.style.display = 'none';
                     if (arrowIcon) arrowIcon.style.transform = 'rotate(0deg)';
-                    
+
                     container.querySelector('.custom-select-trigger-text').textContent = itemEl.querySelector('span').textContent;
-                    
+
                     // Update trigger icon
                     const triggerIcon = triggerBtn.querySelector('.trigger-prefix-icon');
                     const optionIcon = itemEl.querySelector('svg');
                     if (triggerIcon) {
                         triggerIcon.innerHTML = optionIcon ? optionIcon.outerHTML : '';
                     }
-                    
+
                     menuList.querySelectorAll('.custom-select-item').forEach(btn => {
                         btn.classList.remove('active');
                         const checkIcon = btn.querySelector('.check-icon');
                         checkIcon?.remove();
                     });
                     itemEl.classList.add('active');
-                    
+
                     const checkSpan = document.createElement('span');
                     checkSpan.className = 'material-symbols-outlined check-icon';
                     checkSpan.textContent = 'check_circle';
                     itemEl.appendChild(checkSpan);
-                    
+
                     selectEl.selectedIndex = idx;
                     selectEl.dispatchEvent(new Event('change'));
                 });
             });
         });
-        
+
         // Document click to close all custom select menus
         document.addEventListener('click', (e) => {
             document.querySelectorAll('.custom-select-menu').forEach(m => {
@@ -314,7 +314,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 m.style.display = 'none';
             });
             document.querySelectorAll('.select-arrow-icon').forEach(a => a.style.transform = 'rotate(0deg)');
-            
+
             // Close searchable suggestions on clicking outside (from custom planner wizard)
             document.querySelectorAll('.custom-search-select-dropdown').forEach(dropdownEl => {
                 const triggerEl = dropdownEl.closest('.custom-select-wrapper')?.querySelector('.custom-select-trigger');
@@ -1071,7 +1071,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     function updateSelectedDayCost(dNum) {
                         if (!selectedDays[dNum]) return;
                         const targetDPlan = selectedDays[dNum];
-                        
+
                         const persons = activeOptionPackages[0].num_persons;
                         let ratePerKm = 2250;
                         if (persons <= 1) {
@@ -1085,7 +1085,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         const dayWisataCost = (targetDPlan.wisata_harga || 0) * persons;
                         const isCheckoutOrODT = (pkg.duration === 1 || dNum === pkg.duration);
                         const dayKulinerCost = ((targetDPlan.kuliner_pagi_harga || 0) + targetDPlan.kuliner_harga + (isCheckoutOrODT ? 0 : (targetDPlan.kuliner_malam_harga || 0))) * persons;
-                        
+
                         let dayDistance = 0;
                         let currentHotel = null;
                         let nextHotel = null;
@@ -1104,7 +1104,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         const chLon = currentHotel ? (currentHotel.lon || 0) : 0;
                         const nhLat = nextHotel ? (nextHotel.lat || 0) : chLat;
                         const nhLon = nextHotel ? (nextHotel.lon || 0) : chLon;
-                        
+
                         const kpLat = targetDPlan.kuliner_pagi_lat || 0;
                         const kpLon = targetDPlan.kuliner_pagi_lon || 0;
                         const wLat = targetDPlan.wisata_lat || 0;
@@ -1297,12 +1297,12 @@ document.addEventListener('DOMContentLoaded', () => {
         let costHotel = 0;
         if (duration > 1) {
             // Jika pindah hotel, estimasi harga rata-rata hotel termurah bertambah karena harus mix & match
-            const hotelMultiplier = (hotelMode === 'split' && nights > 1) ? 1.2 : 1.0; 
+            const hotelMultiplier = (hotelMode === 'split' && nights > 1) ? 1.2 : 1.0;
             costHotel = (minHotelPrice * hotelMultiplier) * nights * rooms;
         }
 
         const costWisata = (minWisataPrice + avgWisataPrice * (duration - 1)) * persons;
-        
+
         let costKuliner = 0;
         if (duration === 1) {
             costKuliner = (minKulinerPrice * 2) * persons;
@@ -1314,16 +1314,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         let minDistanceBase = 0;
-        if (duration === 1) minDistanceBase = 20; 
+        if (duration === 1) minDistanceBase = 20;
         else if (duration === 2) minDistanceBase = 25 + 15;
         else minDistanceBase = 35 + 35 * (duration - 2) + 20; // Naikkan estimasi jarak harian menjadi 35km untuk mobilitas riil
 
         // Ekstra mobilitas / jarak untuk perpindahan lokasi hotel baru
         if (hotelMode === 'split' && duration > 2) minDistanceBase += (15 * (duration - 2));
 
-    const costTransport = Math.round(minDistanceBase * ratePerKm);
+        const costTransport = Math.round(minDistanceBase * ratePerKm);
 
-    const totalMin = costHotel + costWisata + costKuliner + costTransport;
+        const totalMin = costHotel + costWisata + costKuliner + costTransport;
         return Math.ceil((totalMin * 1.45) / 50000) * 50000; // Naikkan safety margin ke 45%
     }
 
@@ -1348,7 +1348,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // ODT: ~35 km
         // 2 hari: Hari1 (~50km lintas wilayah) + Hari2 (~35km) = ~85 km
         const maxDistanceBase = duration === 1 ? 35 : 50 + 35 * (duration - 1);
-        
+
         let adjustedMaxDistance = maxDistanceBase;
         if (hotelMode === 'split' && duration > 2) adjustedMaxDistance += (20 * (duration - 2));
         const costTransport = Math.round(adjustedMaxDistance * ratePerKm);
@@ -1589,7 +1589,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 slider.value = val;
                 e.target.value = val;
                 const valEl = document.getElementById('d-budget-val');
-                
+
                 const dPersons = +document.getElementById('d-persons')?.value || 1;
                 const dDuration = +document.getElementById('d-duration')?.value || 1;
                 const dHotelMode = document.getElementById('d-hotel-mode')?.value || 'same';
@@ -1723,110 +1723,110 @@ document.addEventListener('DOMContentLoaded', () => {
             return null;
         }
     }
-let minBudgetDebounceTimer = null;
-let budgetFetchSeq = 0;
+    let minBudgetDebounceTimer = null;
+    let budgetFetchSeq = 0;
 
-function fetchApiMinMaxUpdate() {
-    // Aktifkan state syncing agar "Response Sistem" segera bereaksi secara visual
-    isSyncingBudget = true;
-    onBudgetChange();
+    function fetchApiMinMaxUpdate() {
+        // Aktifkan state syncing agar "Response Sistem" segera bereaksi secara visual
+        isSyncingBudget = true;
+        onBudgetChange();
 
-    // Beri indikator visual agar user mengerti Python sedang mengkalkulasi batas asli
-    const bMaxLbl = document.getElementById('b-budget-max-label');
-    if (bMaxLbl) bMaxLbl.innerHTML = '<span style="color:var(--teal-600);font-weight:700">Sinkronisasi Budget...</span>';
-    const dMaxLbl = document.getElementById('d-budget-max-label');
-    if (dMaxLbl) dMaxLbl.innerHTML = '<span style="color:var(--teal-600);font-weight:700">Sinkronisasi Budget...</span>';
+        // Beri indikator visual agar user mengerti Python sedang mengkalkulasi batas asli
+        const bMaxLbl = document.getElementById('b-budget-max-label');
+        if (bMaxLbl) bMaxLbl.innerHTML = '<span style="color:var(--teal-600);font-weight:700">Sinkronisasi Budget...</span>';
+        const dMaxLbl = document.getElementById('d-budget-max-label');
+        if (dMaxLbl) dMaxLbl.innerHTML = '<span style="color:var(--teal-600);font-weight:700">Sinkronisasi Budget...</span>';
 
-    clearTimeout(minBudgetDebounceTimer);
-    minBudgetDebounceTimer = setTimeout(async () => {
-        const seq = ++budgetFetchSeq;
+        clearTimeout(minBudgetDebounceTimer);
+        minBudgetDebounceTimer = setTimeout(async () => {
+            const seq = ++budgetFetchSeq;
 
-        // ── Fetch untuk Budget-First ──
-        const bPersons = +document.getElementById('b-persons')?.value || 1;
-        const bDuration = +document.getElementById('b-duration')?.value || 1;
-        const bHotelModeVal = document.getElementById('b-hotel-mode')?.value || 'same';
+            // ── Fetch untuk Budget-First ──
+            const bPersons = +document.getElementById('b-persons')?.value || 1;
+            const bDuration = +document.getElementById('b-duration')?.value || 1;
+            const bHotelModeVal = document.getElementById('b-hotel-mode')?.value || 'same';
 
-        // ── Fetch untuk Destination-First (pakai nilai d- bukan b-) ──
-        const dPersons = +document.getElementById('d-persons')?.value || 1;
-        const dDuration = +document.getElementById('d-duration')?.value || 1;
-        const dHotelModeVal = document.getElementById('d-hotel-mode')?.value || 'same';
+            // ── Fetch untuk Destination-First (pakai nilai d- bukan b-) ──
+            const dPersons = +document.getElementById('d-persons')?.value || 1;
+            const dDuration = +document.getElementById('d-duration')?.value || 1;
+            const dHotelModeVal = document.getElementById('d-hotel-mode')?.value || 'same';
 
-        // Fetch keduanya paralel
-        const [bRange, dRange] = await Promise.all([
-            fetchBudgetRange(bPersons, bDuration, bHotelModeVal),
-            fetchBudgetRange(dPersons, dDuration, dHotelModeVal)
-        ]);
+            // Fetch keduanya paralel
+            const [bRange, dRange] = await Promise.all([
+                fetchBudgetRange(bPersons, bDuration, bHotelModeVal),
+                fetchBudgetRange(dPersons, dDuration, dHotelModeVal)
+            ]);
 
-        if (seq !== budgetFetchSeq) return;
+            if (seq !== budgetFetchSeq) return;
 
-        // ── Update b-slider ──
-        if (bRange) {
-            const bSlider = document.getElementById('b-budget');
-            if (bSlider) {
-                bSlider.dataset.aiMin = bRange.min_budget;
-                const oldVal = parseInt(bSlider.value) || bRange.min_budget;
-                
-                const safeMax = Math.max(bRange.min_budget + 50000, bRange.max_budget);
-                bSlider.max = safeMax;
-                bSlider.min = 0; // Biarkan slider tetap di 0
-                bSlider.step = 10000;
+            // ── Update b-slider ──
+            if (bRange) {
+                const bSlider = document.getElementById('b-budget');
+                if (bSlider) {
+                    bSlider.dataset.aiMin = bRange.min_budget;
+                    const oldVal = parseInt(bSlider.value) || bRange.min_budget;
 
-                let newVal = Math.max(0, Math.min(safeMax, oldVal));
-                bSlider.value = newVal;
+                    const safeMax = Math.max(bRange.min_budget + 50000, bRange.max_budget);
+                    bSlider.max = safeMax;
+                    bSlider.min = 0; // Biarkan slider tetap di 0
+                    bSlider.step = 10000;
 
-                document.getElementById('b-budget-val')?.textContent !== undefined &&
-                    (document.getElementById('b-budget-val').textContent = fmtRp(newVal));
-                document.getElementById('b-budget-min-label') &&
-                    (document.getElementById('b-budget-min-label').textContent = "Min: Rp 0");
-                document.getElementById('b-budget-max-label') &&
-                    (document.getElementById('b-budget-max-label').textContent = "Max: " + fmtRp(bRange.max_budget));
+                    let newVal = Math.max(0, Math.min(safeMax, oldVal));
+                    bSlider.value = newVal;
 
-                const bManual = document.getElementById('b-budget-manual');
-                if (bManual && document.activeElement !== bManual) bManual.value = newVal;
-            }
-        }
+                    document.getElementById('b-budget-val')?.textContent !== undefined &&
+                        (document.getElementById('b-budget-val').textContent = fmtRp(newVal));
+                    document.getElementById('b-budget-min-label') &&
+                        (document.getElementById('b-budget-min-label').textContent = "Min: Rp 0");
+                    document.getElementById('b-budget-max-label') &&
+                        (document.getElementById('b-budget-max-label').textContent = "Max: " + fmtRp(bRange.max_budget));
 
-        // ── Update d-slider ──
-        if (dRange) {
-            const dSlider = document.getElementById('d-budget');
-            if (dSlider) {
-                dSlider.dataset.aiMin = dRange.min_budget;
-                const oldVal = parseInt(dSlider.value) || 0;
-                const safeMax = Math.max(dRange.min_budget + 50000, dRange.max_budget);
-
-                dSlider.max = safeMax;
-                dSlider.min = 0;
-                dSlider.step = 10000;
-
-                let newVal = Math.max(0, Math.min(safeMax, oldVal));
-                dSlider.value = newVal;
-
-                const isNoBudget = newVal < dRange.min_budget;
-                const dValEl = document.getElementById('d-budget-val');
-                if (dValEl) dValEl.textContent = isNoBudget ? "Tanpa Batasan Anggaran " : fmtRp(newVal);
-
-                document.getElementById('d-budget-min-label') &&
-                    (document.getElementById('d-budget-min-label').textContent = "Min: Rp 0");
-                document.getElementById('d-budget-max-label') &&
-                    (document.getElementById('d-budget-max-label').textContent = "Max: " + fmtRp(dRange.max_budget));
-
-                const dManual = document.getElementById('d-budget-manual');
-                if (dManual && document.activeElement !== dManual) {
-                    dManual.value = isNoBudget ? "" : newVal;
-                    dManual.min = dRange.min_budget;
-                    dManual.max = dRange.max_budget;
+                    const bManual = document.getElementById('b-budget-manual');
+                    if (bManual && document.activeElement !== bManual) bManual.value = newVal;
                 }
             }
-        }
 
-        // Selesai sinkronisasi, tampilkan angka final
-        isSyncingBudget = false;
-        onBudgetChange();
-    }, 800);
-}
+            // ── Update d-slider ──
+            if (dRange) {
+                const dSlider = document.getElementById('d-budget');
+                if (dSlider) {
+                    dSlider.dataset.aiMin = dRange.min_budget;
+                    const oldVal = parseInt(dSlider.value) || 0;
+                    const safeMax = Math.max(dRange.min_budget + 50000, dRange.max_budget);
 
-function onBudgetChange() {
-    // Tab Budget-First
+                    dSlider.max = safeMax;
+                    dSlider.min = 0;
+                    dSlider.step = 10000;
+
+                    let newVal = Math.max(0, Math.min(safeMax, oldVal));
+                    dSlider.value = newVal;
+
+                    const isNoBudget = newVal < dRange.min_budget;
+                    const dValEl = document.getElementById('d-budget-val');
+                    if (dValEl) dValEl.textContent = isNoBudget ? "Tanpa Batasan Anggaran " : fmtRp(newVal);
+
+                    document.getElementById('d-budget-min-label') &&
+                        (document.getElementById('d-budget-min-label').textContent = "Min: Rp 0");
+                    document.getElementById('d-budget-max-label') &&
+                        (document.getElementById('d-budget-max-label').textContent = "Max: " + fmtRp(dRange.max_budget));
+
+                    const dManual = document.getElementById('d-budget-manual');
+                    if (dManual && document.activeElement !== dManual) {
+                        dManual.value = isNoBudget ? "" : newVal;
+                        dManual.min = dRange.min_budget;
+                        dManual.max = dRange.max_budget;
+                    }
+                }
+            }
+
+            // Selesai sinkronisasi, tampilkan angka final
+            isSyncingBudget = false;
+            onBudgetChange();
+        }, 800);
+    }
+
+    function onBudgetChange() {
+        // Tab Budget-First
         const budget = getRawBudget('b-budget');
         const persons = +document.getElementById('b-persons')?.value || 1;
         const duration = +document.getElementById('b-duration')?.value || 1;
@@ -2041,7 +2041,7 @@ function onBudgetChange() {
             triggerBtn?.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const isOpen = menuList.classList.contains('open');
-                
+
                 // Close other open custom select menus
                 document.querySelectorAll('.custom-select-menu').forEach(m => {
                     if (m !== menuList) {
@@ -2049,7 +2049,7 @@ function onBudgetChange() {
                         m.style.display = 'none';
                     }
                 });
-                
+
                 if (isOpen) {
                     menuList.classList.remove('open');
                     menuList.style.display = 'none';
@@ -2323,7 +2323,7 @@ function onBudgetChange() {
                 const hotelCost = hasHotel ? (day.hotel_harga || 0) * pkg.num_rooms : 0;
                 const wisataCost = (day.wisata_harga || 0) * pkg.num_persons;
                 const kulinerCost = ((day.kuliner_pagi_harga || 0) + (day.kuliner_harga || 0) + (day.kuliner_malam_harga || 0)) * pkg.num_persons;
-                
+
                 const dayLegs = legs.filter(l => l.from.includes(`(Hari ${day.day})`) || l.to.includes(`(Hari ${day.day})`));
                 const transportCost = dayLegs.length > 0
                     ? dayLegs.reduce((sum, l) => sum + (l.cost || 0), 0)
@@ -2621,7 +2621,7 @@ function onBudgetChange() {
         }
 
         // Koordinat array untuk backward-compat (masih dipakai di bookmark)
-        const uniqueRealNames  = routeWaypoints.map(w => w.name);
+        const uniqueRealNames = routeWaypoints.map(w => w.name);
         const uniqueRealCoords = routeWaypoints.map(w => w.coord);
 
         // Build unique places image list for gallery view
@@ -2650,7 +2650,7 @@ function onBudgetChange() {
             let errorIcon = 'restaurant';
             if (pic.cat === 'hotel') errorIcon = 'hotel';
             if (pic.cat === 'wisata') errorIcon = 'landscape';
-            
+
             return `
                 <div class="detail-gallery-item" title="${pic.name}">
                     <img src="${pic.picPath}" alt="${escapeHtmlAttr(pic.name)}" onerror="handleImgErrorRecom(this, '${errorIcon}')" />
@@ -2855,12 +2855,12 @@ function onBudgetChange() {
     let _leafletMapInstance = null;
 
     const WAYPOINT_STYLE = {
-        'hotel':        { color: '#2563eb', emoji: '🏨', label: 'Hotel' },
-        'wisata':       { color: '#16a34a', emoji: '🏞️', label: 'Wisata' },
+        'hotel': { color: '#2563eb', emoji: '🏨', label: 'Hotel' },
+        'wisata': { color: '#16a34a', emoji: '🏞️', label: 'Wisata' },
         'kuliner-pagi': { color: '#d97706', emoji: '☀️', label: 'Makan Pagi' },
-        'kuliner-siang':{ color: '#ea580c', emoji: '🍽️', label: 'Makan Siang' },
-        'kuliner-malam':{ color: '#7c3aed', emoji: '🌙', label: 'Makan Malam' },
-        'place':        { color: '#475569', emoji: '📍', label: 'Tempat' },
+        'kuliner-siang': { color: '#ea580c', emoji: '🍽️', label: 'Makan Siang' },
+        'kuliner-malam': { color: '#7c3aed', emoji: '🌙', label: 'Makan Malam' },
+        'place': { color: '#475569', emoji: '📍', label: 'Tempat' },
     };
 
     function makeLeafletIcon(type, seq) {
@@ -3059,7 +3059,7 @@ function onBudgetChange() {
         if (slider && slider.dataset.aiMin) {
             dMin = parseInt(slider.dataset.aiMin);
         }
-        
+
         const sliderVal = parseFloat(document.getElementById('d-budget')?.value) || 0;
         const isNoBudget = sliderVal < dMin;
 
@@ -3560,7 +3560,7 @@ function onBudgetChange() {
             const resolvedCoords = plan.legs.map(leg => leg.from_coords);
             resolvedStops.push(plan.legs[plan.legs.length - 1].to);
             resolvedCoords.push(plan.legs[plan.legs.length - 1].to_coords);
-            
+
             resolvedStops.forEach((name, idx) => {
                 const cleanName = name ? name.trim() : "";
                 const coord = resolvedCoords[idx];
@@ -3786,13 +3786,29 @@ function onBudgetChange() {
             splash.className = 'success-splash-modal';
             splash.id = 'success-splash-overlay';
             splash.innerHTML = `
-                <div class="success-splash-content">
+                <div class="success-splash-content" style="max-width: 460px;">
                     <div class="success-splash-icon">
                         <span class="material-symbols-outlined">auto_awesome</span>
                     </div>
                     <h3 style="margin:0 0 10px; font-size:20px; font-weight:900; color:var(--slate-800);">Rencana Perjalanan Disimpan!</h3>
-                    <p style="margin:0 0 24px; font-size:13.5px; color:var(--slate-500); line-height:1.5;">Perjalanan impian Anda telah berhasil dirancang secara kustom dan disimpan ke menu Rencana Saya.</p>
-                    <button class="finalize-btn" id="close-splash-btn" style="background:var(--teal-600); box-shadow:0 4px 12px rgba(13,148,136,0.2);">
+                    <p style="margin:0 0 16px; font-size:13.5px; color:var(--slate-500); line-height:1.5;">Perjalanan impian Anda telah berhasil dirancang secara kustom dan disimpan ke menu Rencana Saya.</p>
+                    
+                    <!-- Evaluasi SUS Google Form Box -->
+                    <div style="background: rgba(13, 148, 136, 0.05); border: 1.5px dashed rgba(13, 148, 136, 0.3); border-radius: 16px; padding: 16px; margin: 0 0 20px; text-align: left;">
+                        <div style="display: flex; gap: 8px; align-items: center; color: var(--teal-700); margin-bottom: 6px;">
+                            <span class="material-symbols-outlined" style="font-size: 20px; font-weight: 700;">rate_review</span>
+                            <span style="font-size: 13.5px; font-weight: 800;">Bantu Evaluasi Usability Sistem</span>
+                        </div>
+                        <p style="margin: 0 0 14px; font-size: 12px; color: var(--slate-600); line-height: 1.45;">
+                            Mohon luangkan waktu 2 menit untuk menilai kemudahan penggunaan sistem rekomendasi paket wisata Malang Raya ini melalui kuesioner singkat (Google Form).
+                        </p>
+                        <a href="https://forms.gle/jmEKbnHShR8HsEDaA" target="_blank" class="finalize-btn" id="survey-link-btn" style="background: linear-gradient(135deg, var(--teal-600), var(--teal-500)); box-shadow: 0 4px 12px rgba(13, 148, 136, 0.2); margin-top: 0; text-decoration: none; padding: 10px 14px; font-size: 13px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: 100%; box-sizing: border-box;">
+                            <span>Isi Kuesioner (Google Form)</span>
+                            <span class="material-symbols-outlined" style="font-size: 16px;">open_in_new</span>
+                        </a>
+                    </div>
+
+                    <button class="finalize-btn" id="close-splash-btn" style="background:var(--slate-700); box-shadow:0 4px 12px rgba(71,85,105,0.2); width: 100%; margin-top: 0;">
                         Buka Rencana Saya
                     </button>
                 </div>
@@ -3802,11 +3818,19 @@ function onBudgetChange() {
 
         splash.classList.add('show');
 
-        document.getElementById('close-splash-btn')?.addEventListener('click', () => {
+        const closeBtn = document.getElementById('close-splash-btn');
+        const surveyBtn = document.getElementById('survey-link-btn');
+
+        const closeSplash = () => {
             splash.classList.remove('show');
             // Auto open bookmark drawer
             document.getElementById('bookmark-drawer')?.classList.add('open');
             document.getElementById('bookmark-drawer-overlay')?.classList.add('open');
+        };
+
+        closeBtn?.addEventListener('click', closeSplash);
+        surveyBtn?.addEventListener('click', () => {
+            setTimeout(closeSplash, 800);
         });
     }
 
@@ -3927,7 +3951,7 @@ function onBudgetChange() {
         let list = [];
         if (!allOptions || !allOptions[0] || !allOptions[0].clustered_items) return list;
         const clustered = allOptions[0].clustered_items;
-        
+
         const wisatas = clustered.wisata[classIdx] || clustered.wisata[String(classIdx)] || [];
         wisatas.forEach(w => {
             const name = w.Nama_Tempat || w.nama;
@@ -3948,7 +3972,7 @@ function onBudgetChange() {
         let list = [];
         if (!allOptions || !allOptions[0] || !allOptions[0].clustered_items) return list;
         const clustered = allOptions[0].clustered_items;
-        
+
         const kuliners = clustered.kuliner[classIdx] || clustered.kuliner[String(classIdx)] || [];
         kuliners.forEach(k => {
             const name = k.Nama_Tempat || k.nama;
@@ -4120,9 +4144,9 @@ function onBudgetChange() {
         }
         const hasBudget = budgetLimit > 0;
 
-        const hasStartedCustomizing = (selectedHotel !== null) || 
-                                      (Object.keys(selectedHotelsByNight).length > 0) || 
-                                      (Object.keys(selectedDays).length > 0);
+        const hasStartedCustomizing = (selectedHotel !== null) ||
+            (Object.keys(selectedHotelsByNight).length > 0) ||
+            (Object.keys(selectedDays).length > 0);
 
         // Helper to predict total cost if choosing a specific option index at current step
         function predictTotalCostForOption(type, idx, curStepDef) {
@@ -5016,8 +5040,8 @@ function onBudgetChange() {
                 const d1 = haversineDist(kpLat, kpLon, wLat, wLon);
                 const d2 = haversineDist(wLat, wLon, ksLat, ksLon);
                 totalDistance += d1 + d2; // Accumulate circular route distance
-                    legs.push({ from: dayPlan.kuliner_pagi, to: dayPlan.wisata, distance: d1, from_coords: [kpLat, kpLon], to_coords: [wLat, wLon] });
-                    legs.push({ from: dayPlan.wisata, to: dayPlan.kuliner, distance: d2, from_coords: [wLat, wLon], to_coords: [ksLat, ksLon] });
+                legs.push({ from: dayPlan.kuliner_pagi, to: dayPlan.wisata, distance: d1, from_coords: [kpLat, kpLon], to_coords: [wLat, wLon] });
+                legs.push({ from: dayPlan.wisata, to: dayPlan.kuliner, distance: d2, from_coords: [wLat, wLon], to_coords: [ksLat, ksLon] });
             } else if (dNum === 1) {
                 const d1 = haversineDist(kpLat, kpLon, wLat, wLon);
                 const d2 = haversineDist(wLat, wLon, ksLat, ksLon);
@@ -5025,19 +5049,19 @@ function onBudgetChange() {
                 const d4 = haversineDist(nhLat, nhLon, kmLat, kmLon);
                 const d5 = haversineDist(kmLat, kmLon, nhLat, nhLon);
                 totalDistance += d1 + d2 + d3 + d4 + d5;
-                    legs.push({ from: dayPlan.kuliner_pagi, to: dayPlan.wisata, distance: d1, from_coords: [kpLat, kpLon], to_coords: [wLat, wLon] });
-                    legs.push({ from: dayPlan.wisata, to: dayPlan.kuliner, distance: d2, from_coords: [wLat, wLon], to_coords: [ksLat, ksLon] });
-                    legs.push({ from: dayPlan.kuliner, to: nextHotel.nama, distance: d3, from_coords: [ksLat, ksLon], to_coords: [nhLat, nhLon] });
-                    legs.push({ from: nextHotel.nama, to: dayPlan.kuliner_malam, distance: d4, from_coords: [nhLat, nhLon], to_coords: [kmLat, kmLon] });
-                    legs.push({ from: dayPlan.kuliner_malam, to: nextHotel.nama, distance: d5, from_coords: [kmLat, kmLon], to_coords: [nhLat, nhLon] });
+                legs.push({ from: dayPlan.kuliner_pagi, to: dayPlan.wisata, distance: d1, from_coords: [kpLat, kpLon], to_coords: [wLat, wLon] });
+                legs.push({ from: dayPlan.wisata, to: dayPlan.kuliner, distance: d2, from_coords: [wLat, wLon], to_coords: [ksLat, ksLon] });
+                legs.push({ from: dayPlan.kuliner, to: nextHotel.nama, distance: d3, from_coords: [ksLat, ksLon], to_coords: [nhLat, nhLon] });
+                legs.push({ from: nextHotel.nama, to: dayPlan.kuliner_malam, distance: d4, from_coords: [nhLat, nhLon], to_coords: [kmLat, kmLon] });
+                legs.push({ from: dayPlan.kuliner_malam, to: nextHotel.nama, distance: d5, from_coords: [kmLat, kmLon], to_coords: [nhLat, nhLon] });
             } else if (dNum === duration) {
                 const d1 = haversineDist(chLat, chLon, kpLat, kpLon);
                 const d2 = haversineDist(kpLat, kpLon, wLat, wLon);
                 const d3 = haversineDist(wLat, wLon, ksLat, ksLon);
                 totalDistance += d1 + d2 + d3;
-                    legs.push({ from: currentHotel.nama, to: dayPlan.kuliner_pagi, distance: d1, from_coords: [chLat, chLon], to_coords: [kpLat, kpLon] });
-                    legs.push({ from: dayPlan.kuliner_pagi, to: dayPlan.wisata, distance: d2, from_coords: [kpLat, kpLon], to_coords: [wLat, wLon] });
-                    legs.push({ from: dayPlan.wisata, to: dayPlan.kuliner, distance: d3, from_coords: [wLat, wLon], to_coords: [ksLat, ksLon] });
+                legs.push({ from: currentHotel.nama, to: dayPlan.kuliner_pagi, distance: d1, from_coords: [chLat, chLon], to_coords: [kpLat, kpLon] });
+                legs.push({ from: dayPlan.kuliner_pagi, to: dayPlan.wisata, distance: d2, from_coords: [kpLat, kpLon], to_coords: [wLat, wLon] });
+                legs.push({ from: dayPlan.wisata, to: dayPlan.kuliner, distance: d3, from_coords: [wLat, wLon], to_coords: [ksLat, ksLon] });
             } else {
                 const d1 = haversineDist(chLat, chLon, kpLat, kpLon);
                 const d2 = haversineDist(kpLat, kpLon, wLat, wLon);
@@ -5046,12 +5070,12 @@ function onBudgetChange() {
                 const d5 = haversineDist(nhLat, nhLon, kmLat, kmLon);
                 const d6 = haversineDist(kmLat, kmLon, nhLat, nhLon);
                 totalDistance += d1 + d2 + d3 + d4 + d5 + d6;
-                    legs.push({ from: currentHotel.nama, to: dayPlan.kuliner_pagi, distance: d1, from_coords: [chLat, chLon], to_coords: [kpLat, kpLon] });
-                    legs.push({ from: dayPlan.kuliner_pagi, to: dayPlan.wisata, distance: d2, from_coords: [kpLat, kpLon], to_coords: [wLat, wLon] });
-                    legs.push({ from: dayPlan.wisata, to: dayPlan.kuliner, distance: d3, from_coords: [wLat, wLon], to_coords: [ksLat, ksLon] });
-                    legs.push({ from: dayPlan.kuliner, to: nextHotel.nama, distance: d4, from_coords: [ksLat, ksLon], to_coords: [nhLat, nhLon] });
-                    legs.push({ from: nextHotel.nama, to: dayPlan.kuliner_malam, distance: d5, from_coords: [nhLat, nhLon], to_coords: [kmLat, kmLon] });
-                    legs.push({ from: dayPlan.kuliner_malam, to: nextHotel.nama, distance: d6, from_coords: [kmLat, kmLon], to_coords: [nhLat, nhLon] });
+                legs.push({ from: currentHotel.nama, to: dayPlan.kuliner_pagi, distance: d1, from_coords: [chLat, chLon], to_coords: [kpLat, kpLon] });
+                legs.push({ from: dayPlan.kuliner_pagi, to: dayPlan.wisata, distance: d2, from_coords: [kpLat, kpLon], to_coords: [wLat, wLon] });
+                legs.push({ from: dayPlan.wisata, to: dayPlan.kuliner, distance: d3, from_coords: [wLat, wLon], to_coords: [ksLat, ksLon] });
+                legs.push({ from: dayPlan.kuliner, to: nextHotel.nama, distance: d4, from_coords: [ksLat, ksLon], to_coords: [nhLat, nhLon] });
+                legs.push({ from: nextHotel.nama, to: dayPlan.kuliner_malam, distance: d5, from_coords: [nhLat, nhLon], to_coords: [kmLat, kmLon] });
+                legs.push({ from: dayPlan.kuliner_malam, to: nextHotel.nama, distance: d6, from_coords: [kmLat, kmLon], to_coords: [nhLat, nhLon] });
             }
         }
 
@@ -5670,7 +5694,7 @@ function onBudgetChange() {
                     if (duration > 1 && d < duration) {
                         message += `🌙 Makan Malam: <strong>${dayItin.kuliner_malam || 'N/A'}</strong><br>`;
                     }
-                    
+
                     const ticketCost = (dayItin.wisata_harga || 0) * pkg.num_persons;
                     const mealsCost = ((dayItin.kuliner_pagi_harga || 0) + dayItin.kuliner_harga + (duration > 1 && d < duration ? (dayItin.kuliner_malam_harga || 0) : 0)) * pkg.num_persons;
                     message += `<br>💰 Total HTM & Makan: <strong>${fmtRp(ticketCost + mealsCost)}</strong>`;
@@ -5678,7 +5702,7 @@ function onBudgetChange() {
                     showSpatialConfirmationModal(title, message, () => {
                         const dayWisataCost = (dayItin.wisata_harga || 0) * pkg.num_persons;
                         const dayKulinerCost = ((dayItin.kuliner_pagi_harga || 0) + dayItin.kuliner_harga + (duration > 1 && d < duration ? (dayItin.kuliner_malam_harga || 0) : 0)) * pkg.num_persons;
-                        
+
                         // Calculate actual route distance for dayTransportCost calculation
                         let dayDistance = 0;
                         let currentHotel = null;
@@ -5818,7 +5842,7 @@ function onBudgetChange() {
             if (legs && legs.length > 0) {
                 const resolvedStops = legs.map(leg => leg.from);
                 resolvedStops.push(legs[legs.length - 1].to);
-                
+
                 resolvedStops.forEach(name => {
                     const cleanName = name ? name.trim() : "";
                     // Bersihkan duplikat berurutan agar rute Google Maps tidak error
@@ -5833,7 +5857,7 @@ function onBudgetChange() {
             if (routeStops.length >= 2) {
                 const originSearch = routeStops[0];
                 const destinationSearch = routeStops[routeStops.length - 1];
-                
+
                 // Google Maps memiliki limit 25 intermediate waypoints.
                 // Jika rute > 27 titik (Origin + 25 Waypoints + Dest), kita ambil sampel titik penting saja.
                 let waypointsArray = routeStops.slice(1, -1);
@@ -5846,7 +5870,7 @@ function onBudgetChange() {
                     waypointsArray = sampledWaypoints;
                 }
                 const waypointsNames = waypointsArray.join('|');
-                
+
                 let mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(originSearch)}&destination=${encodeURIComponent(destinationSearch)}`;
                 if (waypointsNames) {
                     mapsUrl += `&waypoints=${encodeURIComponent(waypointsNames)}`;
@@ -5878,9 +5902,9 @@ function onBudgetChange() {
     async function finalizeTravelPlan(totalCost, legs, totalDistance, transportCost, vehDesc) {
         const btn = document.getElementById('finalize-plan-btn');
         const originalText = btn ? btn.innerHTML : '';
-        
+
         try {
-            if(btn) {
+            if (btn) {
                 btn.disabled = true;
                 btn.innerHTML = `<span class="material-symbols-outlined" style="animation: spin 1s linear infinite;">sync</span><span>Menghitung Rute OSRM...</span>`;
             }
@@ -5889,12 +5913,12 @@ function onBudgetChange() {
             const routeCoords = [];
             legs.forEach((leg) => {
                 if (leg.from_coords && (leg.from_coords[0] !== 0 || leg.from_coords[1] !== 0)) {
-                    if (routeCoords.length === 0 || routeCoords[routeCoords.length-1][0] !== leg.from_coords[0] || routeCoords[routeCoords.length-1][1] !== leg.from_coords[1]) {
+                    if (routeCoords.length === 0 || routeCoords[routeCoords.length - 1][0] !== leg.from_coords[0] || routeCoords[routeCoords.length - 1][1] !== leg.from_coords[1]) {
                         routeCoords.push(leg.from_coords);
                     }
                 }
                 if (leg.to_coords && (leg.to_coords[0] !== 0 || leg.to_coords[1] !== 0)) {
-                    if (routeCoords.length === 0 || routeCoords[routeCoords.length-1][0] !== leg.to_coords[0] || routeCoords[routeCoords.length-1][1] !== leg.to_coords[1]) {
+                    if (routeCoords.length === 0 || routeCoords[routeCoords.length - 1][0] !== leg.to_coords[0] || routeCoords[routeCoords.length - 1][1] !== leg.to_coords[1]) {
                         routeCoords.push(leg.to_coords);
                     }
                 }
@@ -5909,115 +5933,115 @@ function onBudgetChange() {
             if (routeCoords.length >= 2) {
                 const coordsStr = routeCoords.map(c => `${c[1]},${c[0]}`).join(';');
                 const url = `https://router.project-osrm.org/route/v1/driving/${coordsStr}?overview=false`;
-                
+
                 try {
                     const controller = new AbortController();
                     const timeoutId = setTimeout(() => controller.abort(), 6000);
                     const res = await fetch(url, { signal: controller.signal });
                     clearTimeout(timeoutId);
-                    
+
                     const data = await res.json();
                     if (data.code === 'Ok' && data.routes && data.routes.length > 0) {
                         finalDistance = data.routes[0].distance / 1000.0;
                         osrmSuccess = true;
                     }
-                } catch(e) {
+                } catch (e) {
                     console.warn("OSRM Fetch Failed, fallback to Haversine");
                 }
             }
 
-        const duration = activeOptionPackages[0].duration;
-        const persons = activeOptionPackages[0].num_persons;
-        
-        // 3. Recalculate & Skalakan Ulang Legs sesuai OSRM Distance
-        let ratePerKm = 2250;
-        if (persons <= 1) ratePerKm = 2250;
-        else if (persons <= 4) ratePerKm = 5150;
-        else ratePerKm = 6000;
+            const duration = activeOptionPackages[0].duration;
+            const persons = activeOptionPackages[0].num_persons;
 
-        if (osrmSuccess) {
-            finalTransportCost = Math.round(finalDistance * ratePerKm);
-            const distScale = totalDistance > 0 ? (finalDistance / totalDistance) : 0;
-            const costScale = totalDistance > 0 ? (finalTransportCost / totalDistance) : 0;
-            
-            let accCost = 0;
-            legs.forEach(leg => {
-                leg.distance = leg.distance * distScale;
-                leg.cost = Math.round(leg.distance * costScale);
-                accCost += leg.cost;
-            });
-            if (legs.length > 0 && finalTransportCost > 0) {
-                legs[legs.length - 1].cost += (finalTransportCost - accCost);
+            // 3. Recalculate & Skalakan Ulang Legs sesuai OSRM Distance
+            let ratePerKm = 2250;
+            if (persons <= 1) ratePerKm = 2250;
+            else if (persons <= 4) ratePerKm = 5150;
+            else ratePerKm = 6000;
+
+            if (osrmSuccess) {
+                finalTransportCost = Math.round(finalDistance * ratePerKm);
+                const distScale = totalDistance > 0 ? (finalDistance / totalDistance) : 0;
+                const costScale = totalDistance > 0 ? (finalTransportCost / totalDistance) : 0;
+
+                let accCost = 0;
+                legs.forEach(leg => {
+                    leg.distance = leg.distance * distScale;
+                    leg.cost = Math.round(leg.distance * costScale);
+                    accCost += leg.cost;
+                });
+                if (legs.length > 0 && finalTransportCost > 0) {
+                    legs[legs.length - 1].cost += (finalTransportCost - accCost);
+                }
+                finalTotalCost = (totalCost - transportCost) + finalTransportCost;
+            } else {
+                let accCost = 0;
+                legs.forEach(leg => {
+                    leg.cost = Math.round(leg.distance * ratePerKm);
+                    accCost += leg.cost;
+                });
+                if (legs.length > 0 && transportCost > 0) {
+                    legs[legs.length - 1].cost += (transportCost - accCost);
+                }
             }
-            finalTotalCost = (totalCost - transportCost) + finalTransportCost;
-        } else {
-            let accCost = 0;
-            legs.forEach(leg => {
-                leg.cost = Math.round(leg.distance * ratePerKm);
-                accCost += leg.cost;
-            });
-            if (legs.length > 0 && transportCost > 0) {
-                legs[legs.length - 1].cost += (transportCost - accCost);
+
+            const formattedLegs = legs.map(l => ({
+                from: l.from,
+                to: l.to,
+                from_coords: l.from_coords ? `${l.from_coords[0]},${l.from_coords[1]}` : "",
+                to_coords: l.to_coords ? `${l.to_coords[0]},${l.to_coords[1]}` : "",
+                distance: l.distance,
+                cost: l.cost
+            }));
+
+            // Build the days summary array
+            const daysArr = [];
+            for (let d = 1; d <= duration; d++) {
+                daysArr.push({
+                    day: d,
+                    className: selectedDays[d].className,
+                    wisata: selectedDays[d].wisata,
+                    kuliner: selectedDays[d].kuliner
+                });
             }
-        }
-        
-        const formattedLegs = legs.map(l => ({
-            from: l.from,
-            to: l.to,
-            from_coords: l.from_coords ? `${l.from_coords[0]},${l.from_coords[1]}` : "",
-            to_coords: l.to_coords ? `${l.to_coords[0]},${l.to_coords[1]}` : "",
-            distance: l.distance,
-            cost: l.cost
-        }));
 
-        // Build the days summary array
-        const daysArr = [];
-        for (let d = 1; d <= duration; d++) {
-            daysArr.push({
-                day: d,
-                className: selectedDays[d].className,
-                wisata: selectedDays[d].wisata,
-                kuliner: selectedDays[d].kuliner
-            });
-        }
+            // Build travel plan object
+            const newPlan = {
+                id: 'mraya_' + Date.now(),
+                title: `Rencana Kustom Wisata Malang (${duration} Hari)`,
+                persons: persons,
+                duration: duration,
+                totalCost: finalTotalCost,
+                hotelMode: hotelMode,
+                hotel: selectedHotel ? {
+                    nama: selectedHotel.nama,
+                    harga: selectedHotel.harga,
+                    cost: selectedHotel.cost,
+                    className: selectedHotel.className
+                } : null,
+                hotelsByNight: selectedHotelsByNight,
+                days: daysArr,
+                legs: formattedLegs,
+                totalDistance: finalDistance,
+                transportCost: finalTransportCost,
+                vehDesc: vehDesc
+            };
 
-        // Build travel plan object
-        const newPlan = {
-            id: 'mraya_' + Date.now(),
-            title: `Rencana Kustom Wisata Malang (${duration} Hari)`,
-            persons: persons,
-            duration: duration,
-            totalCost: finalTotalCost,
-            hotelMode: hotelMode,
-            hotel: selectedHotel ? {
-                nama: selectedHotel.nama,
-                harga: selectedHotel.harga,
-                cost: selectedHotel.cost,
-                className: selectedHotel.className
-            } : null,
-            hotelsByNight: selectedHotelsByNight,
-            days: daysArr,
-            legs: formattedLegs,
-            totalDistance: finalDistance,
-            transportCost: finalTransportCost,
-            vehDesc: vehDesc
-        };
+            // Add to bookmark list
+            bookmarkList.unshift(newPlan);
+            localStorage.setItem('mraya_bookmarks', JSON.stringify(bookmarkList));
 
-        // Add to bookmark list
-        bookmarkList.unshift(newPlan);
-        localStorage.setItem('mraya_bookmarks', JSON.stringify(bookmarkList));
+            // Sync UI
+            updateBookmarkUI();
 
-        // Sync UI
-        updateBookmarkUI();
+            // Show Confetti Success Splash overlay
+            showSuccessSplash();
 
-        // Show Confetti Success Splash overlay
-        showSuccessSplash();
-        
         } catch (error) {
             console.error("Gagal Finalize", error);
             alert("Terjadi kesalahan saat mengkalkulasi dan menyimpan rencana.");
         } finally {
-            if(btn) {
+            if (btn) {
                 btn.disabled = false;
                 btn.innerHTML = originalText;
             }
