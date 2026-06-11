@@ -2559,7 +2559,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     vehDesc: pkg.transport_detail?.legs?.[0]?.vehicle || 'Otomatis'
                 };
                 bookmarkList.unshift(newPlan);
-                localStorage.setItem('mraya_bookmarks', JSON.stringify(bookmarkList));
+                localStorage.setItem(getMrayaKey(), JSON.stringify(bookmarkList));
                 updateBookmarkUI();
                 showSuccessSplash();
             });
@@ -3080,7 +3080,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // ─────────────────────────────────────────────────
     // TAHAP 7: INTERACTIVE PLANNER & BOOKMARK STATE & LOGIC
     // ─────────────────────────────────────────────────
-    let bookmarkList = JSON.parse(localStorage.getItem('mraya_bookmarks') || '[]');
+    const getMrayaKey = () => typeof window.getMrayaBookmarksKey === 'function' ? window.getMrayaBookmarksKey() : 'mraya_bookmarks';
+    let bookmarkList = [];
+    try {
+        bookmarkList = JSON.parse(localStorage.getItem(getMrayaKey()) || '[]');
+    } catch(e) {
+        bookmarkList = [];
+    }
     let selectedHotel = null;
     let selectedHotelsByNight = {};
     let selectedDays = {};
@@ -3380,6 +3386,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Bookmark UI synchronizer
     function updateBookmarkUI() {
+        try {
+            bookmarkList = JSON.parse(localStorage.getItem(getMrayaKey()) || '[]');
+        } catch(e) {
+            bookmarkList = [];
+        }
         const count = bookmarkList.length;
 
         // Update badge counts in navbars
@@ -3429,7 +3440,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     e.stopPropagation();
                     const idx = parseInt(btn.dataset.idx);
                     bookmarkList.splice(idx, 1);
-                    localStorage.setItem('mraya_bookmarks', JSON.stringify(bookmarkList));
+                    localStorage.setItem(getMrayaKey(), JSON.stringify(bookmarkList));
                     updateBookmarkUI();
                 });
             });
@@ -3443,6 +3454,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
     }
+    window.updateBookmarkUI = updateBookmarkUI;
 
     // Modal view for saved plan details
     function openBookmarkedPlanDetails(plan) {
@@ -6029,7 +6041,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Add to bookmark list
             bookmarkList.unshift(newPlan);
-            localStorage.setItem('mraya_bookmarks', JSON.stringify(bookmarkList));
+            localStorage.setItem(getMrayaKey(), JSON.stringify(bookmarkList));
 
             // Sync UI
             updateBookmarkUI();

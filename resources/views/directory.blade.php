@@ -289,7 +289,7 @@
                 <p class="g-footer-copy">© 2024 Malang Raya Tourism Authority. Intelligence by FCM Clustering.</p>
             </div>
             <div class="g-footer-links">
-                <span style="color:var(--color-slate-400); font-size:0.875rem;">12.4k pengunjung bulan ini</span>
+                <span style="color:var(--color-slate-400); font-size:0.875rem;">Sistem Pendukung Keputusan</span>
                 <a class="g-footer-link" href="/">Home</a>
                 <a class="g-footer-link" href="/recommender">Explore</a>
                 <a class="g-footer-link" href="/how-it-works">How It Works</a>

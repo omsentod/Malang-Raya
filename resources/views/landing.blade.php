@@ -115,18 +115,18 @@
             <!-- Hero floating stats -->
             <div class="hero-stats reveal reveal-delay-2">
                 <div class="hero-stat-item">
-                    <span class="hero-stat-num">12.4k+</span>
-                    <span class="hero-stat-label">Pengunjung / Bulan</span>
-                </div>
-                <div class="hero-stat-divider"></div>
-                <div class="hero-stat-item">
-                    <span class="hero-stat-num">98%</span>
-                    <span class="hero-stat-label">Tingkat Kepuasan</span>
-                </div>
-                <div class="hero-stat-divider"></div>
-                <div class="hero-stat-item">
                     <span class="hero-stat-num">3</span>
-                    <span class="hero-stat-label">Kluster Wisata AI</span>
+                    <span class="hero-stat-label">Workflow Rekomendasi</span>
+                </div>
+                <div class="hero-stat-divider"></div>
+                <div class="hero-stat-item">
+                    <span class="hero-stat-num">FCM</span>
+                    <span class="hero-stat-label">Fuzzy C-Means Clustering</span>
+                </div>
+                <div class="hero-stat-divider"></div>
+                <div class="hero-stat-item">
+                    <span class="hero-stat-num">OSRM</span>
+                    <span class="hero-stat-label">Rute & Jarak Akurat</span>
                 </div>
             </div>
         </section>
@@ -302,15 +302,15 @@
                         <ul class="stats-list">
                             <li class="stats-list-item">
                                 <span class="material-symbols-outlined list-icon">check_circle</span>
-                                <span>12.4k+ Rekomendasi FCM Berhasil Dibuat</span>
+                                <span>Destinasi Unggulan Pariwisata di Jawa Timur</span>
                             </li>
                             <li class="stats-list-item">
                                 <span class="material-symbols-outlined list-icon">check_circle</span>
-                                <span>98% Tingkat Kepuasan Wisatawan Malang Raya</span>
+                                <span>Pertumbuhan Kunjungan Wisatawan Domestik & Mancanegara</span>
                             </li>
                             <li class="stats-list-item">
                                 <span class="material-symbols-outlined list-icon">check_circle</span>
-                                <span>3 Kluster Utama (FCM) Teroptimasi Sistem</span>
+                                <span>Keragaman Daya Tarik Wisata Alam, Buatan, serta Kuliner</span>
                             </li>
                         </ul>
                     </div>
@@ -375,7 +375,7 @@
                 <p class="g-footer-copy">© 2024 Malang Raya Tourism Authority. Intelligence by FCM Clustering.</p>
             </div>
             <div class="g-footer-links">
-                <span style="color:var(--color-slate-400); font-size:0.875rem;">12.4k pengunjung bulan ini</span>
+                <span style="color:var(--color-slate-400); font-size:0.875rem;">Sistem Pendukung Keputusan</span>
                 <a class="g-footer-link" href="/directory">Directory</a>
                 <a class="g-footer-link" href="/how-it-works">How It Works</a>
                 <a class="g-footer-link" href="#">Privacy Policy</a>
