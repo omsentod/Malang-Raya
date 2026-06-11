@@ -1265,8 +1265,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const plus = document.getElementById(plusId);
         const minus = document.getElementById(minusId);
         if (!inp || !plus || !minus) return;
+        const max = inp.hasAttribute('max') ? +inp.getAttribute('max') : Infinity;
         minus.addEventListener('click', () => { if (+inp.value > min) { inp.value = +inp.value - 1; updateBudgetSliders(); fetchApiMinMaxUpdate(); onBudgetChange(); } });
-        plus.addEventListener('click', () => { inp.value = +inp.value + 1; updateBudgetSliders(); fetchApiMinMaxUpdate(); onBudgetChange(); });
+        plus.addEventListener('click', () => { if (+inp.value < max) { inp.value = +inp.value + 1; updateBudgetSliders(); fetchApiMinMaxUpdate(); onBudgetChange(); } });
         inp.addEventListener('input', () => { updateBudgetSliders(); fetchApiMinMaxUpdate(); onBudgetChange(); });
         inp.addEventListener('change', () => { updateBudgetSliders(); fetchApiMinMaxUpdate(); onBudgetChange(); });
     }
@@ -1960,136 +1961,51 @@ document.addEventListener('DOMContentLoaded', () => {
         const initialPackages = options && options[0] ? options[0].packages : [];
         const duration = initialPackages[0]?.duration || 1;
 
-        // Render dynamic option select dropdown if more than 1 option is returned
+        // Render dynamic options scrollable pill tabs if more than 1 option is returned
         if (options && options.length > 1 && tabsEl && tabsContainer) {
-            let visibleOptions = options;
-            const needsViewAll = options.length > 5;
-            const isShowingAll = showingAllAIAlternatives;
-
-            if (needsViewAll && !isShowingAll) {
-                visibleOptions = options.slice(0, 5);
-            }
-
-            const activeOpt = options.find(opt => opt.active) || options[0];
-            const activeFirstPkg = activeOpt.packages && activeOpt.packages[0];
-            const activeWName = activeFirstPkg ? activeFirstPkg.wisata_nama : '';
-            const activeWFolder = activeWName ? (activeWName.includes(' & ') ? activeWName.split(' & ')[0] : activeWName).trim().replace(/ /g, '_') : '';
-            const activeImgUrl = activeWFolder ? `/assets/GAMBAR/wisata/${activeWFolder}/${activeWFolder}-1.jpg` : '';
-
-            let dropdownHTML = `
-                <div class="custom-select-dropdown-container ai-alt-dropdown">
-                    <button type="button" class="custom-select-trigger ai-alt-trigger" id="ai-alternatives-trigger">
-                        <div class="ai-alt-trigger-inner">
-                            <div class="suggestion-thumb-wrap ai-alt-thumb">
-                                <img class="suggestion-thumb" id="ai-alternatives-trigger-img" src="${activeImgUrl}" alt="${escapeHtmlAttr(activeWName)}" onerror="handleImgErrorRecom(this, 'landscape')" />
-                            </div>
-                            <div class="ai-alt-text-col">
-                                <span class="custom-select-trigger-text ai-alt-title">Opsi Alternatif ${activeOpt.option_index}</span>
-                                <span class="custom-select-trigger-sub">📍 ${activeWName || 'Wisata'}</span>
-                            </div>
-                        </div>
-                        <span class="material-symbols-outlined select-arrow-icon">expand_more</span>
-                    </button>
-                    
-                    <div class="custom-select-menu ai-alt-menu" id="ai-alternatives-menu">
-            `;
-
-            dropdownHTML += visibleOptions.map((opt, i) => {
+            const slicedOptions = options.slice(0, currentAlternativeLimit);
+            let tabsHTML = slicedOptions.map((opt, i) => {
                 const isSelected = opt.active;
                 const firstPkg = opt.packages && opt.packages[0];
                 const wName = firstPkg ? firstPkg.wisata_nama : '';
                 const wFolder = wName ? (wName.includes(' & ') ? wName.split(' & ')[0] : wName).trim().replace(/ /g, '_') : '';
                 const imgUrl = wFolder ? `/assets/GAMBAR/wisata/${wFolder}/${wFolder}-1.jpg` : '';
                 return `
-                        <button type="button" class="custom-select-item ai-alt-item ${isSelected ? 'active' : ''}" data-idx="${i}">
-                            <div class="ai-alt-trigger-inner">
-                                <div class="suggestion-thumb-wrap ai-alt-item-thumb">
-                                    <img class="suggestion-thumb" src="${imgUrl}" alt="${escapeHtmlAttr(wName)}" onerror="handleImgErrorRecom(this, 'landscape')" />
-                                </div>
-                                <div class="ai-alt-text-col">
-                                    <span class="ai-alt-title" style="color: ${isSelected ? 'var(--teal-700)' : 'var(--slate-700)'};">Opsi Alternatif ${opt.option_index}</span>
-                                    <span class="custom-select-trigger-sub">📍 ${wName || 'Wisata'}</span>
-                                </div>
-                            </div>
-                            ${isSelected ? '<span class="material-symbols-outlined check-icon" style="margin-left:8px;">check_circle</span>' : ''}
-                        </button>
+                    <button type="button" class="opt-tab ${isSelected ? 'active' : ''}" data-idx="${i}">
+                        <div class="opt-tab-thumb-wrap">
+                            <img class="opt-tab-thumb" src="${imgUrl}" alt="${escapeHtmlAttr(wName)}" onerror="handleImgErrorRecom(this, 'landscape')" />
+                        </div>
+                        <div class="opt-tab-text-col">
+                            <span class="opt-tab-title">Opsi Alternatif ${opt.option_index}</span>
+                            <span class="opt-tab-subtitle">📍 ${wName || 'Wisata'}</span>
+                        </div>
+                    </button>
                 `;
             }).join('');
 
-            if (needsViewAll && !isShowingAll) {
-                dropdownHTML += `
-                        <button type="button" class="custom-select-item view-all-trigger">
-                            <span class="material-symbols-outlined" style="font-size: 16px;">search</span>
-                            <span>Lihat Semua (${options.length} Opsi)...</span>
-                        </button>
+            if (options.length > currentAlternativeLimit) {
+                const remaining = options.length - currentAlternativeLimit;
+                tabsHTML += `
+                    <button type="button" class="opt-tab-load-more" id="load-more-alts-btn">
+                        <span class="material-symbols-outlined">add</span>
+                        <span>Opsi Lainnya (${remaining})</span>
+                    </button>
                 `;
             }
 
-            dropdownHTML += `
-                    </div>
-                </div>
-            `;
-
-            tabsEl.innerHTML = dropdownHTML;
+            tabsEl.innerHTML = tabsHTML;
             tabsContainer.style.display = 'flex';
 
-            // Attach event listeners for custom select
-            const triggerBtn = document.getElementById('ai-alternatives-trigger');
-            const menuList = document.getElementById('ai-alternatives-menu');
-            const arrowIcon = triggerBtn?.querySelector('.select-arrow-icon');
-
-            triggerBtn?.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const isOpen = menuList.classList.contains('open');
-
-                // Close other open custom select menus
-                document.querySelectorAll('.custom-select-menu').forEach(m => {
-                    if (m !== menuList) {
-                        m.classList.remove('open');
-                        m.style.display = 'none';
-                    }
-                });
-
-                if (isOpen) {
-                    menuList.classList.remove('open');
-                    menuList.style.display = 'none';
-                    if (arrowIcon) arrowIcon.style.transform = 'rotate(0deg)';
-                } else {
-                    menuList.classList.add('open');
-                    menuList.style.display = 'flex';
-                    if (arrowIcon) arrowIcon.style.transform = 'rotate(180deg)';
-                }
-            });
-
-            menuList?.querySelectorAll('.custom-select-item').forEach(itemEl => {
+            // Attach event listeners for pill tabs click
+            tabsEl.querySelectorAll('.opt-tab').forEach(itemEl => {
                 itemEl.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    menuList.classList.remove('open');
-                    menuList.style.display = 'none';
-                    if (arrowIcon) arrowIcon.style.transform = 'rotate(0deg)';
-
-                    if (itemEl.classList.contains('view-all-trigger')) {
-                        showingAllAIAlternatives = true;
-                        showResults(options, workflowLabel);
-                        // Auto-open menu again to show all options
-                        setTimeout(() => {
-                            const m = document.getElementById('ai-alternatives-menu');
-                            const t = document.getElementById('ai-alternatives-trigger');
-                            if (m) {
-                                m.classList.add('open');
-                                m.style.display = 'flex';
-                            }
-                            if (t) {
-                                const arr = t.querySelector('.select-arrow-icon');
-                                if (arr) arr.style.transform = 'rotate(180deg)';
-                            }
-                        }, 50);
-                        return;
-                    }
-
                     const idx = parseInt(itemEl.dataset.idx);
+                    
+                    // Mark as active
                     options.forEach((opt, i) => opt.active = (i === idx));
 
+                    // Regenerate tabs to update active styling and load new packages
                     showResults(options, workflowLabel);
 
                     const selPackages = options[idx].packages;
@@ -2105,8 +2021,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     } else {
                         renderPackages(selPackages);
                     }
+
+                    // Smooth scroll the clicked tab into view within the horizontal bar
+                    itemEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
                 });
             });
+
+            // Attach event listener for load more button
+            const loadMoreBtn = document.getElementById('load-more-alts-btn');
+            if (loadMoreBtn) {
+                loadMoreBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    currentAlternativeLimit += 5;
+                    showResults(options, workflowLabel);
+                });
+            }
         } else if (tabsContainer) {
             tabsContainer.style.display = 'none';
         }
@@ -2155,6 +2084,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const tabsCont = document.getElementById('options-tabs-container');
                 if (tabsCont) tabsCont.style.display = 'none';
+
+                // Sembunyikan filter kategori karena tidak ada kartu paket otomatis yang tampil
+                hideKategoriFilter();
 
                 const idx = allOptions.findIndex(opt => opt.active);
                 const activeIdx = idx !== -1 ? idx : 0;
@@ -2980,6 +2912,7 @@ document.addEventListener('DOMContentLoaded', () => {
         selectedDays = {};
         showingAllAlternatives = {};
         showingAllAIAlternatives = false;
+        currentAlternativeLimit = 5;
         currentStep = 0;
         hotelMode = 'same';
         activeOptionPackages = [];
@@ -3092,6 +3025,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let selectedDays = {};
     let showingAllAlternatives = {};
     let showingAllAIAlternatives = false;
+    let currentAlternativeLimit = 5;
     let currentStep = 0;
     let lastRenderedStep = null;
     let activeOptionPackages = [];
