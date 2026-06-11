@@ -44,7 +44,8 @@ class AuthController extends Controller
                     'name' => $user->name,
                     'email' => $user->email,
                     'avatar' => $user->avatar,
-                    'bio' => $user->bio
+                    'bio' => $user->bio,
+                    'role' => $user->role ?? 'user'
                 ]
             ]);
         }
@@ -80,12 +81,15 @@ class AuthController extends Controller
             ], 422);
         }
 
+        $isFirstUser = User::count() === 0;
+
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'avatar' => 'explorer', // Default preset avatar
-            'bio' => 'Wisatawan penjelajah Malang Raya!' // Default bio
+            'bio' => 'Wisatawan penjelajah Malang Raya!', // Default bio
+            'role' => $isFirstUser ? 'admin' : 'user'
         ]);
 
         Auth::login($user, true);
@@ -99,7 +103,8 @@ class AuthController extends Controller
                 'name' => $user->name,
                 'email' => $user->email,
                 'avatar' => $user->avatar,
-                'bio' => $user->bio
+                'bio' => $user->bio,
+                'role' => $user->role ?? 'user'
             ]
         ]);
     }
@@ -133,7 +138,8 @@ class AuthController extends Controller
                     'name' => $user->name,
                     'email' => $user->email,
                     'avatar' => $user->avatar,
-                    'bio' => $user->bio
+                    'bio' => $user->bio,
+                    'role' => $user->role ?? 'user'
                 ]
             ]);
         }
@@ -186,7 +192,8 @@ class AuthController extends Controller
                 'name' => $user->name,
                 'email' => $user->email,
                 'avatar' => $user->avatar,
-                'bio' => $user->bio
+                'bio' => $user->bio,
+                'role' => $user->role ?? 'user'
             ]
         ]);
     }

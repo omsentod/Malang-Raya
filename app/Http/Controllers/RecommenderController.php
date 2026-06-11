@@ -168,7 +168,7 @@ class RecommenderController extends Controller
             $args = [
                 $this->pythonBinary(),
                 '-c',
-                'import pandas as pd, json; df=pd.read_excel("wisata_clean.xlsx"); print(json.dumps(df[["Id_Tempat","Nama_Tempat"]].to_dict("records"), ensure_ascii=False))'
+                'import pandas as pd, json; df=pd.read_excel("datasets/wisata_clean.xlsx"); print(json.dumps(df[["Id_Tempat","Nama_Tempat"]].to_dict("records"), ensure_ascii=False))'
             ];
             $process = new Process($args);
             $process->setWorkingDirectory($this->workingDir());

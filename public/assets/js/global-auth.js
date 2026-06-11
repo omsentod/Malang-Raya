@@ -60,6 +60,12 @@
                                 <span class="g-profile-name">${escapeHtml(getFirstName(data.user.name))}</span>
                             </div>
                             <div class="g-profile-dropdown" id="g-profile-dropdown">
+                                ${data.user.role === 'admin' ? `
+                                <a class="g-profile-dropdown-item admin-link" href="/admin" style="border-bottom: 1px solid rgba(255,255,255,0.08); font-weight: 600; color: #fb7185;">
+                                    <span class="material-symbols-outlined" style="color: #fb7185;">admin_panel_settings</span>
+                                    <span>Panel Admin</span>
+                                </a>
+                                ` : ''}
                                 <a class="g-profile-dropdown-item" href="/dashboard">
                                     <span class="material-symbols-outlined">dashboard</span>
                                     <span>Dashboard Saya</span>

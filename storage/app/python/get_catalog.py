@@ -14,9 +14,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 GAMBAR_DIR = os.path.join(ROOT_DIR, "public", "assets", "GAMBAR")
 
-DATASET_WISATA = os.path.join(BASE_DIR, "wisata_clean.xlsx")
-DATASET_HOTEL = os.path.join(BASE_DIR, "hotel_clean.xlsx")
-DATASET_MAKAN = os.path.join(BASE_DIR, "tempat_makan_clean.xlsx")
+from config import DATASET_WISATA, DATASET_HOTEL, DATASET_MAKAN
 
 def format_folder_name(name):
     # Standardize folder name: strip, replace spaces with underscores

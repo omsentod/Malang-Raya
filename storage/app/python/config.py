@@ -16,10 +16,11 @@ load_dotenv()
 # PATH DATASET
 # ============================================================
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATASET_DIR = os.path.join(BASE_DIR, "datasets")
 
-DATASET_WISATA = os.path.join(BASE_DIR, "wisata_clean.xlsx")
-DATASET_HOTEL = os.path.join(BASE_DIR, "hotel_clean.xlsx")
-DATASET_MAKAN = os.path.join(BASE_DIR, "tempat_makan_clean.xlsx")
+DATASET_WISATA = os.path.join(DATASET_DIR, "wisata_clean.xlsx")
+DATASET_HOTEL = os.path.join(DATASET_DIR, "hotel_clean.xlsx")
+DATASET_MAKAN = os.path.join(DATASET_DIR, "tempat_makan_clean.xlsx")
 
 OUTPUT_DIR = os.path.join(BASE_DIR, "output")
 

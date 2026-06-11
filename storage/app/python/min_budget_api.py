@@ -8,9 +8,10 @@ from recommender import find_k_pagi, find_k_malam, haversine_road_distance
 
 def calculate_min_budget(persons, duration, hotel_mode="same"):
     # Load dataset
-    df_hotel = pd.read_excel("hotel_clean.xlsx")
-    df_wisata = pd.read_excel("wisata_clean.xlsx")
-    df_kuliner = pd.read_excel("tempat_makan_clean.xlsx")
+    from config import DATASET_HOTEL, DATASET_WISATA, DATASET_MAKAN
+    df_hotel = pd.read_excel(DATASET_HOTEL)
+    df_wisata = pd.read_excel(DATASET_WISATA)
+    df_kuliner = pd.read_excel(DATASET_MAKAN)
 
     datasets = {"hotel": df_hotel, "wisata": df_wisata, "kuliner": df_kuliner}
 

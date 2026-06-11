@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\RecommenderController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\AdminController;
 
 Route::get('/', function () {
     $featuredPath = storage_path('app/python/catalog_featured.json');
@@ -74,6 +75,22 @@ Route::get('/api/auth/status', [AuthController::class, 'checkAuthStatus']);
 // Profile API (Protected)
 Route::middleware('auth')->group(function () {
     Route::post('/api/profile/update', [AuthController::class, 'ajaxUpdateProfile']);
+});
+
+// Admin Panel Routing (Protected by auth and admin middleware)
+Route::middleware(['auth', 'admin'])->group(function () {
+    Route::get('/admin', [AdminController::class, 'index']);
+    
+    // Admin API endpoints
+    Route::get('/api/admin/stats', [AdminController::class, 'getStats']);
+    Route::get('/api/admin/export/{type}', [AdminController::class, 'exportExcel']);
+    Route::post('/api/admin/import', [AdminController::class, 'importExcel']);
+    Route::post('/api/admin/rebuild-catalog', [AdminController::class, 'rebuildCatalog']);
+    Route::post('/api/admin/clear-cache', [AdminController::class, 'clearCache']);
+    
+    // User role management
+    Route::get('/api/admin/users', [AdminController::class, 'getUsers']);
+    Route::post('/api/admin/users/{id}/role', [AdminController::class, 'updateUserRole']);
 });
 
 

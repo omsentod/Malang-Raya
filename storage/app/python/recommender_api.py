@@ -23,11 +23,11 @@ from recommender import (
 )
 
 def load_datasets():
-    # Asumsikan dipanggil dalam folder yang sama
+    from config import DATASET_WISATA, DATASET_HOTEL, DATASET_MAKAN
     return {
-        "wisata": pd.read_excel("wisata_clean.xlsx"),
-        "hotel": pd.read_excel("hotel_clean.xlsx"),
-        "kuliner": pd.read_excel("tempat_makan_clean.xlsx")
+        "wisata": pd.read_excel(DATASET_WISATA),
+        "hotel": pd.read_excel(DATASET_HOTEL),
+        "kuliner": pd.read_excel(DATASET_MAKAN)
     }
 
 def main():
