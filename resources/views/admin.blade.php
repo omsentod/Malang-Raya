@@ -795,6 +795,20 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // Hamburger menu elements
+            const hamburger = document.getElementById('hamburger-btn');
+            const mobileMenu = document.getElementById('mobile-menu');
+
+            if (hamburger && mobileMenu) {
+                hamburger.addEventListener('click', () => {
+                    mobileMenu.classList.toggle('open');
+                    const icon = hamburger.querySelector('.material-symbols-outlined');
+                    if (icon) {
+                        icon.textContent = mobileMenu.classList.contains('open') ? 'close' : 'menu';
+                    }
+                });
+            }
+
             // Drop zone elements
             const dropZone = document.getElementById('drop-zone');
             const fileSelector = document.getElementById('file-selector');
