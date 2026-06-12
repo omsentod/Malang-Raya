@@ -175,6 +175,7 @@
         overlay?.classList.add('open');
         hideAuthError();
     }
+    window.openAuthModal = openAuthModal;
 
     window.closeAuthModal = function() {
         const overlay = document.getElementById('auth-modal-overlay');

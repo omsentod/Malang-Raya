@@ -149,7 +149,7 @@
                     <div class="viz-step-num">2</div>
                     <div>
                         <div class="viz-step-title">Alokasi Budget & Anchor Centroid</div>
-                        <div class="viz-step-sub">Distribusi budget ke 4 komponen + inisialisasi centroid 0.6×/1.0×/1.4×</div>
+                        <div class="viz-step-sub">Distribusi budget ke 4 komponen + inisialisasi centroid 0.5×/1.0×/1.5×</div>
                     </div>
                     <span class="material-symbols-outlined viz-section-chevron">expand_more</span>
                 </div>
@@ -202,7 +202,7 @@
                 <div class="viz-section-head" onclick="toggleSection('sec-5')">
                     <div class="viz-step-num">5</div>
                     <div>
-                        <div class="viz-step-title">Hasil Clustering Akhir (c=3, Skema B)</div>
+                        <div class="viz-step-title">Hasil Clustering Akhir (c=3, Skema A)</div>
                         <div class="viz-step-sub">Distribusi Hemat / Balanced / Premium per kategori data</div>
                     </div>
                     <span class="material-symbols-outlined viz-section-chevron">expand_more</span>

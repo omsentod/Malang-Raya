@@ -107,14 +107,14 @@ function renderBudgetAlloc(input) {
         </div>`).join('')}
     </div>
     <div class="terminal" style="margin-top:20px">
-<span class="comment"># Inisialisasi centroid berbasis budget (Skema B: 0.6×/1.0×/1.4×)</span>
+<span class="comment"># Inisialisasi centroid berbasis budget (Skema A: 0.5×/1.0×/1.5×)</span>
 <span class="kw">for</span> cat, anchor <span class="kw">in</span> budget_anchors.items():
     init_centers = [
-        anchor <span class="num">* 0.6</span>,  <span class="comment"># Titik Hemat</span>
+        anchor <span class="num">* 0.5</span>,  <span class="comment"># Titik Hemat</span>
         anchor <span class="num">* 1.0</span>,  <span class="comment"># Titik Balanced</span>
-        anchor <span class="num">* 1.4</span>,  <span class="comment"># Titik Premium</span>
+        anchor <span class="num">* 1.5</span>,  <span class="comment"># Titik Premium</span>
     ]
-    result = <span class="fn">run_budget_anchored_fcm</span>(prices, anchor, scheme=<span class="str">"B"</span>)</div>`;
+    result = <span class="fn">run_budget_anchored_fcm</span>(prices, anchor, scheme=<span class="str">"A"</span>)</div>`;
     document.getElementById('body-2').innerHTML = html;
 }
 
@@ -159,8 +159,8 @@ function renderRatio(ratioData) {
     const catLabel = { wisata: '🌿 Wisata', hotel: '🏨 Hotel', kuliner: '🍜 Kuliner' };
     const catCls = { wisata: 'wisata', hotel: 'hotel', kuliner: 'kuliner' };
     const schemeDesc = {
-        A: '0.5× / 1.0× / 1.5× (Lebar)',
-        B: '0.6× / 1.0× / 1.4× (Moderat) ★',
+        A: '0.5× / 1.0× / 1.5× (Lebar) ★',
+        B: '0.6× / 1.0× / 1.4× (Moderat)',
         C: '0.7× / 1.0× / 1.3× (Sempit)',
         D: '0.5× / 1.0× / 2.0× (Ekstrem)',
         E: '0.8× / 1.0× / 1.2× (Sangat Sempit)',
@@ -168,7 +168,7 @@ function renderRatio(ratioData) {
     let html = `
     <div class="info-box">
         <span class="material-symbols-outlined">info</span>
-        Lima skema rasio diuji untuk mencari inisialisasi centroid terbaik. Skema <strong>B (0.6×/1.0×/1.4×)</strong> dipilih sebagai default karena memberikan separasi yang moderat dan XBI terkecil pada mayoritas dataset.
+        Lima skema rasio diuji untuk mencari inisialisasi centroid terbaik. Skema <strong>A (0.5×/1.0×/1.5×)</strong> dipilih sebagai default karena secara empiris menghasilkan Xie-Beni Index terkecil pada kategori utama (Hotel).
     </div>
     <div class="ratio-section">`;
 

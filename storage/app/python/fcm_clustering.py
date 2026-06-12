@@ -296,11 +296,13 @@ def run_budget_anchored_fcm(data_prices, budget, n_clusters=3, ratio_scheme="B",
     if budget <= 0:
         raise ValueError("Budget harus lebih besar dari 0")
 
-    # Pilih ratio: RATIO_SCHEMES_BY_C untuk semua c; fallback ke scheme letter hanya c=3
-    if n_clusters in RATIO_SCHEMES_BY_C:
+    # Pilih ratio: jika c=3 gunakan ratio_scheme; selain itu gunakan RATIO_SCHEMES_BY_C
+    if n_clusters == 3:
+        ratios = RATIO_SCHEMES.get(ratio_scheme, RATIO_SCHEMES["B"])
+    elif n_clusters in RATIO_SCHEMES_BY_C:
         ratios = RATIO_SCHEMES_BY_C[n_clusters]
     else:
-        ratios = RATIO_SCHEMES.get(ratio_scheme, RATIO_SCHEMES["B"])
+        ratios = np.linspace(0.5, 1.5, n_clusters)
 
     # Hitung centroid awal berdasarkan budget × ratio
     init_centers = np.array([budget * r for r in ratios]).reshape(-1, 1)

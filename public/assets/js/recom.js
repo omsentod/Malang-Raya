@@ -2447,6 +2447,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const saveBtn = card.querySelector('.pkg-btn-save');
         if (saveBtn) {
             saveBtn.addEventListener('click', () => {
+                if (!window.currentUser) {
+                    alert("Silakan masuk (login) terlebih dahulu untuk menyimpan rencana perjalanan Anda ke Dashboard.");
+                    if (typeof window.openAuthModal === 'function') {
+                        window.openAuthModal();
+                    }
+                    return;
+                }
                 const days = [];
                 if (pkg.itinerary && pkg.itinerary.length > 0) {
                     pkg.itinerary.forEach(it => {
@@ -5846,6 +5853,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Finalize Travel Plan logic
     async function finalizeTravelPlan(totalCost, legs, totalDistance, transportCost, vehDesc) {
+        if (!window.currentUser) {
+            alert("Silakan masuk (login) terlebih dahulu untuk menyimpan rencana perjalanan Anda ke Dashboard.");
+            if (typeof window.openAuthModal === 'function') {
+                window.openAuthModal();
+            }
+            return;
+        }
         const btn = document.getElementById('finalize-plan-btn');
         const originalText = btn ? btn.innerHTML : '';
 
