@@ -134,7 +134,7 @@
                                 </label>
                                 <div class="counter-wrap">
                                     <button type="button" class="counter-btn" id="b-persons-minus">−</button>
-                                    <input type="number" class="counter-input" id="b-persons" value="2" min="1" max="20" />
+                                    <input type="number" class="counter-input" id="b-persons" value="2" min="1" max="6" />
                                     <button type="button" class="counter-btn" id="b-persons-plus">+</button>
                                 </div>
                             </div>
@@ -227,7 +227,7 @@
                                 </label>
                                 <div class="counter-wrap">
                                     <button type="button" class="counter-btn" id="f-persons-minus">−</button>
-                                    <input type="number" class="counter-input" id="f-persons" value="2" min="1" max="20" />
+                                    <input type="number" class="counter-input" id="f-persons" value="2" min="1" max="6" />
                                     <button type="button" class="counter-btn" id="f-persons-plus">+</button>
                                 </div>
                             </div>
@@ -305,7 +305,7 @@
                                 </label>
                                 <div class="counter-wrap">
                                     <button type="button" class="counter-btn" id="d-persons-minus">−</button>
-                                    <input type="number" class="counter-input" id="d-persons" value="2" min="1" max="20" />
+                                    <input type="number" class="counter-input" id="d-persons" value="2" min="1" max="6" />
                                     <button type="button" class="counter-btn" id="d-persons-plus">+</button>
                                 </div>
                             </div>

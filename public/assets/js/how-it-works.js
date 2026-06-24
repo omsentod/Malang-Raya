@@ -17,11 +17,150 @@ function toggleSection(id) {
     document.getElementById(id).classList.toggle('open');
 }
 
+function showToast(title, message) {
+    let container = document.getElementById('custom-toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'custom-toast-container';
+        container.className = 'custom-toast-container';
+        document.body.appendChild(container);
+        
+        const style = document.createElement('style');
+        style.textContent = `
+            .custom-toast-container {
+                position: fixed;
+                top: 24px;
+                right: 24px;
+                z-index: 9999;
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+                pointer-events: none;
+            }
+            .custom-toast {
+                background: rgba(15, 23, 42, 0.95);
+                color: #fff;
+                backdrop-filter: blur(8px);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+                border-radius: 16px;
+                padding: 16px 20px;
+                display: flex;
+                align-items: flex-start;
+                gap: 14px;
+                max-width: 380px;
+                pointer-events: auto;
+                transform: translateX(120%);
+                transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
+                opacity: 0;
+            }
+            .custom-toast.show {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            .custom-toast-icon {
+                font-size: 22px;
+                background: linear-gradient(135deg, #f59e0b, #d97706);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin-top: 2px;
+            }
+            .custom-toast-content {
+                flex: 1;
+            }
+            .custom-toast-title {
+                font-family: 'Manrope', 'Inter', sans-serif;
+                font-weight: 800;
+                font-size: 13.5px;
+                margin-bottom: 4px;
+                color: #f3f4f6;
+                letter-spacing: 0.2px;
+                text-align: left;
+            }
+            .custom-toast-message {
+                font-family: 'Inter', sans-serif;
+                font-size: 12px;
+                color: #9ca3af;
+                line-height: 1.45;
+                text-align: left;
+            }
+            .custom-toast-close {
+                cursor: pointer;
+                color: #6b7280;
+                transition: color 0.2s;
+                display: flex;
+                align-items: center;
+                background: none;
+                border: none;
+                padding: 0;
+                margin-top: 2px;
+            }
+            .custom-toast-close:hover {
+                color: #d1d5db;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    const toast = document.createElement('div');
+    toast.className = 'custom-toast';
+    toast.innerHTML = `
+        <span class="material-symbols-outlined custom-toast-icon">warning</span>
+        <div class="custom-toast-content">
+            <div class="custom-toast-title">${title}</div>
+            <div class="custom-toast-message">${message}</div>
+        </div>
+        <button class="custom-toast-close">
+            <span class="material-symbols-outlined" style="font-size: 18px;">close</span>
+        </button>
+    `;
+
+    container.appendChild(toast);
+    toast.offsetHeight;
+    toast.classList.add('show');
+
+    const closeBtn = toast.querySelector('.custom-toast-close');
+    const dismiss = () => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 400);
+    };
+    closeBtn.addEventListener('click', dismiss);
+    setTimeout(dismiss, 5000);
+}
+
 // Counter
 function cc(inpId, minusId, plusId, min = 1) {
     const inp = document.getElementById(inpId);
-    document.getElementById(minusId).addEventListener('click', () => { if (+inp.value > min) inp.value = +inp.value - 1; });
-    document.getElementById(plusId).addEventListener('click', () => { inp.value = +inp.value + 1; });
+    if (!inp) return;
+    const max = inp.hasAttribute('max') ? +inp.getAttribute('max') : Infinity;
+    document.getElementById(minusId).addEventListener('click', () => { 
+        if (+inp.value > min) inp.value = +inp.value - 1; 
+    });
+    document.getElementById(plusId).addEventListener('click', () => { 
+        if (+inp.value < max) {
+            inp.value = +inp.value + 1; 
+        } else {
+            if (max === 6 && inpId === 'sim-persons') {
+                showToast("Batas Maksimal Peserta", "Jumlah peserta dibatasi maksimal 6 orang untuk menyesuaikan kapasitas GoCar XL (armada terbesar yang tersedia).");
+            }
+        }
+    });
+    inp.addEventListener('input', () => {
+        if (+inp.value > max) {
+            inp.value = max;
+            if (max === 6 && inpId === 'sim-persons') {
+                showToast("Batas Maksimal Peserta", "Jumlah peserta dibatasi maksimal 6 orang untuk menyesuaikan kapasitas GoCar XL (armada terbesar yang tersedia).");
+            }
+        }
+    });
+    inp.addEventListener('change', () => {
+        if (+inp.value > max) {
+            inp.value = max;
+        }
+    });
 }
 cc('sim-persons', 'sp-minus', 'sp-plus');
 cc('sim-duration', 'sd-minus', 'sd-plus');

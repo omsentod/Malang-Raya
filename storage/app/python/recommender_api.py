@@ -67,7 +67,7 @@ def main():
                     datasets=datasets,
                     verbose=True,
                     transport_mode=args.transport,
-                    hotel_mode=args.hotel_mode
+                    hotel_mode=args.hotel_mode,
                 )
 
             elif args.workflow == 'flexible':

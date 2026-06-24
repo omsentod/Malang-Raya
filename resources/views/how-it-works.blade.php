@@ -76,7 +76,7 @@
                     <label>Peserta</label>
                     <div class="inp-wrap counter-ctrl">
                         <button class="cc-btn" id="sp-minus">−</button>
-                        <input type="number" class="sim-input" id="sim-persons" value="2" min="1" max="20" style="text-align:center;width:60px;flex:unset" />
+                        <input type="number" class="sim-input" id="sim-persons" value="2" min="1" max="6" style="text-align:center;width:60px;flex:unset" />
                         <button class="cc-btn" id="sp-plus">+</button>
                     </div>
                 </div>

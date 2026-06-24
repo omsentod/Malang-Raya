@@ -1,14 +1,4 @@
-"""
-recommender.py — Sistem Rekomendasi Paket Wisata
-==================================================
-Mengimplementasikan Budget-First Workflow (alur utama) sesuai
-Sub-bab 3.3.5 skripsi:
-1. Terima input budget, jumlah orang, durasi
-2. Jalankan FCM terpisah untuk hotel, wisata, kuliner
-3. Buat kombinasi paket
-4. Hitung total biaya (akomodasi + tiket + kuliner + transportasi)
-5. Filter & ranking → tampilkan top 3 paket
-"""
+
 
 import math
 from typing import cast, Any
@@ -87,22 +77,47 @@ def build_hotel_sequence_by_proximity(start_hotel, hotel_list, nights):
     return sequence
 
 
-def recalculate_pkg_legs(pkg_formatted, itinerary, num_persons):
+def recalculate_pkg_legs(pkg_formatted, itinerary, num_persons, transport_mode=None):
     """
     Recalculates precise spatial legs, total distance, and transport cost based
     on the actual itinerary's coordinates.
     """
     duration = len(itinerary)
     
-    if num_persons <= 1:
-        rate_per_km = 2250
-        transport_desc = "Motor GoRide (1 orang)"
-    elif num_persons <= 4:
-        rate_per_km = 5150
-        transport_desc = "Mobil GoCar Standard (2-4 orang)"
+    rate_per_km = 2250
+    transport_desc = "Motor GoRide (1 orang)"
+
+    if transport_mode:
+        mode_lower = str(transport_mode).strip().lower()
+        if mode_lower in ["goride", "motor", "ride"]:
+            rate_per_km = 2250
+            transport_desc = "Motor GoRide (1 orang)"
+        elif mode_lower in ["gocar_standard", "mobil", "standard", "car"]:
+            rate_per_km = 5150
+            transport_desc = "Mobil GoCar Standard (2-4 orang)"
+        elif mode_lower in ["gocar_xl", "mobil_xl", "xl"]:
+            rate_per_km = 6000
+            transport_desc = "Mobil GoCar XL (5-6 orang)"
+        else:
+            if num_persons <= 1:
+                rate_per_km = 2250
+                transport_desc = "Motor GoRide (1 orang)"
+            elif num_persons <= 4:
+                rate_per_km = 5150
+                transport_desc = "Mobil GoCar Standard (2-4 orang)"
+            else:
+                rate_per_km = 6000
+                transport_desc = "Mobil GoCar XL (5-6 orang)"
     else:
-        rate_per_km = 6000
-        transport_desc = "Mobil GoCar XL (5-6 orang)"
+        if num_persons <= 1:
+            rate_per_km = 2250
+            transport_desc = "Motor GoRide (1 orang)"
+        elif num_persons <= 4:
+            rate_per_km = 5150
+            transport_desc = "Mobil GoCar Standard (2-4 orang)"
+        else:
+            rate_per_km = 6000
+            transport_desc = "Mobil GoCar XL (5-6 orang)"
         
     legs_detail = []
     haversine_total_dist = 0.0
@@ -1272,7 +1287,7 @@ def generate_packages(total_budget, num_persons, duration, datasets,
                 }]
 
             # Recalculate legs, distance, and transport cost based on actual coordinates
-            recalculate_pkg_legs(pkg_formatted, pkg_formatted["itinerary"], num_persons)
+            recalculate_pkg_legs(pkg_formatted, pkg_formatted["itinerary"], num_persons, transport_mode)
 
             # Recalculate package totals to ensure 100% mathematical consistency with daily itinerary subtotals
             total_kuliner = 0.0
@@ -2013,7 +2028,7 @@ def generate_flexible_exploration_packages(num_persons, duration, datasets,
                 }]
 
             # Recalculate legs, distance, and transport cost based on actual coordinates
-            recalculate_pkg_legs(pkg_formatted, pkg_formatted["itinerary"], num_persons)
+            recalculate_pkg_legs(pkg_formatted, pkg_formatted["itinerary"], num_persons, transport_mode)
 
             # Recalculate package totals to ensure 100% mathematical consistency with daily itinerary subtotals
             total_kuliner = 0.0
@@ -2914,7 +2929,7 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
                 }]
 
             # Recalculate legs, distance, and transport cost based on actual coordinates
-            recalculate_pkg_legs(pkg_formatted, pkg_formatted["itinerary"], num_persons)
+            recalculate_pkg_legs(pkg_formatted, pkg_formatted["itinerary"], num_persons, transport_mode)
 
             # Recalculate package totals to ensure 100% mathematical consistency with daily itinerary subtotals
             total_kuliner = 0.0

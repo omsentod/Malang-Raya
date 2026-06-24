@@ -6,7 +6,7 @@ import pandas as pd
 from fcm_clustering import run_percentile_fcm, find_best_c_offline
 from recommender import find_k_pagi, find_k_malam, haversine_road_distance
 
-def calculate_min_budget(persons, duration, hotel_mode="same"):
+def calculate_min_budget(persons, duration, hotel_mode="same", transport_mode=None):
     # Load dataset
     from config import DATASET_HOTEL, DATASET_WISATA, DATASET_MAKAN
     df_hotel = pd.read_excel(DATASET_HOTEL)
@@ -48,6 +48,14 @@ def calculate_min_budget(persons, duration, hotel_mode="same"):
     nights = duration - 1
     num_rooms = math.ceil(persons / 2)
     rate_per_km = 2250 if persons <= 1 else (5150 if persons <= 4 else 6000)
+    if transport_mode:
+        mode_lower = str(transport_mode).strip().lower()
+        if mode_lower in ["goride", "motor", "ride"]:
+            rate_per_km = 2250
+        elif mode_lower in ["gocar_standard", "mobil", "standard", "car"]:
+            rate_per_km = 5150
+        elif mode_lower in ["gocar_xl", "mobil_xl", "xl"]:
+            rate_per_km = 6000
 
     total_meals = 2 if duration == 1 else (3 * (duration - 1) + 2)
 
@@ -186,7 +194,8 @@ if __name__ == "__main__":
     parser.add_argument("--persons", type=int, required=True)
     parser.add_argument("--duration", type=int, required=True)
     parser.add_argument("--hotel_mode", type=str, default="same")
+    parser.add_argument("--transport", type=str, default=None)
     args = parser.parse_args()
 
-    result = calculate_min_budget(args.persons, args.duration, args.hotel_mode)
+    result = calculate_min_budget(args.persons, args.duration, args.hotel_mode, args.transport)
     print(json.dumps(result, ensure_ascii=False))

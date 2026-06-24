@@ -1260,16 +1260,165 @@ document.addEventListener('DOMContentLoaded', () => {
     // ─────────────────────────────────────────────────
     // Counter helper
     // ─────────────────────────────────────────────────
+    function showToast(title, message) {
+        let container = document.getElementById('custom-toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'custom-toast-container';
+            container.className = 'custom-toast-container';
+            document.body.appendChild(container);
+            
+            const style = document.createElement('style');
+            style.textContent = `
+                .custom-toast-container {
+                    position: fixed;
+                    top: 24px;
+                    right: 24px;
+                    z-index: 9999;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 12px;
+                    pointer-events: none;
+                }
+                .custom-toast {
+                    background: rgba(15, 23, 42, 0.95);
+                    color: #fff;
+                    backdrop-filter: blur(8px);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+                    border-radius: 16px;
+                    padding: 16px 20px;
+                    display: flex;
+                    align-items: flex-start;
+                    gap: 14px;
+                    max-width: 380px;
+                    pointer-events: auto;
+                    transform: translateX(120%);
+                    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
+                    opacity: 0;
+                }
+                .custom-toast.show {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                .custom-toast-icon {
+                    font-size: 22px;
+                    background: linear-gradient(135deg, #f59e0b, #d97706);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    margin-top: 2px;
+                }
+                .custom-toast-content {
+                    flex: 1;
+                }
+                .custom-toast-title {
+                    font-family: 'Manrope', 'Inter', sans-serif;
+                    font-weight: 800;
+                    font-size: 13.5px;
+                    margin-bottom: 4px;
+                    color: #f3f4f6;
+                    letter-spacing: 0.2px;
+                    text-align: left;
+                }
+                .custom-toast-message {
+                    font-family: 'Inter', sans-serif;
+                    font-size: 12px;
+                    color: #9ca3af;
+                    line-height: 1.45;
+                    text-align: left;
+                }
+                .custom-toast-close {
+                    cursor: pointer;
+                    color: #6b7280;
+                    transition: color 0.2s;
+                    display: flex;
+                    align-items: center;
+                    background: none;
+                    border: none;
+                    padding: 0;
+                    margin-top: 2px;
+                }
+                .custom-toast-close:hover {
+                    color: #d1d5db;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        const toast = document.createElement('div');
+        toast.className = 'custom-toast';
+        toast.innerHTML = `
+            <span class="material-symbols-outlined custom-toast-icon">warning</span>
+            <div class="custom-toast-content">
+                <div class="custom-toast-title">${title}</div>
+                <div class="custom-toast-message">${message}</div>
+            </div>
+            <button class="custom-toast-close">
+                <span class="material-symbols-outlined" style="font-size: 18px;">close</span>
+            </button>
+        `;
+
+        container.appendChild(toast);
+        toast.offsetHeight;
+        toast.classList.add('show');
+
+        const closeBtn = toast.querySelector('.custom-toast-close');
+        const dismiss = () => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 400);
+        };
+        closeBtn.addEventListener('click', dismiss);
+        setTimeout(dismiss, 5000);
+    }
+
     function setupCounter(inputId, minusId, plusId, min = 1) {
         const inp = document.getElementById(inputId);
         const plus = document.getElementById(plusId);
         const minus = document.getElementById(minusId);
         if (!inp || !plus || !minus) return;
         const max = inp.hasAttribute('max') ? +inp.getAttribute('max') : Infinity;
-        minus.addEventListener('click', () => { if (+inp.value > min) { inp.value = +inp.value - 1; updateBudgetSliders(); fetchApiMinMaxUpdate(); onBudgetChange(); } });
-        plus.addEventListener('click', () => { if (+inp.value < max) { inp.value = +inp.value + 1; updateBudgetSliders(); fetchApiMinMaxUpdate(); onBudgetChange(); } });
-        inp.addEventListener('input', () => { updateBudgetSliders(); fetchApiMinMaxUpdate(); onBudgetChange(); });
-        inp.addEventListener('change', () => { updateBudgetSliders(); fetchApiMinMaxUpdate(); onBudgetChange(); });
+        minus.addEventListener('click', () => { 
+            if (+inp.value > min) { 
+                inp.value = +inp.value - 1; 
+                updateBudgetSliders(); 
+                fetchApiMinMaxUpdate(); 
+                onBudgetChange(); 
+            } 
+        });
+        plus.addEventListener('click', () => { 
+            if (+inp.value < max) { 
+                inp.value = +inp.value + 1; 
+                updateBudgetSliders(); 
+                fetchApiMinMaxUpdate(); 
+                onBudgetChange(); 
+            } else {
+                if (max === 6 && (inputId === 'b-persons' || inputId === 'f-persons' || inputId === 'd-persons')) {
+                    showToast("Batas Maksimal Peserta", "Jumlah peserta dibatasi maksimal 6 orang untuk menyesuaikan kapasitas GoCar XL (armada terbesar yang tersedia).");
+                }
+            }
+        });
+        inp.addEventListener('input', () => { 
+            if (+inp.value > max) {
+                inp.value = max;
+                if (max === 6 && (inputId === 'b-persons' || inputId === 'f-persons' || inputId === 'd-persons')) {
+                    showToast("Batas Maksimal Peserta", "Jumlah peserta dibatasi maksimal 6 orang untuk menyesuaikan kapasitas GoCar XL (armada terbesar yang tersedia).");
+                }
+            }
+            updateBudgetSliders(); 
+            fetchApiMinMaxUpdate(); 
+            onBudgetChange(); 
+        });
+        inp.addEventListener('change', () => { 
+            if (+inp.value > max) {
+                inp.value = max;
+            }
+            updateBudgetSliders(); 
+            fetchApiMinMaxUpdate(); 
+            onBudgetChange(); 
+        });
     }
     setupCounter('b-persons', 'b-persons-minus', 'b-persons-plus');
     setupCounter('b-duration', 'b-duration-minus', 'b-duration-plus');
@@ -1281,10 +1430,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // ─────────────────────────────────────────────────
     // Dynamic Budget Range Sliders
     // ─────────────────────────────────────────────────
-    function calculateScaledMinBudget(persons, duration, hotelMode = 'same') {
+    function calculateScaledMinBudget(persons, duration, hotelMode = 'same', transport = '') {
         let ratePerKm = 2250;
-        if (persons > 4) ratePerKm = 6000;
-        else if (persons > 1) ratePerKm = 5150;
+        if (transport) {
+            const mode = String(transport).trim().toLowerCase();
+            if (mode === 'motor' || mode === 'goride') ratePerKm = 2250;
+            else if (mode === 'mobil' || mode === 'gocar_standard') ratePerKm = 5150;
+            else if (mode === 'mobil_xl' || mode === 'gocar_xl') ratePerKm = 6000;
+        } else {
+            if (persons > 4) ratePerKm = 6000;
+            else if (persons > 1) ratePerKm = 5150;
+        }
 
         const minHotelPrice = 135000; // Harga homestay/kost harian rata-rata yang lebih realistis untuk durasi panjang
         const minWisataPrice = 0;
@@ -1328,10 +1484,17 @@ document.addEventListener('DOMContentLoaded', () => {
         return Math.ceil((totalMin * 1.45) / 50000) * 50000; // Naikkan safety margin ke 45%
     }
 
-    function calculateScaledMaxBudget(persons, duration, hotelMode = 'same') {
+    function calculateScaledMaxBudget(persons, duration, hotelMode = 'same', transport = '') {
         let ratePerKm = 2250;
-        if (persons > 4) ratePerKm = 6000;
-        else if (persons > 1) ratePerKm = 5150;
+        if (transport) {
+            const mode = String(transport).trim().toLowerCase();
+            if (mode === 'motor' || mode === 'goride') ratePerKm = 2250;
+            else if (mode === 'mobil' || mode === 'gocar_standard') ratePerKm = 5150;
+            else if (mode === 'mobil_xl' || mode === 'gocar_xl') ratePerKm = 6000;
+        } else {
+            if (persons > 4) ratePerKm = 6000;
+            else if (persons > 1) ratePerKm = 5150;
+        }
 
         const maxHotelPrice = 1200000;
         const maxWisataPrice = 200000;
@@ -1363,9 +1526,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const bPersons = +document.getElementById('b-persons')?.value || 1;
         const bDuration = +document.getElementById('b-duration')?.value || 1;
         const bHotelMode = document.getElementById('b-hotel-mode')?.value || 'same';
+        const bTransport = document.getElementById('b-transport')?.value || '';
 
-        const bMin = calculateScaledMinBudget(bPersons, bDuration, bHotelMode);
-        const bMax = calculateScaledMaxBudget(bPersons, bDuration, bHotelMode);
+        const bMin = calculateScaledMinBudget(bPersons, bDuration, bHotelMode, bTransport);
+        const bMax = calculateScaledMaxBudget(bPersons, bDuration, bHotelMode, bTransport);
 
         // Show/hide b-hotel-mode-group depending on bDuration > 2
         const bHotelGroup = document.getElementById('b-hotel-mode-group');
@@ -1408,9 +1572,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const dPersons = +document.getElementById('d-persons')?.value || 1;
         const dDuration = +document.getElementById('d-duration')?.value || 1;
         const dHotelMode = document.getElementById('d-hotel-mode')?.value || 'same';
+        const dTransport = document.getElementById('d-transport')?.value || '';
 
-        const dMin = calculateScaledMinBudget(dPersons, dDuration, dHotelMode);
-        const dMax = calculateScaledMaxBudget(dPersons, dDuration, dHotelMode);
+        const dMin = calculateScaledMinBudget(dPersons, dDuration, dHotelMode, dTransport);
+        const dMax = calculateScaledMaxBudget(dPersons, dDuration, dHotelMode, dTransport);
 
         // Show/hide d-hotel-mode-group depending on dDuration > 2
         const dHotelGroup = document.getElementById('d-hotel-mode-group');
@@ -1472,8 +1637,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const dPersons = +document.getElementById('d-persons')?.value || 1;
         const dDuration = +document.getElementById('d-duration')?.value || 1;
         const dHotelMode = document.getElementById('d-hotel-mode')?.value || 'same';
+        const dTransport = document.getElementById('d-transport')?.value || '';
 
-        let dMin = calculateScaledMinBudget(dPersons, dDuration, dHotelMode);
+        let dMin = calculateScaledMinBudget(dPersons, dDuration, dHotelMode, dTransport);
         const slider = document.getElementById('d-budget');
         if (slider && slider.dataset.aiMin) {
             dMin = parseInt(slider.dataset.aiMin);
@@ -1594,7 +1760,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const dPersons = +document.getElementById('d-persons')?.value || 1;
                 const dDuration = +document.getElementById('d-duration')?.value || 1;
                 const dHotelMode = document.getElementById('d-hotel-mode')?.value || 'same';
-                let targetDMin = calculateScaledMinBudget(dPersons, dDuration, dHotelMode);
+                const dTransport = document.getElementById('d-transport')?.value || '';
+                let targetDMin = calculateScaledMinBudget(dPersons, dDuration, dHotelMode, dTransport);
                 if (slider && slider.dataset.aiMin) targetDMin = parseInt(slider.dataset.aiMin);
                 if (valEl) valEl.textContent = (val < targetDMin) ? "Tanpa Batasan Anggaran " : fmtRp(val);
             }
@@ -1619,7 +1786,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const persons = +document.getElementById('d-persons')?.value || 1;
             const duration = +document.getElementById('d-duration')?.value || 1;
             const hotelMode = document.getElementById('d-hotel-mode')?.value || 'same';
-            let minBudget = calculateScaledMinBudget(persons, duration, hotelMode);
+            const transport = document.getElementById('d-transport')?.value || '';
+            let minBudget = calculateScaledMinBudget(persons, duration, hotelMode, transport);
             const slider = document.getElementById('d-budget');
             if (slider && slider.dataset.aiMin) minBudget = parseInt(slider.dataset.aiMin);
             if (val < minBudget) return 0; // return 0 for "No Budget"
@@ -1628,9 +1796,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function checkMinBudget(personsId, durationId, budgetId, warningBoxId, hotelModeId) {
+        const prefix = personsId.substring(0, 2); // 'b-' or 'd-'
         const persons = +document.getElementById(personsId)?.value || 1;
         const duration = +document.getElementById(durationId)?.value || 1;
         const hotelMode = document.getElementById(hotelModeId)?.value || 'same';
+        const transport = document.getElementById(prefix + 'transport')?.value || '';
         const budget = getRawBudget(budgetId);
         const box = document.getElementById(warningBoxId);
 
@@ -1651,7 +1821,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Ambil nilai AI pintar dari label (jika ada), sehingga kotak peringatan responsif terhadap Python AI
-        let minBudget = calculateScaledMinBudget(persons, duration, hotelMode);
+        let minBudget = calculateScaledMinBudget(persons, duration, hotelMode, transport);
         const slider = document.getElementById(budgetId);
         if (slider && slider.dataset.aiMin) {
             minBudget = parseInt(slider.dataset.aiMin);
@@ -1707,12 +1877,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    async function fetchBudgetRange(persons, duration, hotelMode = 'same') {
+    async function fetchBudgetRange(persons, duration, hotelMode = 'same', transport = '') {
         try {
             const fd = new FormData();
             fd.append('persons', persons);
             fd.append('duration', duration);
             fd.append('hotel_mode', hotelMode);
+            fd.append('transport', transport);
             const res = await fetch('/api/min-budget', {
                 method: 'POST',
                 body: fd,
@@ -1746,16 +1917,18 @@ document.addEventListener('DOMContentLoaded', () => {
             const bPersons = +document.getElementById('b-persons')?.value || 1;
             const bDuration = +document.getElementById('b-duration')?.value || 1;
             const bHotelModeVal = document.getElementById('b-hotel-mode')?.value || 'same';
+            const bTransportVal = document.getElementById('b-transport')?.value || '';
 
             // ── Fetch untuk Destination-First (pakai nilai d- bukan b-) ──
             const dPersons = +document.getElementById('d-persons')?.value || 1;
             const dDuration = +document.getElementById('d-duration')?.value || 1;
             const dHotelModeVal = document.getElementById('d-hotel-mode')?.value || 'same';
+            const dTransportVal = document.getElementById('d-transport')?.value || '';
 
             // Fetch keduanya paralel
             const [bRange, dRange] = await Promise.all([
-                fetchBudgetRange(bPersons, bDuration, bHotelModeVal),
-                fetchBudgetRange(dPersons, dDuration, dHotelModeVal)
+                fetchBudgetRange(bPersons, bDuration, bHotelModeVal, bTransportVal),
+                fetchBudgetRange(dPersons, dDuration, dHotelModeVal, dTransportVal)
             ]);
 
             if (seq !== budgetFetchSeq) return;
@@ -1863,7 +2036,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const bPersonsVal = +document.getElementById('b-persons')?.value || 1;
             const bDurationVal = +document.getElementById('b-duration')?.value || 1;
             const bHotMode = document.getElementById('b-hotel-mode')?.value || 'same';
-            let bMinBudget = calculateScaledMinBudget(bPersonsVal, bDurationVal, bHotMode);
+            const bTransportVal = document.getElementById('b-transport')?.value || '';
+            let bMinBudget = calculateScaledMinBudget(bPersonsVal, bDurationVal, bHotMode, bTransportVal);
             const bSliderEl = document.getElementById('b-budget');
             if (bSliderEl && bSliderEl.dataset.aiMin) bMinBudget = parseInt(bSliderEl.dataset.aiMin);
             const bBudgetTooLow = bBudgetVal <= 0 || bBudgetVal < bMinBudget;

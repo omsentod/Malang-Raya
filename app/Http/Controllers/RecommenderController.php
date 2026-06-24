@@ -40,7 +40,7 @@ class RecommenderController extends Controller
     {
         $validated = $request->validate([
             'workflow'   => 'required|in:budget,flexible,destination',
-            'persons'    => 'required|integer|min:1|max:20',
+            'persons'    => 'required|integer|min:1|max:6',
             'duration'   => 'required|integer|min:1|max:30',
             'budget'     => 'nullable|numeric|min:0',
             'dest_id'    => 'nullable|string',
@@ -191,9 +191,10 @@ class RecommenderController extends Controller
 public function minBudget(Request $request)
 {
     $validated = $request->validate([
-        'persons'    => 'required|integer|min:1|max:20',
+        'persons'    => 'required|integer|min:1|max:6',
         'duration'   => 'required|integer|min:1|max:30',
         'hotel_mode' => 'nullable|in:same,split',
+        'transport'  => 'nullable|string',
     ]);
 
     $args = [
@@ -203,6 +204,11 @@ public function minBudget(Request $request)
         '--duration',   $validated['duration'],
         '--hotel_mode', $validated['hotel_mode'] ?? 'same',
     ];
+
+    if (!empty($validated['transport'])) {
+        $args[] = '--transport';
+        $args[] = $validated['transport'];
+    }
 
     $process = new Process($args);
     $process->setWorkingDirectory($this->workingDir());

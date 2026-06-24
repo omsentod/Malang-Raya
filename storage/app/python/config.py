@@ -46,7 +46,7 @@ CLUSTER_RANGE = [2, 3, 4, 5]
 # Rasio menentukan posisi awal centroid relatif terhadap budget input
 # ============================================================
 RATIO_SCHEMES_BY_C = {
-    2: (0.8, 1.2),                    # c=2: Hemat, Premium
+    2: (0.5, 1.5),                    # c=2: Hemat, Premium
     3: (0.5, 1.0, 1.5),               # c=3: Hemat, Balanced, Premium
     4: (0.5, 0.8, 1.2, 1.5),          # c=4: Hemat, Balanced, Premium, Luxury
     5: (0.4, 0.7, 1.0, 1.3, 1.6),     # c=5

@@ -345,20 +345,7 @@ def run_budget_anchored_fcm(data_prices, budget, n_clusters=3, ratio_scheme="B",
 def find_best_c_for_budget(datasets_prices: dict, budget: float,
                            c_range=CLUSTER_RANGE, m=FCM_FUZZIFIER,
                            verbose=False) -> int:
-    """
-    Menentukan jumlah klaster optimal (c) untuk budget tertentu menggunakan
-    rata-rata Xie-Beni Index dari semua kategori (hotel, wisata, kuliner).
-
-    Args:
-        datasets_prices: dict {'hotel': array, 'wisata': array, 'kuliner': array}
-        budget: total anggaran pengguna
-        c_range: list nilai c yang diuji (default: [2,3,4,5])
-        m: fuzzifier
-        verbose: cetak detail
-
-    Returns:
-        int: nilai c optimal (best_c)
-    """
+    
     avg_xb_per_c: dict[int, float] = {}
 
     for c in c_range:
