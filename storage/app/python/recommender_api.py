@@ -12,7 +12,6 @@ import io
 # pyrefly: ignore [missing-source-for-stubs]
 import pandas as pd
 import warnings
-# Matikan warning agar stdout tidak kotor dengan pesan Warning pandas
 warnings.filterwarnings('ignore')
 
 from recommender import (
@@ -108,7 +107,7 @@ def main():
 
         verbose_text = captured_io.getvalue()
 
-        # Kembalikan array packages sebagai JSON murni tanpa hiasan teks biasa
+        # Mengembalikan array packages sebagai respon JSON terstruktur
         print(json.dumps({
             "status": "success",
             "data": packages,
@@ -116,7 +115,7 @@ def main():
         }))
 
     except Exception as e:
-        sys.stdout = old_stdout  # Selalu aman: old_stdout sudah pasti terdefinisi
+        sys.stdout = old_stdout  # Mengembalikan output stream standar ke sistem
         print(json.dumps({
             "status": "error",
             "message": str(e)

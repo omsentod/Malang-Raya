@@ -407,7 +407,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "23",
+    "Id_Tempat": "22",
     "Nama_Tempat": "Monumen Palagan Mendalan",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -426,7 +426,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "24",
+    "Id_Tempat": "23",
     "Nama_Tempat": "Watu Gilang (ꦮꦠꦸꦒꦶꦭꦁ)",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -446,7 +446,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "25",
+    "Id_Tempat": "24",
     "Nama_Tempat": "Wisata Desa BONPI / de' Asmorondono",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -460,7 +460,7 @@
     "Has_Gambar": false
   },
   {
-    "Id_Tempat": "26",
+    "Id_Tempat": "25",
     "Nama_Tempat": "Bukit Waung",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -480,7 +480,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "27",
+    "Id_Tempat": "26",
     "Nama_Tempat": "TAMAN WISATA BEDENGAN",
     "Kategori": "Wisata",
     "Sub_Kategori": "TAMAN WISATA BEDENGAN",
@@ -498,7 +498,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "28",
+    "Id_Tempat": "27",
     "Nama_Tempat": "Pantai Pasir Panjang Ngeliyep",
     "Kategori": "Wisata",
     "Sub_Kategori": "Pantai Pasir Panjang Ngeliyep",
@@ -518,7 +518,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "29",
+    "Id_Tempat": "28",
     "Nama_Tempat": "Bukit Nuri",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -537,7 +537,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "30",
+    "Id_Tempat": "29",
     "Nama_Tempat": "Teluk BIDADARI ꦠ꧀ꦭꦒꦮꦶꦢꦢꦫꦶ",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -556,7 +556,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "31",
+    "Id_Tempat": "30",
     "Nama_Tempat": "Pantai Ngliyep Malang",
     "Kategori": "Wisata",
     "Sub_Kategori": "Pantai Ngliyep Malang",
@@ -576,7 +576,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "32",
+    "Id_Tempat": "31",
     "Nama_Tempat": "Wisata Rowo Klampok",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Rowo Klampok",
@@ -596,7 +596,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "33",
+    "Id_Tempat": "32",
     "Nama_Tempat": "Pantai Goa Pathuk ilang ꦥꦼꦱꦶꦱꦶꦂꦒꦸꦮꦥꦡꦸꦏ꧀ꦅꦭꦁ",
     "Kategori": "Wisata",
     "Sub_Kategori": "Pantai Goa Pathuk ilang ꦥꦼꦱꦶꦱꦶꦂꦒꦸꦮꦥꦡꦸꦏ꧀ꦅꦭꦁ",
@@ -615,7 +615,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "34",
+    "Id_Tempat": "33",
     "Nama_Tempat": "Pantai Nglurung ꦥꦼꦱꦶꦱꦶꦂꦔ꧀ꦭꦸꦫꦸꦁ",
     "Kategori": "Wisata",
     "Sub_Kategori": "Pantai Nglurung ꦥꦼꦱꦶꦱꦶꦂꦔ꧀ꦭꦸꦫꦸꦁ",
@@ -635,7 +635,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "35",
+    "Id_Tempat": "34",
     "Nama_Tempat": "Wisata Ngebrak",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Ngebrak",
@@ -653,7 +653,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "36",
+    "Id_Tempat": "35",
     "Nama_Tempat": "Pantai Ngledakan Ciut ꦥꦼꦱꦶꦱꦶꦂꦔ꧀ꦭꦼꦢꦏꦤ꧀ꦕꦶꦪꦸꦠ꧀",
     "Kategori": "Wisata",
     "Sub_Kategori": "Pantai Ngledakan Ciut ꦥꦼꦱꦶꦱꦶꦂꦔ꧀ꦭꦼꦢꦏꦤ꧀ꦕꦶꦪꦸꦠ꧀",
@@ -672,7 +672,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "37",
+    "Id_Tempat": "36",
     "Nama_Tempat": "Pantai Modangan",
     "Kategori": "Wisata",
     "Sub_Kategori": "Pantai Modangan",
@@ -690,7 +690,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "38",
+    "Id_Tempat": "37",
     "Nama_Tempat": "Pantai Banyu Anjlok",
     "Kategori": "Wisata",
     "Sub_Kategori": "Pantai Banyu Anjlok",
@@ -710,7 +710,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "39",
+    "Id_Tempat": "38",
     "Nama_Tempat": "Gunung Geger",
     "Kategori": "Wisata",
     "Sub_Kategori": "Gunung Geger",
@@ -729,7 +729,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "40",
+    "Id_Tempat": "39",
     "Nama_Tempat": "Gua Maria Sendang Purwaningsih",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata · PCC6+3C8",
@@ -749,7 +749,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "41",
+    "Id_Tempat": "40",
     "Nama_Tempat": "Tempat Wisata Mancing ikan air tawar di tengah bendungan",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -769,7 +769,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "42",
+    "Id_Tempat": "41",
     "Nama_Tempat": "Wisata Payung Batu",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Payung Batu",
@@ -789,7 +789,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "43",
+    "Id_Tempat": "42",
     "Nama_Tempat": "Taman Merak Pujon Rafting",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Merak Pujon Rafting",
@@ -808,7 +808,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "44",
+    "Id_Tempat": "43",
     "Nama_Tempat": "Air Terjun Sumber Pitu Pujon",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -828,7 +828,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "45",
+    "Id_Tempat": "44",
     "Nama_Tempat": "Florawisata Santerra De Laponte",
     "Kategori": "Wisata",
     "Sub_Kategori": "Florawisata Santerra De Laponte",
@@ -848,7 +848,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "46",
+    "Id_Tempat": "45",
     "Nama_Tempat": "Bumi Perkemahan Coban Manan",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman ·  · 4F44+RFH",
@@ -867,7 +867,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "47",
+    "Id_Tempat": "46",
     "Nama_Tempat": "Agrowisata Telaga Madiredo",
     "Kategori": "Wisata",
     "Sub_Kategori": "Agrowisata Telaga Madiredo",
@@ -887,7 +887,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "48",
+    "Id_Tempat": "47",
     "Nama_Tempat": "Cafe Sawah Pujonkidul",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -907,7 +907,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "49",
+    "Id_Tempat": "48",
     "Nama_Tempat": "Watu Gajah PUJON Gussari",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -927,7 +927,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "50",
+    "Id_Tempat": "49",
     "Nama_Tempat": "The Roudh 78",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -947,7 +947,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "51",
+    "Id_Tempat": "50",
     "Nama_Tempat": "Camping Outbound Pujon Pondok Koeboed",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -966,7 +966,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "52",
+    "Id_Tempat": "51",
     "Nama_Tempat": "Rafting Malang",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -986,7 +986,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "53",
+    "Id_Tempat": "52",
     "Nama_Tempat": "Pujon Hill UMM",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -1005,7 +1005,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "55",
+    "Id_Tempat": "53",
     "Nama_Tempat": "Meeting Point Pujon Rafting",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -1025,7 +1025,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "56",
+    "Id_Tempat": "54",
     "Nama_Tempat": "Wisata Goa Pandawa",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Goa Pandawa",
@@ -1045,7 +1045,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "57",
+    "Id_Tempat": "55",
     "Nama_Tempat": "OYOT ( Obyek Wisata Coban Talun )",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -1065,7 +1065,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "58",
+    "Id_Tempat": "56",
     "Nama_Tempat": "Air Terjun Coban Supit Urang",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -1083,7 +1083,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "59",
+    "Id_Tempat": "57",
     "Nama_Tempat": "Taman Langit Gunung Banyak",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Langit Gunung Banyak",
@@ -1103,7 +1103,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "60",
+    "Id_Tempat": "58",
     "Nama_Tempat": "Pantai Seling Ombo ꦥꦼꦱꦶꦱꦶꦂꦱꦼꦭꦶꦁꦄꦩ꧀ꦧ",
     "Kategori": "Wisata",
     "Sub_Kategori": "Pantai Seling Ombo ꦥꦼꦱꦶꦱꦶꦂꦱꦼꦭꦶꦁꦄꦩ꧀ꦧ",
@@ -1122,7 +1122,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "61",
+    "Id_Tempat": "59",
     "Nama_Tempat": "Taman Bendungan Karang Kates",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Bendungan Karang Kates",
@@ -1142,7 +1142,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "62",
+    "Id_Tempat": "60",
     "Nama_Tempat": "Wisata Mahoni Dempok",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Mahoni Dempok",
@@ -1162,7 +1162,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "63",
+    "Id_Tempat": "61",
     "Nama_Tempat": "Taman Wisata Lahor",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Wisata Lahor",
@@ -1180,7 +1180,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "64",
+    "Id_Tempat": "62",
     "Nama_Tempat": "Taman Wisata Karangkates",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Wisata Karangkates",
@@ -1199,7 +1199,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "65",
+    "Id_Tempat": "63",
     "Nama_Tempat": "Wisata Naik Perahu",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Naik Perahu",
@@ -1218,7 +1218,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "66",
+    "Id_Tempat": "64",
     "Nama_Tempat": "Wisata Edukasi Jowaran",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Edukasi Jowaran",
@@ -1237,7 +1237,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "67",
+    "Id_Tempat": "65",
     "Nama_Tempat": "Bendungan Karangkates",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata · RCVX+794",
@@ -1257,7 +1257,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "68",
+    "Id_Tempat": "66",
     "Nama_Tempat": "Taman Suko",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Suko",
@@ -1277,7 +1277,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "69",
+    "Id_Tempat": "67",
     "Nama_Tempat": "Kolam Renang Centil",
     "Kategori": "Wisata",
     "Sub_Kategori": "Kolam Renang Centil",
@@ -1295,7 +1295,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "70",
+    "Id_Tempat": "68",
     "Nama_Tempat": "THR SUMBERDUREN KECOPOKAN",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -1315,7 +1315,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "71",
+    "Id_Tempat": "69",
     "Nama_Tempat": "Wisata Rajut indah",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Rajut indah",
@@ -1334,7 +1334,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "72",
+    "Id_Tempat": "70",
     "Nama_Tempat": "Bendungan Sutami Perum Jasa Tirta I",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -1352,7 +1352,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "73",
+    "Id_Tempat": "71",
     "Nama_Tempat": "Karangkates Selatan",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -1372,7 +1372,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "74",
+    "Id_Tempat": "72",
     "Nama_Tempat": "Kebun Buah Naga",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -1392,7 +1392,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "75",
+    "Id_Tempat": "73",
     "Nama_Tempat": "Waduk Karangkates",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata · RCQW+WQ2",
@@ -1412,7 +1412,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "76",
+    "Id_Tempat": "74",
     "Nama_Tempat": "Lahor Reservoir Bridge",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -1431,7 +1431,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "77",
+    "Id_Tempat": "75",
     "Nama_Tempat": "Wisata Umbulan Tanaka",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umbulan Tanaka",
@@ -1451,7 +1451,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "78",
+    "Id_Tempat": "76",
     "Nama_Tempat": "Taman Refugia Jati (KOPI SAUNG)",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Refugia Jati (KOPI SAUNG)",
@@ -1469,7 +1469,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "79",
+    "Id_Tempat": "77",
     "Nama_Tempat": "WISATA WATERFALL TANAKA",
     "Kategori": "Wisata",
     "Sub_Kategori": "WISATA WATERFALL TANAKA",
@@ -1483,13 +1483,14 @@
       "/assets/GAMBAR/wisata/WISATA_WATERFALL_TANAKA/WISATA_WATERFALL_TANAKA-1.jpg",
       "/assets/GAMBAR/wisata/WISATA_WATERFALL_TANAKA/WISATA_WATERFALL_TANAKA-2.jpg",
       "/assets/GAMBAR/wisata/WISATA_WATERFALL_TANAKA/WISATA_WATERFALL_TANAKA-3.jpg",
+      "/assets/GAMBAR/wisata/WISATA_WATERFALL_TANAKA/WISATA_WATERFALL_TANAKA-4 copy.jpg",
       "/assets/GAMBAR/wisata/WISATA_WATERFALL_TANAKA/WISATA_WATERFALL_TANAKA-4.jpg",
       "/assets/GAMBAR/wisata/WISATA_WATERFALL_TANAKA/WISATA_WATERFALL_TANAKA-5.jpg"
     ],
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "80",
+    "Id_Tempat": "78",
     "Nama_Tempat": "Wisata paralayang",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata paralayang",
@@ -1509,7 +1510,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "81",
+    "Id_Tempat": "79",
     "Nama_Tempat": "Omah Kayu Gunung Banyak",
     "Kategori": "Wisata",
     "Sub_Kategori": "Omah Kayu Gunung Banyak",
@@ -1528,7 +1529,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "82",
+    "Id_Tempat": "80",
     "Nama_Tempat": "Puncak Gunung Banyak/paralayang",
     "Kategori": "Wisata",
     "Sub_Kategori": "Puncak Gunung Banyak/paralayang",
@@ -1542,7 +1543,7 @@
     "Has_Gambar": false
   },
   {
-    "Id_Tempat": "83",
+    "Id_Tempat": "81",
     "Nama_Tempat": "Pantai Kondang Sugu ꦥꦼꦱꦶꦱꦶꦂꦏꦺꦴꦤ꧀ꦢꦁꦱꦸꦔꦸ",
     "Kategori": "Wisata",
     "Sub_Kategori": "Pantai Kondang Sugu ꦥꦼꦱꦶꦱꦶꦂꦏꦺꦴꦤ꧀ꦢꦁꦱꦸꦔꦸ",
@@ -1561,7 +1562,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "84",
+    "Id_Tempat": "82",
     "Nama_Tempat": "Wisata Sumber Songo",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Sumber Songo",
@@ -1581,7 +1582,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "85",
+    "Id_Tempat": "83",
     "Nama_Tempat": "Pemancingan Bon Watu",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata · ",
@@ -1601,7 +1602,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "86",
+    "Id_Tempat": "84",
     "Nama_Tempat": "Coban Manten",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata · ",
@@ -1620,7 +1621,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "87",
+    "Id_Tempat": "85",
     "Nama_Tempat": "Gussari Goa Pinus Batu",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -1640,7 +1641,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "88",
+    "Id_Tempat": "86",
     "Nama_Tempat": "Taman Rekreasi Selecta",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Rekreasi Selecta",
@@ -1660,7 +1661,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "89",
+    "Id_Tempat": "87",
     "Nama_Tempat": "wisata coban talun",
     "Kategori": "Wisata",
     "Sub_Kategori": "wisata coban talun",
@@ -1680,7 +1681,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "90",
+    "Id_Tempat": "88",
     "Nama_Tempat": "Wisata Dusun & Kuliner",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Dusun & Kuliner",
@@ -1698,7 +1699,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "91",
+    "Id_Tempat": "89",
     "Nama_Tempat": "Pantai Ngentup",
     "Kategori": "Wisata",
     "Sub_Kategori": "Pantai Ngentup",
@@ -1717,7 +1718,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "92",
+    "Id_Tempat": "90",
     "Nama_Tempat": "Pantai Balekambang Malang",
     "Kategori": "Wisata",
     "Sub_Kategori": "Pantai Balekambang Malang",
@@ -1737,7 +1738,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "93",
+    "Id_Tempat": "91",
     "Nama_Tempat": "Lembah BIDADARI",
     "Kategori": "Wisata",
     "Sub_Kategori": "\"Warung di lengkapi wifi",
@@ -1756,7 +1757,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "94",
+    "Id_Tempat": "92",
     "Nama_Tempat": "Danau Dawuhan - Senggreng",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -1776,7 +1777,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "95",
+    "Id_Tempat": "93",
     "Nama_Tempat": "TPA WISATA EDUKASI TALANGAGUNG",
     "Kategori": "Wisata",
     "Sub_Kategori": "TPA WISATA EDUKASI TALANGAGUNG",
@@ -1796,7 +1797,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "96",
+    "Id_Tempat": "94",
     "Nama_Tempat": "Wisata Center NANAS",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Center NANAS",
@@ -1815,7 +1816,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "97",
+    "Id_Tempat": "95",
     "Nama_Tempat": "Wisata pemacingan liar Kecopokan",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata pemacingan liar Kecopokan",
@@ -1834,7 +1835,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "98",
+    "Id_Tempat": "96",
     "Nama_Tempat": "Eko Wisata Lembah Dilem",
     "Kategori": "Wisata",
     "Sub_Kategori": "Eko Wisata Lembah Dilem",
@@ -1854,7 +1855,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "99",
+    "Id_Tempat": "97",
     "Nama_Tempat": "Kolam renang Sukamaju",
     "Kategori": "Wisata",
     "Sub_Kategori": "Kolam renang Sukamaju",
@@ -1872,7 +1873,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "100",
+    "Id_Tempat": "98",
     "Nama_Tempat": "Milkindo Green Farm",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata · ",
@@ -1892,7 +1893,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "101",
+    "Id_Tempat": "99",
     "Nama_Tempat": "Sumber Man Sari",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata · VG48+6PW",
@@ -1912,7 +1913,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "102",
+    "Id_Tempat": "100",
     "Nama_Tempat": "Embung Peniwen",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata · WF3C+FQ",
@@ -1932,7 +1933,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "103",
+    "Id_Tempat": "101",
     "Nama_Tempat": "Taman Puspa Kepanjen",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Puspa Kepanjen",
@@ -1952,7 +1953,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "104",
+    "Id_Tempat": "102",
     "Nama_Tempat": "Sumber Alam Ambya'an Desa Wisata Jambuwer",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -1972,7 +1973,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "105",
+    "Id_Tempat": "103",
     "Nama_Tempat": "Desa Wisata Bangelan",
     "Kategori": "Wisata",
     "Sub_Kategori": "Desa Wisata Bangelan",
@@ -1992,7 +1993,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "106",
+    "Id_Tempat": "104",
     "Nama_Tempat": "Wisata alam Lembah Ken Arok",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata alam Lembah Ken Arok",
@@ -2012,7 +2013,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "107",
+    "Id_Tempat": "105",
     "Nama_Tempat": "Keraton Gunung Kawi",
     "Kategori": "Wisata",
     "Sub_Kategori": "Keraton Gunung Kawi",
@@ -2032,7 +2033,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "108",
+    "Id_Tempat": "106",
     "Nama_Tempat": "Wisata Agro Selo Tumpeng (ꦮꦶꦱꦠꦱꦺꦭꦠꦸꦩ꧀ꦥꦁ)",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Agro Selo Tumpeng (ꦮꦶꦱꦠꦱꦺꦭꦠꦸꦩ꧀ꦥꦁ)",
@@ -2052,7 +2053,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "109",
+    "Id_Tempat": "107",
     "Nama_Tempat": "Coban Baung ꦕꦺꦴꦧꦤ꧀ꦧꦈꦁ",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -2071,7 +2072,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "110",
+    "Id_Tempat": "108",
     "Nama_Tempat": "HUTAN KAWI & BASECAMP PUNCAK BATU TULIS",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -2090,7 +2091,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "111",
+    "Id_Tempat": "109",
     "Nama_Tempat": "Coban Baung",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -2109,7 +2110,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "112",
+    "Id_Tempat": "110",
     "Nama_Tempat": "WISATA AIR SUMBER UMBULAN",
     "Kategori": "Wisata",
     "Sub_Kategori": "WISATA AIR SUMBER UMBULAN",
@@ -2127,7 +2128,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "113",
+    "Id_Tempat": "111",
     "Nama_Tempat": "Air Terjun Coban Glotak",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -2146,7 +2147,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "114",
+    "Id_Tempat": "112",
     "Nama_Tempat": "Wisata Alam Lembah Gunung Sari Desa Kucur",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -2166,7 +2167,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "115",
+    "Id_Tempat": "113",
     "Nama_Tempat": "Perhutani Precet Lereng Gunung Kawi",
     "Kategori": "Wisata",
     "Sub_Kategori": "Perhutani Precet Lereng Gunung Kawi",
@@ -2185,7 +2186,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "116",
+    "Id_Tempat": "114",
     "Nama_Tempat": "Pondok Wisata Latar Ombo \"L.O.\"",
     "Kategori": "Wisata",
     "Sub_Kategori": "Pondok Wisata Latar Ombo \"L.O.\"",
@@ -2199,7 +2200,7 @@
     "Has_Gambar": false
   },
   {
-    "Id_Tempat": "117",
+    "Id_Tempat": "115",
     "Nama_Tempat": "Embung Babadan ꦄꦼꦩ꧀ꦧꦸꦁꦧꦧꦢꦤ꧀",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -2219,7 +2220,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "118",
+    "Id_Tempat": "116",
     "Nama_Tempat": "Wisata Petik Jeruk Dau",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Petik Jeruk Dau",
@@ -2237,7 +2238,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "119",
+    "Id_Tempat": "117",
     "Nama_Tempat": "Wisata Agro Petik Jeruk",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Agro Petik Jeruk",
@@ -2255,7 +2256,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "120",
+    "Id_Tempat": "118",
     "Nama_Tempat": "Wisata Rekreasi Kolam renang Lembah gunung sari",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -2274,7 +2275,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "121",
+    "Id_Tempat": "119",
     "Nama_Tempat": "Wisata Goa Jepang",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Goa Jepang",
@@ -2293,7 +2294,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "122",
+    "Id_Tempat": "120",
     "Nama_Tempat": "Air Terjun Parang Tejo",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -2313,7 +2314,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "123",
+    "Id_Tempat": "121",
     "Nama_Tempat": "Lampion Garden (BNS)",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -2332,7 +2333,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "124",
+    "Id_Tempat": "122",
     "Nama_Tempat": "Batu Economis Park",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -2352,7 +2353,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "125",
+    "Id_Tempat": "123",
     "Nama_Tempat": "Jungle Adventure",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -2371,7 +2372,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "126",
+    "Id_Tempat": "124",
     "Nama_Tempat": "Air Terjun Coban Tengah",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata · ",
@@ -2390,7 +2391,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "127",
+    "Id_Tempat": "125",
     "Nama_Tempat": "Coban Putri",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -2409,7 +2410,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "128",
+    "Id_Tempat": "126",
     "Nama_Tempat": "Taman Hutan Kota Batu",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Hutan Kota Batu",
@@ -2428,7 +2429,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "129",
+    "Id_Tempat": "127",
     "Nama_Tempat": "Air Terjun Coban Rais",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -2448,7 +2449,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "130",
+    "Id_Tempat": "128",
     "Nama_Tempat": "Batu Flower Garden (wisata)",
     "Kategori": "Wisata",
     "Sub_Kategori": "Batu Flower Garden (wisata)",
@@ -2467,7 +2468,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "131",
+    "Id_Tempat": "129",
     "Nama_Tempat": "Dino Park Jawa Timur Park 3",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -2487,7 +2488,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "132",
+    "Id_Tempat": "130",
     "Nama_Tempat": "Taman Pinus Campervan Park",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Pinus Campervan Park",
@@ -2507,7 +2508,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "133",
+    "Id_Tempat": "131",
     "Nama_Tempat": "Eco Active Park",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -2527,7 +2528,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "134",
+    "Id_Tempat": "132",
     "Nama_Tempat": "KLEINE HOLLAND",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata · ",
@@ -2547,7 +2548,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "135",
+    "Id_Tempat": "133",
     "Nama_Tempat": "Pasar Wisata",
     "Kategori": "Wisata",
     "Sub_Kategori": "Pasar Wisata",
@@ -2565,7 +2566,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "136",
+    "Id_Tempat": "134",
     "Nama_Tempat": "Candi Songgoriti",
     "Kategori": "Wisata",
     "Sub_Kategori": "\"Cocok untuk wisata edukasi sejarah.\"",
@@ -2585,7 +2586,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "137",
+    "Id_Tempat": "135",
     "Nama_Tempat": "Alun-Alun Kota Wisata Batu",
     "Kategori": "Wisata",
     "Sub_Kategori": "Alun-Alun Kota Wisata Batu",
@@ -2605,7 +2606,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "139",
+    "Id_Tempat": "136",
     "Nama_Tempat": "Wisata Petik Apel Agro Rakyat",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Petik Apel Agro Rakyat",
@@ -2625,7 +2626,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "140",
+    "Id_Tempat": "137",
     "Nama_Tempat": "Sumber Torong Park",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -2644,7 +2645,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "141",
+    "Id_Tempat": "138",
     "Nama_Tempat": "Taman Dolan",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Dolan",
@@ -2664,7 +2665,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "142",
+    "Id_Tempat": "139",
     "Nama_Tempat": "Kawasan Wisata Kusuma Agro",
     "Kategori": "Wisata",
     "Sub_Kategori": "Kawasan Wisata Kusuma Agro",
@@ -2683,7 +2684,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "144",
+    "Id_Tempat": "140",
     "Nama_Tempat": "The Bagong Adventure Museum Tubuh",
     "Kategori": "Wisata",
     "Sub_Kategori": "The Bagong Adventure Museum Tubuh",
@@ -2703,7 +2704,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "145",
+    "Id_Tempat": "141",
     "Nama_Tempat": "Bukit Bintang Batu Malang",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -2722,7 +2723,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "146",
+    "Id_Tempat": "142",
     "Nama_Tempat": "Songgoriti Hot Springs",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -2741,7 +2742,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "148",
+    "Id_Tempat": "143",
     "Nama_Tempat": "Gerbang Kota Wisata Batu",
     "Kategori": "Wisata",
     "Sub_Kategori": "Gerbang Kota Wisata Batu",
@@ -2761,7 +2762,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "149",
+    "Id_Tempat": "144",
     "Nama_Tempat": "Taman Dancok",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Dancok",
@@ -2780,7 +2781,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "150",
+    "Id_Tempat": "145",
     "Nama_Tempat": "Kusuma Edukasi Pertanian",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -2800,7 +2801,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "151",
+    "Id_Tempat": "146",
     "Nama_Tempat": "Kusuma Waterpark",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -2820,7 +2821,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "152",
+    "Id_Tempat": "147",
     "Nama_Tempat": "Area Parkir Air Terjun Cubon Rondo",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -2839,7 +2840,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "154",
+    "Id_Tempat": "148",
     "Nama_Tempat": "Pasar Wisata Songgoriti",
     "Kategori": "Wisata",
     "Sub_Kategori": "Pasar Wisata Songgoriti",
@@ -2858,7 +2859,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "155",
+    "Id_Tempat": "149",
     "Nama_Tempat": "Kampung Wisata Kungkuk",
     "Kategori": "Wisata",
     "Sub_Kategori": "Kampung Wisata Kungkuk",
@@ -2878,7 +2879,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "156",
+    "Id_Tempat": "150",
     "Nama_Tempat": "Wisata Selecta",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Selecta",
@@ -2897,7 +2898,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "157",
+    "Id_Tempat": "151",
     "Nama_Tempat": "Taman Bunga Selecta",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Bunga Selecta",
@@ -2915,7 +2916,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "158",
+    "Id_Tempat": "152",
     "Nama_Tempat": "Paralayang Gunung Banyak, Batu, Malang",
     "Kategori": "Wisata",
     "Sub_Kategori": "Paralayang Gunung Banyak, Batu, Malang",
@@ -2934,7 +2935,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "159",
+    "Id_Tempat": "153",
     "Nama_Tempat": "Pujon Adventure & Rafting",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -2954,7 +2955,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "160",
+    "Id_Tempat": "154",
     "Nama_Tempat": "Kebun Bunga Cangar",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -2974,7 +2975,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "161",
+    "Id_Tempat": "155",
     "Nama_Tempat": "Bukit Jengkoang",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -2994,7 +2995,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "162",
+    "Id_Tempat": "156",
     "Nama_Tempat": "Petik Apel Kebun 8 Kota Batu",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -3012,7 +3013,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "163",
+    "Id_Tempat": "157",
     "Nama_Tempat": "Petik Apel Green Garden",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -3031,7 +3032,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "164",
+    "Id_Tempat": "158",
     "Nama_Tempat": "Arboretum Sumber Brantas",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -3051,7 +3052,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "165",
+    "Id_Tempat": "159",
     "Nama_Tempat": "Wisata Petik Apel Batu",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Petik Apel Batu",
@@ -3070,7 +3071,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "166",
+    "Id_Tempat": "160",
     "Nama_Tempat": "Wisata Petik Mawar Berkah",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Petik Mawar Berkah",
@@ -3089,7 +3090,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "167",
+    "Id_Tempat": "161",
     "Nama_Tempat": "Wisata Kebun Bunga Coban Talun",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Kebun Bunga Coban Talun",
@@ -3107,7 +3108,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "168",
+    "Id_Tempat": "162",
     "Nama_Tempat": "Wisata petik strowberry kebundesa(yeni)",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata petik strowberry kebundesa(yeni)",
@@ -3125,7 +3126,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "169",
+    "Id_Tempat": "163",
     "Nama_Tempat": "Agrowisata Kaki Langit \"Brakseng\"",
     "Kategori": "Wisata",
     "Sub_Kategori": "Agrowisata Kaki Langit \"Brakseng\"",
@@ -3139,7 +3140,7 @@
     "Has_Gambar": false
   },
   {
-    "Id_Tempat": "170",
+    "Id_Tempat": "164",
     "Nama_Tempat": "Pantai Jembatan Panjang Tanjung Sirap",
     "Kategori": "Wisata",
     "Sub_Kategori": "Pantai Jembatan Panjang Tanjung Sirap",
@@ -3159,7 +3160,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "171",
+    "Id_Tempat": "165",
     "Nama_Tempat": "Toko taman ayu nganteb (TAN)",
     "Kategori": "Wisata",
     "Sub_Kategori": "Toko taman ayu nganteb (TAN)",
@@ -3179,7 +3180,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "172",
+    "Id_Tempat": "166",
     "Nama_Tempat": "Pantai Pesanggrahan ꦥꦼꦱꦶꦱꦶꦂꦥꦱꦔ꧀ꦒꦿꦃꦲꦤ꧀",
     "Kategori": "Wisata",
     "Sub_Kategori": "Pantai Pesanggrahan ꦥꦼꦱꦶꦱꦶꦂꦥꦱꦔ꧀ꦒꦿꦃꦲꦤ꧀",
@@ -3199,7 +3200,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "173",
+    "Id_Tempat": "167",
     "Nama_Tempat": "Pantai Ngantep",
     "Kategori": "Wisata",
     "Sub_Kategori": "Pantai Ngantep",
@@ -3219,7 +3220,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "174",
+    "Id_Tempat": "168",
     "Nama_Tempat": "Air Terjun Kedung Darmo",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata · ",
@@ -3239,7 +3240,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "175",
+    "Id_Tempat": "169",
     "Nama_Tempat": "Pantai Kondang Merak ꦥꦼꦱꦶꦱꦶꦂꦏꦺꦴꦤ꧀ꦢꦁꦩꦼꦫꦏ꧀",
     "Kategori": "Wisata",
     "Sub_Kategori": "Pantai Kondang Merak ꦥꦼꦱꦶꦱꦶꦂꦏꦺꦴꦤ꧀ꦢꦁꦩꦼꦫꦏ꧀",
@@ -3258,7 +3259,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "176",
+    "Id_Tempat": "170",
     "Nama_Tempat": "Sumber Taman",
     "Kategori": "Wisata",
     "Sub_Kategori": "Sumber Taman",
@@ -3278,7 +3279,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "177",
+    "Id_Tempat": "171",
     "Nama_Tempat": "Sumber Maron",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -3297,7 +3298,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "178",
+    "Id_Tempat": "172",
     "Nama_Tempat": "Kanigoro park",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -3317,7 +3318,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "180",
+    "Id_Tempat": "173",
     "Nama_Tempat": "Kolam Renang Kalijati Desa Jenggolo",
     "Kategori": "Wisata",
     "Sub_Kategori": "Kolam Renang Kalijati Desa Jenggolo",
@@ -3337,7 +3338,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "181",
+    "Id_Tempat": "174",
     "Nama_Tempat": "Sbr Songo",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -3356,7 +3357,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "182",
+    "Id_Tempat": "175",
     "Nama_Tempat": "Wisata Lembah Dilem Kepanjen",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Lembah Dilem Kepanjen",
@@ -3375,7 +3376,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "183",
+    "Id_Tempat": "176",
     "Nama_Tempat": "Jatikerto Rest Area",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -3395,7 +3396,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "184",
+    "Id_Tempat": "177",
     "Nama_Tempat": "Pemandian Metro Kepanjen",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -3415,7 +3416,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "185",
+    "Id_Tempat": "178",
     "Nama_Tempat": "KAMPOENG NANAS",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -3435,7 +3436,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "186",
+    "Id_Tempat": "179",
     "Nama_Tempat": "Taman Kehati, Jalibar",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Kehati, Jalibar",
@@ -3454,7 +3455,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "187",
+    "Id_Tempat": "180",
     "Nama_Tempat": "Alun - alun Gunung Kawi",
     "Kategori": "Wisata",
     "Sub_Kategori": "Alun - alun Gunung Kawi",
@@ -3472,7 +3473,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "188",
+    "Id_Tempat": "181",
     "Nama_Tempat": "Taman Rekreasi Tlogomas Malang",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Rekreasi Tlogomas Malang",
@@ -3492,7 +3493,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "189",
+    "Id_Tempat": "182",
     "Nama_Tempat": "Pemandian Selo Agung",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -3512,7 +3513,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "190",
+    "Id_Tempat": "183",
     "Nama_Tempat": "Sumbersuko Forest Park",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -3532,7 +3533,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "191",
+    "Id_Tempat": "184",
     "Nama_Tempat": "Taman Wisata Kolam Renang Selo Agung Gunung Kawi",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -3550,7 +3551,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "192",
+    "Id_Tempat": "185",
     "Nama_Tempat": "Lembah Indah Malang",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata",
@@ -3570,7 +3571,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "193",
+    "Id_Tempat": "186",
     "Nama_Tempat": "Taman Rekreasi Sengkaling",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Rekreasi Sengkaling",
@@ -3589,7 +3590,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "194",
+    "Id_Tempat": "187",
     "Nama_Tempat": "De Beran ( Wisata Beran Lor ) Beran Group",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -3608,7 +3609,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "195",
+    "Id_Tempat": "188",
     "Nama_Tempat": "Oocarpa, Dau Malang",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata",
@@ -3626,7 +3627,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "196",
+    "Id_Tempat": "189",
     "Nama_Tempat": "Bumi Perkemahan Bedengan, Selorejo",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -3645,7 +3646,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "197",
+    "Id_Tempat": "190",
     "Nama_Tempat": "WISATA PETIRTAAN KAYGUN",
     "Kategori": "Wisata",
     "Sub_Kategori": "WISATA PETIRTAAN KAYGUN",
@@ -3664,7 +3665,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "198",
+    "Id_Tempat": "191",
     "Nama_Tempat": "Buthak Savana Kawi Mountain",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -3684,7 +3685,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "199",
+    "Id_Tempat": "192",
     "Nama_Tempat": "Batu Night Spectacular",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -3704,7 +3705,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "200",
+    "Id_Tempat": "193",
     "Nama_Tempat": "Jawa Timur Park 3",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -3724,7 +3725,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "201",
+    "Id_Tempat": "194",
     "Nama_Tempat": "Wisata Edukasi Susu Batu",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Edukasi Susu Batu",
@@ -3743,7 +3744,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "202",
+    "Id_Tempat": "195",
     "Nama_Tempat": "Kampung Wisata Tani Temas",
     "Kategori": "Wisata",
     "Sub_Kategori": "Kampung Wisata Tani Temas",
@@ -3762,7 +3763,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "203",
+    "Id_Tempat": "196",
     "Nama_Tempat": "Lumbung Stroberi Official",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -3781,7 +3782,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "204",
+    "Id_Tempat": "197",
     "Nama_Tempat": "Coban Lanang, Batu",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata · ",
@@ -3801,7 +3802,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "205",
+    "Id_Tempat": "198",
     "Nama_Tempat": "Coban Ubud Kembar ꦕꦺꦴꦧꦤ꧀ꦈꦧꦸꦢ꧀ꦏꦼꦩ꧀ꦧꦂ",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -3820,7 +3821,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "206",
+    "Id_Tempat": "199",
     "Nama_Tempat": "Kota Wisata Batu Jawa Timur",
     "Kategori": "Wisata",
     "Sub_Kategori": "Kota Wisata Batu Jawa Timur",
@@ -3839,7 +3840,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "207",
+    "Id_Tempat": "200",
     "Nama_Tempat": "Wisata Batu Malang",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Batu Malang",
@@ -3858,7 +3859,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "208",
+    "Id_Tempat": "201",
     "Nama_Tempat": "Batu Secret Zoo",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -3877,7 +3878,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "209",
+    "Id_Tempat": "202",
     "Nama_Tempat": "Jelajah 5 Benua",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -3897,7 +3898,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "210",
+    "Id_Tempat": "203",
     "Nama_Tempat": "Batu Rafting",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -3917,7 +3918,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "211",
+    "Id_Tempat": "204",
     "Nama_Tempat": "Museum Satwa Jawa Timur Park 2",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -3937,7 +3938,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "212",
+    "Id_Tempat": "205",
     "Nama_Tempat": "Puncak Basundara",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -3956,7 +3957,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "213",
+    "Id_Tempat": "206",
     "Nama_Tempat": "Sweet Memories Selfie",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -3974,7 +3975,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "214",
+    "Id_Tempat": "207",
     "Nama_Tempat": "Kapal Nabi Nuh",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata · 4G6G+2WX",
@@ -3992,7 +3993,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "215",
+    "Id_Tempat": "208",
     "Nama_Tempat": "Kampung Sapi Adventure",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata · Gg. 1",
@@ -4011,7 +4012,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "216",
+    "Id_Tempat": "209",
     "Nama_Tempat": "Museum Angkut",
     "Kategori": "Wisata",
     "Sub_Kategori": "Museum Angkut",
@@ -4031,7 +4032,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "217",
+    "Id_Tempat": "210",
     "Nama_Tempat": "Kaliwatu Rafting",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -4051,7 +4052,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "218",
+    "Id_Tempat": "211",
     "Nama_Tempat": "Batu Love Garden - BALOGA",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman hiburan dengan kupu-kupu",
@@ -4070,7 +4071,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "219",
+    "Id_Tempat": "212",
     "Nama_Tempat": "Taman Wilis",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Wilis",
@@ -4090,7 +4091,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "221",
+    "Id_Tempat": "213",
     "Nama_Tempat": "Wisata Desa Agro Bumiaji",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Desa Agro Bumiaji",
@@ -4110,7 +4111,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "222",
+    "Id_Tempat": "214",
     "Nama_Tempat": "Wisata Bunga Sidomulyo",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Bunga Sidomulyo",
@@ -4128,7 +4129,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "223",
+    "Id_Tempat": "215",
     "Nama_Tempat": "Omah Budaya Slamet",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -4148,7 +4149,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "224",
+    "Id_Tempat": "216",
     "Nama_Tempat": "Kebun Strawberry Kusuma Agrowisata",
     "Kategori": "Wisata",
     "Sub_Kategori": "Kebun Strawberry Kusuma Agrowisata",
@@ -4167,7 +4168,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "226",
+    "Id_Tempat": "217",
     "Nama_Tempat": "Jawa Timur Park 1",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman hiburan dengan pertunjukan budaya",
@@ -4187,7 +4188,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "227",
+    "Id_Tempat": "218",
     "Nama_Tempat": "Kwan Im Tong (Guan Yin Dang) (Mahayana, Tridharma)",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -4206,7 +4207,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "228",
+    "Id_Tempat": "219",
     "Nama_Tempat": "Tirta Nirwana Songgoriti",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -4226,7 +4227,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "229",
+    "Id_Tempat": "220",
     "Nama_Tempat": "KAMPUNG LA BATU",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -4246,7 +4247,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "230",
+    "Id_Tempat": "221",
     "Nama_Tempat": "Wisata Bukit Kungkuk",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Bukit Kungkuk",
@@ -4265,7 +4266,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "231",
+    "Id_Tempat": "222",
     "Nama_Tempat": "Taman Goa Pandawa",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Goa Pandawa",
@@ -4285,7 +4286,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "232",
+    "Id_Tempat": "223",
     "Nama_Tempat": "Kampung Sakura Sidomulyo",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -4303,7 +4304,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "233",
+    "Id_Tempat": "224",
     "Nama_Tempat": "Puthuk Tritih",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -4322,7 +4323,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "234",
+    "Id_Tempat": "225",
     "Nama_Tempat": "Tiara Apel (Lokasi kebun pindah2, minta sharelok admin saja)",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata",
@@ -4341,7 +4342,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "235",
+    "Id_Tempat": "226",
     "Nama_Tempat": "Petik apel malang & petik jeruk keprok \"BATU AGRO APEL\" kota batu, malang",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -4355,7 +4356,7 @@
     "Has_Gambar": false
   },
   {
-    "Id_Tempat": "236",
+    "Id_Tempat": "227",
     "Nama_Tempat": "Wisata Petik Jeruk Kota Batu",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Petik Jeruk Kota Batu",
@@ -4373,7 +4374,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "237",
+    "Id_Tempat": "228",
     "Nama_Tempat": "Air Terjun Coban Talun",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -4392,7 +4393,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "238",
+    "Id_Tempat": "229",
     "Nama_Tempat": "Wisata Bunga Potong Krisan",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Bunga Potong Krisan",
@@ -4410,7 +4411,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "239",
+    "Id_Tempat": "230",
     "Nama_Tempat": "Tabebuia tree & Plants Suplier Landscape by Roseasterina jual / sell Pohon",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -4424,7 +4425,7 @@
     "Has_Gambar": false
   },
   {
-    "Id_Tempat": "240",
+    "Id_Tempat": "231",
     "Nama_Tempat": "Loket 2 wisata bumi kahyangan BRAKSENG\"",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -4438,7 +4439,7 @@
     "Has_Gambar": false
   },
   {
-    "Id_Tempat": "241",
+    "Id_Tempat": "232",
     "Nama_Tempat": "Agrowisata kota batu",
     "Kategori": "Wisata",
     "Sub_Kategori": "Agrowisata kota batu",
@@ -4456,7 +4457,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "242",
+    "Id_Tempat": "233",
     "Nama_Tempat": "Puncak Kalindra Batu",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -4476,7 +4477,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "243",
+    "Id_Tempat": "234",
     "Nama_Tempat": "MIKUTOPIA",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wahana Taman Hiburan",
@@ -4494,7 +4495,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "244",
+    "Id_Tempat": "235",
     "Nama_Tempat": "BRAKSENG Loket 2",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -4514,7 +4515,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "245",
+    "Id_Tempat": "236",
     "Nama_Tempat": "SAWAH GENTING",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -4533,7 +4534,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "246",
+    "Id_Tempat": "237",
     "Nama_Tempat": "Wisata petik apel batu malang",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata petik apel batu malang",
@@ -4551,7 +4552,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "247",
+    "Id_Tempat": "238",
     "Nama_Tempat": "wisata petik jeruk super agro kota batu",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata · Jl. Semeru",
@@ -4569,7 +4570,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "248",
+    "Id_Tempat": "239",
     "Nama_Tempat": "Kebun Kitala Wisata Petik Strawberry",
     "Kategori": "Wisata",
     "Sub_Kategori": "Kebun Kitala Wisata Petik Strawberry",
@@ -4589,7 +4590,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "249",
+    "Id_Tempat": "240",
     "Nama_Tempat": "Pura Luhur Giri Arjuno",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -4608,7 +4609,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "250",
+    "Id_Tempat": "241",
     "Nama_Tempat": "Bekas Pabrik Jamur Sumber Brantas",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -4628,7 +4629,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "251",
+    "Id_Tempat": "242",
     "Nama_Tempat": "Cangar",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -4648,7 +4649,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "252",
+    "Id_Tempat": "243",
     "Nama_Tempat": "Gua Jepang",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -4668,7 +4669,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "253",
+    "Id_Tempat": "244",
     "Nama_Tempat": "Pantai Batu Bengkung",
     "Kategori": "Wisata",
     "Sub_Kategori": "Pantai Batu Bengkung",
@@ -4688,7 +4689,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "254",
+    "Id_Tempat": "245",
     "Nama_Tempat": "REST AREA TAWON",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata · JH57+369",
@@ -4706,7 +4707,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "255",
+    "Id_Tempat": "246",
     "Nama_Tempat": "LOKET & INFORMASI WISATA PANTAI NGUDEL",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -4724,7 +4725,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "256",
+    "Id_Tempat": "247",
     "Nama_Tempat": "Muara Paradise",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -4742,7 +4743,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "257",
+    "Id_Tempat": "248",
     "Nama_Tempat": "Pantai Banyu Meneng",
     "Kategori": "Wisata",
     "Sub_Kategori": "Pantai Banyu Meneng",
@@ -4762,7 +4763,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "258",
+    "Id_Tempat": "249",
     "Nama_Tempat": "Pantai Mbehi",
     "Kategori": "Wisata",
     "Sub_Kategori": "Pantai Mbehi",
@@ -4782,7 +4783,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "259",
+    "Id_Tempat": "250",
     "Nama_Tempat": "Kolam Jambegede. Samaq Asri Budidaya Ikan",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata · RH96+P7F",
@@ -4802,7 +4803,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "260",
+    "Id_Tempat": "251",
     "Nama_Tempat": "TAMAN TOPENG SENGGURUH KEPANJEN",
     "Kategori": "Wisata",
     "Sub_Kategori": "TAMAN TOPENG SENGGURUH KEPANJEN",
@@ -4822,7 +4823,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "261",
+    "Id_Tempat": "252",
     "Nama_Tempat": "Penyebrangan Jurang Toleh",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -4842,7 +4843,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "262",
+    "Id_Tempat": "253",
     "Nama_Tempat": "Sumber Sira Putukrejo",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -4861,7 +4862,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "263",
+    "Id_Tempat": "254",
     "Nama_Tempat": "Taman Contong Kepanjen",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Contong Kepanjen",
@@ -4880,7 +4881,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "264",
+    "Id_Tempat": "255",
     "Nama_Tempat": "Monumen Peniwen Affair",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -4899,7 +4900,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "265",
+    "Id_Tempat": "256",
     "Nama_Tempat": "Monumen Juang",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -4919,7 +4920,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "266",
+    "Id_Tempat": "257",
     "Nama_Tempat": "Wisata Kampung Putih Malang",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Kampung Putih Malang",
@@ -4939,7 +4940,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "267",
+    "Id_Tempat": "258",
     "Nama_Tempat": "KWJ MALANG",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -4958,7 +4959,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "268",
+    "Id_Tempat": "259",
     "Nama_Tempat": "Kolam Renang Lembah Wagir",
     "Kategori": "Wisata",
     "Sub_Kategori": "Kolam Renang Lembah Wagir",
@@ -4977,7 +4978,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "269",
+    "Id_Tempat": "260",
     "Nama_Tempat": "Wana Wisata Perhutani Malang",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wana Wisata Perhutani Malang",
@@ -4997,7 +4998,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "270",
+    "Id_Tempat": "261",
     "Nama_Tempat": "Taman Kunang Kunang",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Kunang Kunang",
@@ -5017,7 +5018,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "271",
+    "Id_Tempat": "262",
     "Nama_Tempat": "Taman Ijen",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Ijen",
@@ -5035,7 +5036,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "272",
+    "Id_Tempat": "263",
     "Nama_Tempat": "Taman Kota",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Kota",
@@ -5053,7 +5054,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "273",
+    "Id_Tempat": "264",
     "Nama_Tempat": "Candi Badut",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -5072,7 +5073,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "274",
+    "Id_Tempat": "265",
     "Nama_Tempat": "Unimaz Rajut",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -5090,7 +5091,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "275",
+    "Id_Tempat": "266",
     "Nama_Tempat": "Museum Brawijaya",
     "Kategori": "Wisata",
     "Sub_Kategori": "Museum Brawijaya",
@@ -5110,7 +5111,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "276",
+    "Id_Tempat": "267",
     "Nama_Tempat": "Museum Zoologi Frater Vianney",
     "Kategori": "Wisata",
     "Sub_Kategori": "Museum Zoologi Frater Vianney",
@@ -5130,7 +5131,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "277",
+    "Id_Tempat": "268",
     "Nama_Tempat": "Taman Krida Budaya Jawa Timur",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Krida Budaya Jawa Timur",
@@ -5149,7 +5150,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "278",
+    "Id_Tempat": "269",
     "Nama_Tempat": "Kampung Wisata Keramik Dinoyo",
     "Kategori": "Wisata",
     "Sub_Kategori": "Kampung Wisata Keramik Dinoyo",
@@ -5168,7 +5169,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "279",
+    "Id_Tempat": "270",
     "Nama_Tempat": "Kampoeng Dokar",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata · 3HP7+4G6, RW.004",
@@ -5186,7 +5187,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "280",
+    "Id_Tempat": "271",
     "Nama_Tempat": "Kebun Jeruk Pak Taufik",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata · 3H68+JGX",
@@ -5204,7 +5205,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "281",
+    "Id_Tempat": "272",
     "Nama_Tempat": "Sevenfield Sport Wisata Air",
     "Kategori": "Wisata",
     "Sub_Kategori": "Sevenfield Sport Wisata Air",
@@ -5223,7 +5224,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "282",
+    "Id_Tempat": "273",
     "Nama_Tempat": "Farm Garden - Kampung Sapi Adventure",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata",
@@ -5243,7 +5244,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "283",
+    "Id_Tempat": "274",
     "Nama_Tempat": "Museum Musik Dunia Jawa Timur Park 3",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -5263,7 +5264,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "284",
+    "Id_Tempat": "275",
     "Nama_Tempat": "Milenial Glow Garden",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -5283,7 +5284,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "285",
+    "Id_Tempat": "276",
     "Nama_Tempat": "Rafting Sahabat Air",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -5303,7 +5304,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "286",
+    "Id_Tempat": "277",
     "Nama_Tempat": "Museum Art Gallery",
     "Kategori": "Wisata",
     "Sub_Kategori": "Museum Art Gallery",
@@ -5323,7 +5324,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "287",
+    "Id_Tempat": "278",
     "Nama_Tempat": "Kampoeng Wisata De Berran",
     "Kategori": "Wisata",
     "Sub_Kategori": "Kampoeng Wisata De Berran",
@@ -5343,7 +5344,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "288",
+    "Id_Tempat": "279",
     "Nama_Tempat": "Taman Wisata Lembah Dieng",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Wisata Lembah Dieng",
@@ -5363,7 +5364,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "289",
+    "Id_Tempat": "280",
     "Nama_Tempat": "Malang Skyland",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -5382,7 +5383,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "290",
+    "Id_Tempat": "281",
     "Nama_Tempat": "Sumber Cinde",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -5401,7 +5402,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "291",
+    "Id_Tempat": "282",
     "Nama_Tempat": "Hilltop",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata · 5HC3+RCF",
@@ -5421,7 +5422,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "292",
+    "Id_Tempat": "283",
     "Nama_Tempat": "Offroad Coban Talun - Offroad Batu Malang",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -5441,7 +5442,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "293",
+    "Id_Tempat": "284",
     "Nama_Tempat": "Kebun Apel Di Batu",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -5460,7 +5461,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "294",
+    "Id_Tempat": "285",
     "Nama_Tempat": "Pantai Singit ꦥꦼꦱꦶꦱꦶꦂꦱꦶꦔꦶꦠ꧀",
     "Kategori": "Wisata",
     "Sub_Kategori": "Pantai Singit ꦥꦼꦱꦶꦱꦶꦂꦱꦶꦔꦶꦠ꧀",
@@ -5479,7 +5480,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "295",
+    "Id_Tempat": "286",
     "Nama_Tempat": "Pantai Buncaran ꦥꦼꦱꦶꦱꦶꦂꦧꦸꦚ꧀ꦕꦫꦤ꧀",
     "Kategori": "Wisata",
     "Sub_Kategori": "Pantai Buncaran ꦥꦼꦱꦶꦱꦶꦂꦧꦸꦚ꧀ꦕꦫꦤ꧀",
@@ -5498,7 +5499,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "296",
+    "Id_Tempat": "287",
     "Nama_Tempat": "Pantai Karang ꦥꦼꦱꦶꦱꦶꦂꦏꦫꦁ",
     "Kategori": "Wisata",
     "Sub_Kategori": "Pantai Karang ꦥꦼꦱꦶꦱꦶꦂꦏꦫꦁ",
@@ -5517,7 +5518,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "297",
+    "Id_Tempat": "288",
     "Nama_Tempat": "Pantai Tanjung Penyu",
     "Kategori": "Wisata",
     "Sub_Kategori": "Pantai Tanjung Penyu",
@@ -5537,7 +5538,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "298",
+    "Id_Tempat": "289",
     "Nama_Tempat": "Pantai Wedi Klopo",
     "Kategori": "Wisata",
     "Sub_Kategori": "Pantai Wedi Klopo",
@@ -5557,7 +5558,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "299",
+    "Id_Tempat": "290",
     "Nama_Tempat": "Gunung Gede Sumberejo",
     "Kategori": "Wisata",
     "Sub_Kategori": "Gunung Gede Sumberejo",
@@ -5576,7 +5577,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "300",
+    "Id_Tempat": "291",
     "Nama_Tempat": "Wisata Sumber Janji",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Sumber Janji",
@@ -5595,7 +5596,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "301",
+    "Id_Tempat": "292",
     "Nama_Tempat": "Taman Wisata \" Sumber Alam \"",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -5609,7 +5610,7 @@
     "Has_Gambar": false
   },
   {
-    "Id_Tempat": "302",
+    "Id_Tempat": "293",
     "Nama_Tempat": "Wisata Sumber Buntung",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Sumber Buntung",
@@ -5628,7 +5629,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "304",
+    "Id_Tempat": "294",
     "Nama_Tempat": "Pemandian Sumber Jeruk",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -5648,7 +5649,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "305",
+    "Id_Tempat": "295",
     "Nama_Tempat": "Mie ayam kali mbureng",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -5667,7 +5668,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "306",
+    "Id_Tempat": "296",
     "Nama_Tempat": "Kaliku",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -5687,7 +5688,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "307",
+    "Id_Tempat": "297",
     "Nama_Tempat": "Taman Wisata Edukasi Buring Kedungkandang",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Wisata Edukasi Buring Kedungkandang",
@@ -5707,7 +5708,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "308",
+    "Id_Tempat": "298",
     "Nama_Tempat": "Wisata Kampung Topeng",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Kampung Topeng",
@@ -5726,7 +5727,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "309",
+    "Id_Tempat": "299",
     "Nama_Tempat": "Wisata aeng wonokoyo",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata aeng wonokoyo",
@@ -5746,7 +5747,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "310",
+    "Id_Tempat": "300",
     "Nama_Tempat": "Taman Merbabu",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Merbabu",
@@ -5766,7 +5767,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "311",
+    "Id_Tempat": "301",
     "Nama_Tempat": "Taman Trunojoyo",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Trunojoyo",
@@ -5786,7 +5787,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "312",
+    "Id_Tempat": "302",
     "Nama_Tempat": "Graha Tumapel",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -5805,7 +5806,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "313",
+    "Id_Tempat": "303",
     "Nama_Tempat": "Kampung Biru Arema",
     "Kategori": "Wisata",
     "Sub_Kategori": "\"- Spot wisata murah",
@@ -5825,7 +5826,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "314",
+    "Id_Tempat": "304",
     "Nama_Tempat": "Taman Slamet",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Slamet",
@@ -5845,7 +5846,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "315",
+    "Id_Tempat": "305",
     "Nama_Tempat": "Alun Alun Tugu Malang - Jan Pieterszoon Coen Plein",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -5865,7 +5866,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "316",
+    "Id_Tempat": "306",
     "Nama_Tempat": "Gramophone Taman Cerme",
     "Kategori": "Wisata",
     "Sub_Kategori": "Gramophone Taman Cerme",
@@ -5884,7 +5885,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "317",
+    "Id_Tempat": "307",
     "Nama_Tempat": "Brawijaya Edupark",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -5904,7 +5905,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "318",
+    "Id_Tempat": "308",
     "Nama_Tempat": "Hutan Kota Malabar Malang",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -5923,7 +5924,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "319",
+    "Id_Tempat": "309",
     "Nama_Tempat": "Kampoeng Heritage Kajoetangan",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -5941,7 +5942,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "320",
+    "Id_Tempat": "310",
     "Nama_Tempat": "Idjen Boulevard",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -5961,7 +5962,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "321",
+    "Id_Tempat": "311",
     "Nama_Tempat": "Wisata Kali Cemplong",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Kali Cemplong",
@@ -5981,7 +5982,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "322",
+    "Id_Tempat": "312",
     "Nama_Tempat": "Taman Dempo",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Dempo",
@@ -6000,7 +6001,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "323",
+    "Id_Tempat": "313",
     "Nama_Tempat": "Taman Tjerme",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Tjerme",
@@ -6020,7 +6021,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "324",
+    "Id_Tempat": "314",
     "Nama_Tempat": "Wisata & Edukasi Duta Pengangguran",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata & Edukasi Duta Pengangguran",
@@ -6038,7 +6039,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "325",
+    "Id_Tempat": "315",
     "Nama_Tempat": "Sweetmemoriesselfie",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -6058,7 +6059,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "326",
+    "Id_Tempat": "316",
     "Nama_Tempat": "Masjid Agung Jami' Kota Malang",
     "Kategori": "Wisata",
     "Sub_Kategori": "Masjid Agung Jami' Kota Malang",
@@ -6077,7 +6078,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "327",
+    "Id_Tempat": "317",
     "Nama_Tempat": "Taman Singha Merjosari",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Singha Merjosari",
@@ -6097,7 +6098,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "328",
+    "Id_Tempat": "318",
     "Nama_Tempat": "Kampung Budaya Polowijen",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -6116,7 +6117,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "329",
+    "Id_Tempat": "319",
     "Nama_Tempat": "Hutan Tidar",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Kota · 2JP2+WJG",
@@ -6135,7 +6136,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "330",
+    "Id_Tempat": "320",
     "Nama_Tempat": "Taman Bunga Merjosari",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Bunga Merjosari",
@@ -6153,7 +6154,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "331",
+    "Id_Tempat": "321",
     "Nama_Tempat": "Taman Bermain & Olahraga",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Bermain & Olahraga",
@@ -6171,7 +6172,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "332",
+    "Id_Tempat": "322",
     "Nama_Tempat": "Candi Karang Besuki",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -6191,7 +6192,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "333",
+    "Id_Tempat": "323",
     "Nama_Tempat": "Taman Lalu Lintas Merjosari Malang",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Lalu Lintas Merjosari Malang",
@@ -6210,7 +6211,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "334",
+    "Id_Tempat": "324",
     "Nama_Tempat": "Kampung Cempluk",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -6229,7 +6230,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "335",
+    "Id_Tempat": "325",
     "Nama_Tempat": "EXTREME SPORTS CENTER INDONESIA",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -6247,7 +6248,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "336",
+    "Id_Tempat": "326",
     "Nama_Tempat": "Kebun Botol",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -6266,7 +6267,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "337",
+    "Id_Tempat": "327",
     "Nama_Tempat": "Taman Terapi (ITP)",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Terapi (ITP)",
@@ -6286,7 +6287,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "338",
+    "Id_Tempat": "328",
     "Nama_Tempat": "Kawasan Wisata Lembah Dieng Malang - Indonesia Jenius Partner",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -6305,7 +6306,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "339",
+    "Id_Tempat": "329",
     "Nama_Tempat": "Alun-alun Karangploso",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman · ",
@@ -6324,7 +6325,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "340",
+    "Id_Tempat": "330",
     "Nama_Tempat": "Desa Wisata Pendem",
     "Kategori": "Wisata",
     "Sub_Kategori": "Desa Wisata Pendem",
@@ -6343,7 +6344,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "341",
+    "Id_Tempat": "331",
     "Nama_Tempat": "Gerbang Masuk Kota Wisata Batu",
     "Kategori": "Wisata",
     "Sub_Kategori": "Gerbang Masuk Kota Wisata Batu",
@@ -6362,7 +6363,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "342",
+    "Id_Tempat": "332",
     "Nama_Tempat": "The Legend Star - Jawa Timur Park 3",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -6380,7 +6381,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "343",
+    "Id_Tempat": "333",
     "Nama_Tempat": "Wisata Kota Batu",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Kota Batu",
@@ -6400,7 +6401,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "344",
+    "Id_Tempat": "334",
     "Nama_Tempat": "Drive Thru Park",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -6419,7 +6420,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "345",
+    "Id_Tempat": "335",
     "Nama_Tempat": "Jawa Timur Park 2",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman hiburan ilmu pengetahuan alam",
@@ -6439,7 +6440,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "346",
+    "Id_Tempat": "336",
     "Nama_Tempat": "Museum D'Topeng Kingdom (INDONESIAN HERITAGE MUSEUM) Jatim Park 1",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -6458,7 +6459,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "347",
+    "Id_Tempat": "337",
     "Nama_Tempat": "Petik Apel Kota Batu",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -6476,7 +6477,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "348",
+    "Id_Tempat": "338",
     "Nama_Tempat": "Wisata Sumber Air \" DAM COKRO \" Lowoksari",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata · ",
@@ -6490,7 +6491,7 @@
     "Has_Gambar": false
   },
   {
-    "Id_Tempat": "349",
+    "Id_Tempat": "339",
     "Nama_Tempat": "Puncak BALUPUG dalas 89",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata · Unnamed Road",
@@ -6508,7 +6509,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "350",
+    "Id_Tempat": "340",
     "Nama_Tempat": "Mall Bunga Sidomulyo",
     "Kategori": "Wisata",
     "Sub_Kategori": "Mall Bunga Sidomulyo",
@@ -6526,7 +6527,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "351",
+    "Id_Tempat": "341",
     "Nama_Tempat": "Wisata Religi Gunung Mujur ꦒꦸꦤꦸꦁꦩꦸꦗꦸꦂ",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Religi Gunung Mujur ꦒꦸꦤꦸꦁꦩꦸꦗꦸꦂ",
@@ -6545,7 +6546,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "352",
+    "Id_Tempat": "342",
     "Nama_Tempat": "Rest Area Wisata Petik Apel \"Mitra Apel\"",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -6559,7 +6560,7 @@
     "Has_Gambar": false
   },
   {
-    "Id_Tempat": "353",
+    "Id_Tempat": "343",
     "Nama_Tempat": "Petik jeruk LEMBAH MANAH pak Agus",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -6577,7 +6578,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "354",
+    "Id_Tempat": "344",
     "Nama_Tempat": "Wisata petik apel jeruk strawberry makan sepuasnya",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -6597,7 +6598,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "355",
+    "Id_Tempat": "345",
     "Nama_Tempat": "Wisata Petik Apel KTMA",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Petik Apel KTMA",
@@ -6617,7 +6618,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "356",
+    "Id_Tempat": "346",
     "Nama_Tempat": "Budug Asu 1422 Mdpl",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -6636,7 +6637,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "357",
+    "Id_Tempat": "347",
     "Nama_Tempat": "Agrowisata Teh Wonosari",
     "Kategori": "Wisata",
     "Sub_Kategori": "Agrowisata Teh Wonosari",
@@ -6656,7 +6657,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "358",
+    "Id_Tempat": "348",
     "Nama_Tempat": "Pantai Jolangkung ꦥꦼꦱꦶꦱꦶꦂꦗꦺꦴꦭꦔ꧀ꦏꦸꦁ",
     "Kategori": "Wisata",
     "Sub_Kategori": "Pantai Jolangkung ꦥꦼꦱꦶꦱꦶꦂꦗꦺꦴꦭꦔ꧀ꦏꦸꦁ",
@@ -6675,7 +6676,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "359",
+    "Id_Tempat": "349",
     "Nama_Tempat": "Pantai Kangen ꦥꦼꦱꦶꦱꦶꦂꦏꦔꦼꦤ꧀",
     "Kategori": "Wisata",
     "Sub_Kategori": "Pantai Kangen ꦥꦼꦱꦶꦱꦶꦂꦏꦔꦼꦤ꧀",
@@ -6695,7 +6696,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "360",
+    "Id_Tempat": "350",
     "Nama_Tempat": "Gunung Getun ꦒꦸꦤꦸꦁꦒꦼꦠꦸꦤ꧀",
     "Kategori": "Wisata",
     "Sub_Kategori": "Gunung Getun ꦒꦸꦤꦸꦁꦒꦼꦠꦸꦤ꧀",
@@ -6715,7 +6716,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "361",
+    "Id_Tempat": "351",
     "Nama_Tempat": "Pantai Gopit ꦥꦼꦱꦶꦱꦶꦂꦒꦺꦴꦥꦶꦠ꧀",
     "Kategori": "Wisata",
     "Sub_Kategori": "Pantai Gopit ꦥꦼꦱꦶꦱꦶꦂꦒꦺꦴꦥꦶꦠ꧀",
@@ -6734,7 +6735,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "362",
+    "Id_Tempat": "352",
     "Nama_Tempat": "Pantai Bajulmati",
     "Kategori": "Wisata",
     "Sub_Kategori": "Pantai Bajulmati",
@@ -6753,7 +6754,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "363",
+    "Id_Tempat": "353",
     "Nama_Tempat": "WISATA BAN KINTIR",
     "Kategori": "Wisata",
     "Sub_Kategori": "WISATA BAN KINTIR",
@@ -6772,7 +6773,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "364",
+    "Id_Tempat": "354",
     "Nama_Tempat": "Watu Leter",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -6791,7 +6792,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "365",
+    "Id_Tempat": "355",
     "Nama_Tempat": "Pantai Parang Dowo",
     "Kategori": "Wisata",
     "Sub_Kategori": "Pantai Parang Dowo",
@@ -6811,7 +6812,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "366",
+    "Id_Tempat": "356",
     "Nama_Tempat": "Pantai Mahadewi",
     "Kategori": "Wisata",
     "Sub_Kategori": "Pantai Mahadewi",
@@ -6829,7 +6830,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "367",
+    "Id_Tempat": "357",
     "Nama_Tempat": "COBAN PANDAWA",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -6849,7 +6850,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "368",
+    "Id_Tempat": "358",
     "Nama_Tempat": "Coban Nirwana",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata · ",
@@ -6869,7 +6870,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "369",
+    "Id_Tempat": "359",
     "Nama_Tempat": "Waduk Andeman",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata · RQV6+WV9",
@@ -6889,7 +6890,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "370",
+    "Id_Tempat": "360",
     "Nama_Tempat": "Puncak Kapur Segaran",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -6907,7 +6908,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "371",
+    "Id_Tempat": "361",
     "Nama_Tempat": "Wisata batu licin",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata batu licin",
@@ -6926,7 +6927,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "372",
+    "Id_Tempat": "362",
     "Nama_Tempat": "Monumen Pancasila",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman · RJ98+PC5, Jl. Babussalam",
@@ -6944,7 +6945,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "375",
+    "Id_Tempat": "363",
     "Nama_Tempat": "Kampung Tridi",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -6964,7 +6965,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "376",
+    "Id_Tempat": "364",
     "Nama_Tempat": "Coban Amprong",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -6984,7 +6985,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "377",
+    "Id_Tempat": "365",
     "Nama_Tempat": "Taman Wisata Air Wendit",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Wisata Air Wendit",
@@ -7003,7 +7004,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "378",
+    "Id_Tempat": "366",
     "Nama_Tempat": "Taman Edukasi Rolak Kedungkandang",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Edukasi Rolak Kedungkandang",
@@ -7022,7 +7023,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "379",
+    "Id_Tempat": "367",
     "Nama_Tempat": "Jembatan Kaca Ngalam Indonesia",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -7042,7 +7043,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "380",
+    "Id_Tempat": "368",
     "Nama_Tempat": "Kampung Kelir",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -7062,7 +7063,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "381",
+    "Id_Tempat": "369",
     "Nama_Tempat": "Kampung Warna Warni Jodipan",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -7080,7 +7081,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "382",
+    "Id_Tempat": "370",
     "Nama_Tempat": "Alun-Alun Malang",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -7100,7 +7101,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "383",
+    "Id_Tempat": "371",
     "Nama_Tempat": "Wisata Kayutangan Kota Malang",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Kayutangan Kota Malang",
@@ -7118,7 +7119,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "384",
+    "Id_Tempat": "372",
     "Nama_Tempat": "Pecinan Malang",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -7136,7 +7137,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "385",
+    "Id_Tempat": "373",
     "Nama_Tempat": "TPU Kasin",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -7155,7 +7156,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "386",
+    "Id_Tempat": "374",
     "Nama_Tempat": "Oud Malang , Tweede Afstandpaal \" Km 0 \" - 0 Km Kota Malang",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -7169,7 +7170,7 @@
     "Has_Gambar": false
   },
   {
-    "Id_Tempat": "387",
+    "Id_Tempat": "375",
     "Nama_Tempat": "Kayutangan Heritage",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -7188,7 +7189,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "388",
+    "Id_Tempat": "376",
     "Nama_Tempat": "Malang Heritage",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -7206,7 +7207,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "389",
+    "Id_Tempat": "377",
     "Nama_Tempat": "Taman Halmahera",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Halmahera",
@@ -7225,7 +7226,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "391",
+    "Id_Tempat": "378",
     "Nama_Tempat": "Monumen Melati Kadet Suropati",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -7245,7 +7246,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "392",
+    "Id_Tempat": "379",
     "Nama_Tempat": "De Rumah Park",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman · De Rumah, Jalan",
@@ -7264,7 +7265,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "393",
+    "Id_Tempat": "380",
     "Nama_Tempat": "Dam Kadalpang",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -7282,7 +7283,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "394",
+    "Id_Tempat": "381",
     "Nama_Tempat": "Monumen Tentara Genie Pelajar",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -7300,7 +7301,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "395",
+    "Id_Tempat": "382",
     "Nama_Tempat": "Patung Mayor Hamid Rusdi",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -7318,7 +7319,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "396",
+    "Id_Tempat": "383",
     "Nama_Tempat": "Masjid An-Nur",
     "Kategori": "Wisata",
     "Sub_Kategori": "Masjid An-Nur",
@@ -7336,7 +7337,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "397",
+    "Id_Tempat": "384",
     "Nama_Tempat": "Taman Bibit Mojolangu",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Bibit Mojolangu",
@@ -7354,7 +7355,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "398",
+    "Id_Tempat": "385",
     "Nama_Tempat": "Museum Mpu Purwa",
     "Kategori": "Wisata",
     "Sub_Kategori": "Museum Mpu Purwa",
@@ -7374,7 +7375,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "399",
+    "Id_Tempat": "386",
     "Nama_Tempat": "Taman Kebun Bibit Mojolangu Kota Malang",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman · 3J9H+4HV",
@@ -7393,7 +7394,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "400",
+    "Id_Tempat": "387",
     "Nama_Tempat": "Sumber Umbulan Singosari",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -7413,7 +7414,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "401",
+    "Id_Tempat": "388",
     "Nama_Tempat": "Pemandian Sumber Nyolo",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -7433,7 +7434,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "402",
+    "Id_Tempat": "389",
     "Nama_Tempat": "Pemandian Sumber Umbulan Singosari",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata · 4J4H+C45",
@@ -7452,7 +7453,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "403",
+    "Id_Tempat": "390",
     "Nama_Tempat": "SUMBER UMBULAN NGENEP KERAJAN",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -7471,7 +7472,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "404",
+    "Id_Tempat": "391",
     "Nama_Tempat": "Akar Rumput ( Wisata Edukasi Pertanian )",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -7489,7 +7490,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "405",
+    "Id_Tempat": "392",
     "Nama_Tempat": "Jembatan Soekarno Hatta Malang",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -7509,7 +7510,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "406",
+    "Id_Tempat": "393",
     "Nama_Tempat": "Kolam pemancingan singo",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata · 3J54+5R8",
@@ -7527,7 +7528,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "407",
+    "Id_Tempat": "394",
     "Nama_Tempat": "Tugu Jam Rektorat Universitas Brawijaya",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -7546,7 +7547,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "408",
+    "Id_Tempat": "395",
     "Nama_Tempat": "Museum Musik Indonesia",
     "Kategori": "Wisata",
     "Sub_Kategori": "Museum Musik Indonesia",
@@ -7566,7 +7567,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "409",
+    "Id_Tempat": "396",
     "Nama_Tempat": "Kampung Edukasi Budaya Tradisi Batu",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata · 4H4F+MGG",
@@ -7585,7 +7586,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "410",
+    "Id_Tempat": "397",
     "Nama_Tempat": "WLK Wisata Lereng Kebun",
     "Kategori": "Wisata",
     "Sub_Kategori": "WLK Wisata Lereng Kebun",
@@ -7603,7 +7604,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "411",
+    "Id_Tempat": "398",
     "Nama_Tempat": "Gunung Wukir View Gn Arjuno",
     "Kategori": "Wisata",
     "Sub_Kategori": "Gunung Wukir View Gn Arjuno",
@@ -7621,7 +7622,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "412",
+    "Id_Tempat": "399",
     "Nama_Tempat": "Wisata Petik Strawberry",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Petik Strawberry",
@@ -7639,7 +7640,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "413",
+    "Id_Tempat": "400",
     "Nama_Tempat": "BatuPaintball",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -7659,7 +7660,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "414",
+    "Id_Tempat": "401",
     "Nama_Tempat": "Tlogorejo Water Source",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -7678,7 +7679,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "415",
+    "Id_Tempat": "402",
     "Nama_Tempat": "Puncak Budug Asu",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata · ",
@@ -7698,7 +7699,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "416",
+    "Id_Tempat": "403",
     "Nama_Tempat": "Arjuna Geopark",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -7718,7 +7719,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "417",
+    "Id_Tempat": "404",
     "Nama_Tempat": "Jembatan Cinta Bukit Kuneer",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -7737,7 +7738,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "418",
+    "Id_Tempat": "405",
     "Nama_Tempat": "Pentungan Sari Waterpark",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata · ",
@@ -7755,7 +7756,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "419",
+    "Id_Tempat": "406",
     "Nama_Tempat": "Taman Arjuno",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Arjuno",
@@ -7774,7 +7775,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "420",
+    "Id_Tempat": "407",
     "Nama_Tempat": "Tlogo Land",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -7794,7 +7795,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "421",
+    "Id_Tempat": "408",
     "Nama_Tempat": "Candi Sumberawan",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata · ",
@@ -7814,7 +7815,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "422",
+    "Id_Tempat": "409",
     "Nama_Tempat": "Bukit Kuneer",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -7834,7 +7835,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "423",
+    "Id_Tempat": "410",
     "Nama_Tempat": "Wisata Sumber Awan",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Sumber Awan",
@@ -7852,7 +7853,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "424",
+    "Id_Tempat": "411",
     "Nama_Tempat": "Wonosari Tea Plantation",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -7872,7 +7873,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "425",
+    "Id_Tempat": "412",
     "Nama_Tempat": "Bukit Asmara",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -7892,7 +7893,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "426",
+    "Id_Tempat": "413",
     "Nama_Tempat": "Pantai Tamban",
     "Kategori": "Wisata",
     "Sub_Kategori": "Pantai Tamban",
@@ -7912,7 +7913,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "427",
+    "Id_Tempat": "414",
     "Nama_Tempat": "Pantai Sendangbiru",
     "Kategori": "Wisata",
     "Sub_Kategori": "Pantai Sendangbiru",
@@ -7932,7 +7933,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "428",
+    "Id_Tempat": "415",
     "Nama_Tempat": "Teluk Asmara Beach",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -7951,7 +7952,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "429",
+    "Id_Tempat": "416",
     "Nama_Tempat": "Pantai Sumenggung ꦥꦼꦱꦶꦱꦶꦂꦱꦸꦩꦼꦔ꧀ꦒꦸꦁ",
     "Kategori": "Wisata",
     "Sub_Kategori": "Pantai Sumenggung ꦥꦼꦱꦶꦱꦶꦂꦱꦸꦩꦼꦔ꧀ꦒꦸꦁ",
@@ -7971,7 +7972,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "430",
+    "Id_Tempat": "417",
     "Nama_Tempat": "Jembatan Bajulmati",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -7990,7 +7991,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "431",
+    "Id_Tempat": "418",
     "Nama_Tempat": "Rest Area Pesona Wono Agung",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata",
@@ -8010,7 +8011,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "432",
+    "Id_Tempat": "419",
     "Nama_Tempat": "Puncak Sumawe",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -8030,7 +8031,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "433",
+    "Id_Tempat": "420",
     "Nama_Tempat": "Rest Area Pletes",
     "Kategori": "Wisata",
     "Sub_Kategori": "\"Wisata alam",
@@ -8049,7 +8050,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "434",
+    "Id_Tempat": "421",
     "Nama_Tempat": "Rest Area Druju",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -8066,7 +8067,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "435",
+    "Id_Tempat": "422",
     "Nama_Tempat": "Tomboan Ngawonggo",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -8086,7 +8087,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "436",
+    "Id_Tempat": "423",
     "Nama_Tempat": "Taman Rampal",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Rampal",
@@ -8105,7 +8106,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "437",
+    "Id_Tempat": "424",
     "Nama_Tempat": "Taman Kendedes",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Kendedes",
@@ -8125,7 +8126,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "438",
+    "Id_Tempat": "425",
     "Nama_Tempat": "\"BAMBOO MEWEK PARK\"",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -8139,7 +8140,7 @@
     "Has_Gambar": false
   },
   {
-    "Id_Tempat": "439",
+    "Id_Tempat": "426",
     "Nama_Tempat": "Malang Night Paradise",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -8159,7 +8160,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "440",
+    "Id_Tempat": "427",
     "Nama_Tempat": "Wisata sumber suceng",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata sumber suceng",
@@ -8178,7 +8179,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "441",
+    "Id_Tempat": "428",
     "Nama_Tempat": "Sumber Nagan",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -8197,7 +8198,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "442",
+    "Id_Tempat": "429",
     "Nama_Tempat": "SERASTIK",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata · 4M72+FXV",
@@ -8216,7 +8217,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "443",
+    "Id_Tempat": "430",
     "Nama_Tempat": "Wisata Banyu Umbulan Dampit",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Banyu Umbulan Dampit",
@@ -8235,7 +8236,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "444",
+    "Id_Tempat": "431",
     "Nama_Tempat": "Dam tawang rejeni",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata · QMGW+542",
@@ -8253,7 +8254,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "445",
+    "Id_Tempat": "432",
     "Nama_Tempat": "KAMISAMA WATERPARK",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata · Jl. Pasir",
@@ -8271,7 +8272,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "446",
+    "Id_Tempat": "433",
     "Nama_Tempat": "Boonpring",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata · ",
@@ -8291,7 +8292,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "447",
+    "Id_Tempat": "434",
     "Nama_Tempat": "WGM (Wisata Gentong Mas)",
     "Kategori": "Wisata",
     "Sub_Kategori": "WGM (Wisata Gentong Mas)",
@@ -8311,7 +8312,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "448",
+    "Id_Tempat": "435",
     "Nama_Tempat": "Parkir mobil gratis Masjid tiban turen",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata · ",
@@ -8330,7 +8331,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "449",
+    "Id_Tempat": "436",
     "Nama_Tempat": "Kolam renang Tirtayasa",
     "Kategori": "Wisata",
     "Sub_Kategori": "Kolam renang Tirtayasa",
@@ -8349,7 +8350,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "450",
+    "Id_Tempat": "437",
     "Nama_Tempat": "Wiken Wisata Kampung Enem",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wiken Wisata Kampung Enem",
@@ -8368,7 +8369,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "451",
+    "Id_Tempat": "438",
     "Nama_Tempat": "Sumber Buntung Wisata air alami urek urek",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -8388,7 +8389,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "452",
+    "Id_Tempat": "439",
     "Nama_Tempat": "Kolam Renang Lembah Asri",
     "Kategori": "Wisata",
     "Sub_Kategori": "Kolam Renang Lembah Asri",
@@ -8407,7 +8408,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "453",
+    "Id_Tempat": "440",
     "Nama_Tempat": "Taman Ijo Bunga",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Ijo Bunga",
@@ -8427,7 +8428,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "454",
+    "Id_Tempat": "441",
     "Nama_Tempat": "Wana Wisata Winong Camp ground",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wana Wisata Winong Camp ground",
@@ -8447,7 +8448,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "455",
+    "Id_Tempat": "442",
     "Nama_Tempat": "Wana Wisata Winangon Tambak Rejo",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wana Wisata Winangon Tambak Rejo",
@@ -8466,7 +8467,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "456",
+    "Id_Tempat": "443",
     "Nama_Tempat": "Masjid Tiban Malang",
     "Kategori": "Wisata",
     "Sub_Kategori": "Masjid Tiban Malang",
@@ -8486,7 +8487,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "457",
+    "Id_Tempat": "444",
     "Nama_Tempat": "Wisata Alam Sumber Jenon",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Alam Sumber Jenon",
@@ -8506,7 +8507,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "458",
+    "Id_Tempat": "445",
     "Nama_Tempat": "Wisata Malang Dreamland",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Malang Dreamland",
@@ -8525,7 +8526,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "459",
+    "Id_Tempat": "446",
     "Nama_Tempat": "waduk urek-urek gondanglegi malang",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman ·  · RMX9+WCV",
@@ -8545,7 +8546,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "460",
+    "Id_Tempat": "447",
     "Nama_Tempat": "OG Durian",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -8563,7 +8564,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "461",
+    "Id_Tempat": "448",
     "Nama_Tempat": "WBLL (Wisata Blayu Lesti Lestari) Wajak",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -8582,7 +8583,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "462",
+    "Id_Tempat": "449",
     "Nama_Tempat": "Taman Keceh",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Keceh",
@@ -8602,7 +8603,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "463",
+    "Id_Tempat": "450",
     "Nama_Tempat": "Embung Jambesari Sunset",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -8620,7 +8621,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "464",
+    "Id_Tempat": "451",
     "Nama_Tempat": "Taman Edukasi EMBUNG PANDANMULYO",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Edukasi EMBUNG PANDANMULYO",
@@ -8640,7 +8641,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "465",
+    "Id_Tempat": "452",
     "Nama_Tempat": "TUBING SUMBER SALAM",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -8659,7 +8660,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "466",
+    "Id_Tempat": "453",
     "Nama_Tempat": "Tugu Pertigaan Wajak",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -8677,7 +8678,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "467",
+    "Id_Tempat": "454",
     "Nama_Tempat": "Situs Patirtaan Ngawonggo",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -8695,7 +8696,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "468",
+    "Id_Tempat": "455",
     "Nama_Tempat": "lembah ronggo warsito",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -8713,7 +8714,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "469",
+    "Id_Tempat": "456",
     "Nama_Tempat": "Waduk Purbaya",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -8733,7 +8734,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "470",
+    "Id_Tempat": "457",
     "Nama_Tempat": "Tirta Dewata",
     "Kategori": "Wisata",
     "Sub_Kategori": "\"Kolam renang yang asikkkk\"",
@@ -8752,7 +8753,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "471",
+    "Id_Tempat": "458",
     "Nama_Tempat": "Taman edukasi D'Embung Park Pandanmulyo",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman edukasi D'Embung Park Pandanmulyo",
@@ -8772,7 +8773,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "472",
+    "Id_Tempat": "459",
     "Nama_Tempat": "Lembah Tumpang Resort",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -8792,7 +8793,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "473",
+    "Id_Tempat": "460",
     "Nama_Tempat": "Tugu Kuda Diponegoro",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -8811,7 +8812,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "474",
+    "Id_Tempat": "461",
     "Nama_Tempat": "Sumber Wendit Lanang",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -8831,7 +8832,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "475",
+    "Id_Tempat": "462",
     "Nama_Tempat": "Patung Singo Edan Arema",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata · ",
@@ -8850,7 +8851,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "476",
+    "Id_Tempat": "463",
     "Nama_Tempat": "Wisata Alam \"SUMBER GENTONG\"",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Alam \"SUMBER GENTONG\"",
@@ -8864,7 +8865,7 @@
     "Has_Gambar": false
   },
   {
-    "Id_Tempat": "477",
+    "Id_Tempat": "464",
     "Nama_Tempat": "Lapangan Rampal",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -8884,7 +8885,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "478",
+    "Id_Tempat": "465",
     "Nama_Tempat": "Taman Pandanwangi",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Pandanwangi",
@@ -8903,7 +8904,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "479",
+    "Id_Tempat": "466",
     "Nama_Tempat": "Kebun Unna",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -8921,7 +8922,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "481",
+    "Id_Tempat": "467",
     "Nama_Tempat": "Pemandian Belakang Wendit Wakaf",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -8940,7 +8941,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "482",
+    "Id_Tempat": "468",
     "Nama_Tempat": "Kolam Pemancingan & Lesehan Beran Sundeng",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -8960,7 +8961,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "483",
+    "Id_Tempat": "469",
     "Nama_Tempat": "Sumber Kletak",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -8978,7 +8979,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "484",
+    "Id_Tempat": "470",
     "Nama_Tempat": "New Wisata Wendit by Nicole’s",
     "Kategori": "Wisata",
     "Sub_Kategori": "New Wisata Wendit by Nicole’s",
@@ -8998,7 +8999,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "485",
+    "Id_Tempat": "471",
     "Nama_Tempat": "Wahana wisata Pinus alas Bagor",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wahana wisata Pinus alas Bagor",
@@ -9016,7 +9017,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "486",
+    "Id_Tempat": "472",
     "Nama_Tempat": "Taman Bentoel Trunojoyo Selatan",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Bentoel Trunojoyo Selatan",
@@ -9036,7 +9037,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "487",
+    "Id_Tempat": "473",
     "Nama_Tempat": "Taman Nongkrong Lihat Kereta Api",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Nongkrong Lihat Kereta Api",
@@ -9055,7 +9056,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "488",
+    "Id_Tempat": "474",
     "Nama_Tempat": "Taman Indragiri Malang",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Indragiri Malang",
@@ -9074,7 +9075,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "489",
+    "Id_Tempat": "475",
     "Nama_Tempat": "Forrest, Lodge, Pawon Ratu Roso & Wisata Berkuda",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata",
@@ -9093,7 +9094,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "490",
+    "Id_Tempat": "476",
     "Nama_Tempat": "Hutan Kota Polowijen",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -9113,7 +9114,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "491",
+    "Id_Tempat": "477",
     "Nama_Tempat": "Malang Train Station",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -9131,7 +9132,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "493",
+    "Id_Tempat": "478",
     "Nama_Tempat": "Kebun Murbei",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -9150,7 +9151,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "494",
+    "Id_Tempat": "479",
     "Nama_Tempat": "Taman Velodrome",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Velodrome",
@@ -9170,7 +9171,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "495",
+    "Id_Tempat": "480",
     "Nama_Tempat": "Taman Cidurian",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Cidurian",
@@ -9190,7 +9191,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "496",
+    "Id_Tempat": "481",
     "Nama_Tempat": "Lampion & Dinosaurus Park",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -9209,7 +9210,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "497",
+    "Id_Tempat": "482",
     "Nama_Tempat": "SANGGAR SEMAR",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -9228,7 +9229,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "498",
+    "Id_Tempat": "483",
     "Nama_Tempat": "Taman Dolan Losawi",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Dolan Losawi",
@@ -9248,7 +9249,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "499",
+    "Id_Tempat": "484",
     "Nama_Tempat": "KOLAM PANCING BDJ",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -9267,7 +9268,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "500",
+    "Id_Tempat": "485",
     "Nama_Tempat": "Kebon Winih Randuagung",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata · 4MPC+F5C",
@@ -9287,7 +9288,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "501",
+    "Id_Tempat": "486",
     "Nama_Tempat": "Wisata Sumbersuko, Randuagung",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Sumbersuko, Randuagung",
@@ -9306,7 +9307,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "502",
+    "Id_Tempat": "487",
     "Nama_Tempat": "Taman Selo Tegil",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Selo Tegil",
@@ -9324,7 +9325,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "503",
+    "Id_Tempat": "488",
     "Nama_Tempat": "Taman Teluk Grajakan - Pandanwangi",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Teluk Grajakan - Pandanwangi",
@@ -9344,7 +9345,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "504",
+    "Id_Tempat": "489",
     "Nama_Tempat": "Taman Wisata Polamanku",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Wisata Polamanku",
@@ -9363,7 +9364,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "505",
+    "Id_Tempat": "490",
     "Nama_Tempat": "Pemandian Mendit",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -9383,7 +9384,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "506",
+    "Id_Tempat": "491",
     "Nama_Tempat": "Hawai Waterpark",
     "Kategori": "Wisata",
     "Sub_Kategori": "Kolam ombak, seluncuran, restoran santai",
@@ -9403,7 +9404,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "507",
+    "Id_Tempat": "492",
     "Nama_Tempat": "Rest Area 84B Malang Strudel Playland",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata · 4M3W+6HW",
@@ -9421,7 +9422,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "508",
+    "Id_Tempat": "493",
     "Nama_Tempat": "Taman Gotong Royong",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Gotong Royong",
@@ -9440,7 +9441,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "510",
+    "Id_Tempat": "494",
     "Nama_Tempat": "Kebun Opa",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -9459,7 +9460,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "511",
+    "Id_Tempat": "495",
     "Nama_Tempat": "Wisata Kali Cilik",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Kali Cilik",
@@ -9479,7 +9480,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "512",
+    "Id_Tempat": "496",
     "Nama_Tempat": "Kolam Renang Pentungan Sari",
     "Kategori": "Wisata",
     "Sub_Kategori": "Kolam Renang Pentungan Sari",
@@ -9499,7 +9500,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "513",
+    "Id_Tempat": "497",
     "Nama_Tempat": "Pari Bendo",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -9518,7 +9519,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "514",
+    "Id_Tempat": "498",
     "Nama_Tempat": "Embung Wisata Lowokjati",
     "Kategori": "Wisata",
     "Sub_Kategori": "Embung Wisata Lowokjati",
@@ -9537,7 +9538,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "515",
+    "Id_Tempat": "499",
     "Nama_Tempat": "Museum Singhasari",
     "Kategori": "Wisata",
     "Sub_Kategori": "Museum Singhasari",
@@ -9556,7 +9557,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "516",
+    "Id_Tempat": "500",
     "Nama_Tempat": "Pemandian Kalireco",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -9576,7 +9577,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "517",
+    "Id_Tempat": "501",
     "Nama_Tempat": "Graha Wiyata Outbound & Aneka Edukasi",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -9594,7 +9595,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "518",
+    "Id_Tempat": "502",
     "Nama_Tempat": "Kedok omboh gunungrejo kreweh",
     "Kategori": "Wisata",
     "Sub_Kategori": "Kedok omboh gunungrejo kreweh",
@@ -9612,7 +9613,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "519",
+    "Id_Tempat": "503",
     "Nama_Tempat": "KEK Singhasari",
     "Kategori": "Wisata",
     "Sub_Kategori": "\"Tempat wisata murah dan bersih.\"",
@@ -9630,7 +9631,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "520",
+    "Id_Tempat": "504",
     "Nama_Tempat": "Coban Misteri Supit Urang",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -9649,7 +9650,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "521",
+    "Id_Tempat": "505",
     "Nama_Tempat": "Wisata Latar Bale",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Latar Bale",
@@ -9668,7 +9669,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "522",
+    "Id_Tempat": "506",
     "Nama_Tempat": "VNR",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata · 5M7H+CXV",
@@ -9686,7 +9687,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "523",
+    "Id_Tempat": "507",
     "Nama_Tempat": "Bukit Mendek Wetan",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata · ",
@@ -9705,7 +9706,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "524",
+    "Id_Tempat": "508",
     "Nama_Tempat": "Taman Segitiga",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Segitiga",
@@ -9724,7 +9725,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "525",
+    "Id_Tempat": "509",
     "Nama_Tempat": "Goa Mlaten",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -9744,7 +9745,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "526",
+    "Id_Tempat": "510",
     "Nama_Tempat": "Sumber Waras",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -9762,7 +9763,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "527",
+    "Id_Tempat": "511",
     "Nama_Tempat": "Arjuna Flower Garden",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata · 5MG4+GQ2",
@@ -9780,7 +9781,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "528",
+    "Id_Tempat": "512",
     "Nama_Tempat": "Pemandian Polaman",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -9798,7 +9799,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "529",
+    "Id_Tempat": "513",
     "Nama_Tempat": "Sendiki Beach",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -9817,7 +9818,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "530",
+    "Id_Tempat": "514",
     "Nama_Tempat": "Pantai Teluk Asmara",
     "Kategori": "Wisata",
     "Sub_Kategori": "Pantai Teluk Asmara",
@@ -9837,7 +9838,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "531",
+    "Id_Tempat": "515",
     "Nama_Tempat": "Tempat Parkir Wisata Pantai Tiga Warna",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -9857,7 +9858,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "532",
+    "Id_Tempat": "516",
     "Nama_Tempat": "CMC Tiga Warna Selfie Corner",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Ekologi · HM79+5R7",
@@ -9875,7 +9876,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "533",
+    "Id_Tempat": "517",
     "Nama_Tempat": "Pantai Watu Leter",
     "Kategori": "Wisata",
     "Sub_Kategori": "Pantai Watu Leter",
@@ -9895,7 +9896,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "534",
+    "Id_Tempat": "518",
     "Nama_Tempat": "Coban Kembar Sidoasri ꦕꦺꦴꦧꦤ꧀ꦏꦼꦩ꧀ꦧꦂꦱꦶꦢꦺꦴꦄꦱꦿꦶ",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -9914,7 +9915,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "535",
+    "Id_Tempat": "519",
     "Nama_Tempat": "Coban Tundo",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -9933,7 +9934,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "536",
+    "Id_Tempat": "520",
     "Nama_Tempat": "Waduk Kaliungkal Sukodono",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -9953,7 +9954,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "537",
+    "Id_Tempat": "521",
     "Nama_Tempat": "Taman Aglaonema Dampit",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Aglaonema Dampit",
@@ -9971,7 +9972,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "538",
+    "Id_Tempat": "522",
     "Nama_Tempat": "Alun - Alun Ubalan",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -9989,7 +9990,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "539",
+    "Id_Tempat": "523",
     "Nama_Tempat": "Pulau Sekarsari Boonpring",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -10009,7 +10010,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "540",
+    "Id_Tempat": "524",
     "Nama_Tempat": "Hutan Bambu Andeman",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -10028,7 +10029,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "541",
+    "Id_Tempat": "525",
     "Nama_Tempat": "Bromo Transit Park Tumpang",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -10048,7 +10049,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "542",
+    "Id_Tempat": "526",
     "Nama_Tempat": "Wisata Alam Watu Menyan",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Alam Watu Menyan",
@@ -10067,7 +10068,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "543",
+    "Id_Tempat": "527",
     "Nama_Tempat": "Desa Wisata Gubugklakah ꦒꦸꦧꦸꦏ꧀ꦏ꧀ꦭꦏꦃ",
     "Kategori": "Wisata",
     "Sub_Kategori": "Desa Wisata Gubugklakah ꦒꦸꦧꦸꦏ꧀ꦏ꧀ꦭꦏꦃ",
@@ -10087,7 +10088,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "544",
+    "Id_Tempat": "528",
     "Nama_Tempat": "Desa Wisata Sidorejo Indah ( Dewi Sri )",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -10107,7 +10108,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "545",
+    "Id_Tempat": "529",
     "Nama_Tempat": "Kolam air untuk masyarakat gunung ronggo dan pengairan pertanian",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -10125,7 +10126,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "546",
+    "Id_Tempat": "530",
     "Nama_Tempat": "Museum Panji",
     "Kategori": "Wisata",
     "Sub_Kategori": "Museum Panji",
@@ -10145,7 +10146,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "547",
+    "Id_Tempat": "531",
     "Nama_Tempat": "Candi Kidal",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -10165,7 +10166,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "548",
+    "Id_Tempat": "532",
     "Nama_Tempat": "Sumber Air Ngembul",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -10183,7 +10184,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "549",
+    "Id_Tempat": "533",
     "Nama_Tempat": "Taman Kenongo",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Kenongo",
@@ -10202,7 +10203,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "550",
+    "Id_Tempat": "534",
     "Nama_Tempat": "Embung Pemancingan",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata · 2Q24+J4X",
@@ -10221,7 +10222,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "551",
+    "Id_Tempat": "535",
     "Nama_Tempat": "Candi Gito Lembah Tumpang",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -10240,7 +10241,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "552",
+    "Id_Tempat": "536",
     "Nama_Tempat": "Pura Luhur Dwijawarsa",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -10260,7 +10261,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "553",
+    "Id_Tempat": "537",
     "Nama_Tempat": "Wisata Petik Sayur Organik",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Petik Sayur Organik",
@@ -10279,7 +10280,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "554",
+    "Id_Tempat": "538",
     "Nama_Tempat": "Puncak BTU",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata · 2M5C+8H",
@@ -10298,7 +10299,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "555",
+    "Id_Tempat": "539",
     "Nama_Tempat": "Taman Gangsar",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Gangsar",
@@ -10316,7 +10317,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "556",
+    "Id_Tempat": "540",
     "Nama_Tempat": "Air Terjun Sumber Pitu Tumpang",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata · ",
@@ -10336,7 +10337,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "557",
+    "Id_Tempat": "541",
     "Nama_Tempat": "P.o Telaga Biru",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata · 2PGP+MCP",
@@ -10355,7 +10356,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "558",
+    "Id_Tempat": "542",
     "Nama_Tempat": "Rolak stream",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -10374,7 +10375,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "559",
+    "Id_Tempat": "543",
     "Nama_Tempat": "Shila Tirta (Kolam Renang dan Cafe)",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -10394,7 +10395,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "560",
+    "Id_Tempat": "544",
     "Nama_Tempat": "Taman Suwida",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Suwida",
@@ -10414,7 +10415,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "561",
+    "Id_Tempat": "545",
     "Nama_Tempat": "Situs Sekaran Malang",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -10433,7 +10434,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "562",
+    "Id_Tempat": "546",
     "Nama_Tempat": "Paralayang Sidoluhur Park (BUMDES Karya Luhur)",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata · 4P8W+FPG",
@@ -10452,7 +10453,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "563",
+    "Id_Tempat": "547",
     "Nama_Tempat": "Belung Bibit Sayur Bapak Subur",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -10470,7 +10471,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "564",
+    "Id_Tempat": "548",
     "Nama_Tempat": "Air Terjun Coban Jahe",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -10489,7 +10490,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "565",
+    "Id_Tempat": "549",
     "Nama_Tempat": "Air Terjun Jidor",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -10508,7 +10509,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "566",
+    "Id_Tempat": "550",
     "Nama_Tempat": "LEMBAH BROMO",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -10526,7 +10527,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "567",
+    "Id_Tempat": "551",
     "Nama_Tempat": "Glamping Malang Dreamland",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata",
@@ -10544,7 +10545,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "568",
+    "Id_Tempat": "552",
     "Nama_Tempat": "Padepokan Seni Mangun Dharma",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -10563,7 +10564,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "569",
+    "Id_Tempat": "553",
     "Nama_Tempat": "Goa Maria Sendang Retno Adi",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata · WQH9+FVW",
@@ -10581,7 +10582,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "570",
+    "Id_Tempat": "554",
     "Nama_Tempat": "Taman Durian Pak Peno",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Durian Pak Peno",
@@ -10600,7 +10601,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "571",
+    "Id_Tempat": "555",
     "Nama_Tempat": "Coban Tangkil",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -10620,7 +10621,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "572",
+    "Id_Tempat": "556",
     "Nama_Tempat": "Coban Jahe 2",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -10638,7 +10639,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "573",
+    "Id_Tempat": "557",
     "Nama_Tempat": "Taman Buah Jeru Tumpang",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Buah Jeru Tumpang",
@@ -10658,7 +10659,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "574",
+    "Id_Tempat": "558",
     "Nama_Tempat": "Waterpark Taman Gangsar",
     "Kategori": "Wisata",
     "Sub_Kategori": "Waterpark Taman Gangsar",
@@ -10677,7 +10678,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "575",
+    "Id_Tempat": "559",
     "Nama_Tempat": "Telaga Sari Garden",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman · 2QHX+HQF",
@@ -10697,7 +10698,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "576",
+    "Id_Tempat": "560",
     "Nama_Tempat": "WISATA AIR SUMBER CEMPOKO",
     "Kategori": "Wisata",
     "Sub_Kategori": "WISATA AIR SUMBER CEMPOKO",
@@ -10717,7 +10718,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "577",
+    "Id_Tempat": "561",
     "Nama_Tempat": "Puncak Tunggangan",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -10735,7 +10736,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "578",
+    "Id_Tempat": "562",
     "Nama_Tempat": "Pantai Wedi Putih",
     "Kategori": "Wisata",
     "Sub_Kategori": "Pantai Wedi Putih",
@@ -10754,7 +10755,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "579",
+    "Id_Tempat": "563",
     "Nama_Tempat": "PUNCAK BINGLIS",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -10774,7 +10775,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "580",
+    "Id_Tempat": "564",
     "Nama_Tempat": "Pantai Sendiki",
     "Kategori": "Wisata",
     "Sub_Kategori": "Pantai Sendiki",
@@ -10794,7 +10795,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "581",
+    "Id_Tempat": "565",
     "Nama_Tempat": "Pantai Lenggoksono",
     "Kategori": "Wisata",
     "Sub_Kategori": "Pantai Lenggoksono",
@@ -10814,7 +10815,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "582",
+    "Id_Tempat": "566",
     "Nama_Tempat": "Goa payung baturetno",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -10832,7 +10833,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "583",
+    "Id_Tempat": "567",
     "Nama_Tempat": "Latar Kumat",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman ·  · RQ6F+79",
@@ -10851,7 +10852,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "584",
+    "Id_Tempat": "568",
     "Nama_Tempat": "Hutan Pinus Semeru (HPS)",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata · VR3H+W42",
@@ -10871,7 +10872,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "585",
+    "Id_Tempat": "569",
     "Nama_Tempat": "Kampoeng Banyu River Tubing",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -10889,7 +10890,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "586",
+    "Id_Tempat": "570",
     "Nama_Tempat": "Kopi Rejo Hill Tourism",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -10909,7 +10910,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "587",
+    "Id_Tempat": "571",
     "Nama_Tempat": "Banyu biru awet muda",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -10927,7 +10928,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "588",
+    "Id_Tempat": "572",
     "Nama_Tempat": "Jamun Spot Sunset (JSS)",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -10945,7 +10946,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "589",
+    "Id_Tempat": "573",
     "Nama_Tempat": "BROMOAMPRONG VILLAGE",
     "Kategori": "Wisata",
     "Sub_Kategori": "BROMOAMPRONG VILLAGE",
@@ -10964,7 +10965,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "591",
+    "Id_Tempat": "574",
     "Nama_Tempat": "TAMAN KALI LESTI PONCOKUSUMO",
     "Kategori": "Wisata",
     "Sub_Kategori": "TAMAN KALI LESTI PONCOKUSUMO",
@@ -10984,7 +10985,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "592",
+    "Id_Tempat": "575",
     "Nama_Tempat": "Air Terjun Coban Pelangi, Malang",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -11004,7 +11005,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "593",
+    "Id_Tempat": "576",
     "Nama_Tempat": "Air Terjun Coban Siuk",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -11024,7 +11025,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "594",
+    "Id_Tempat": "577",
     "Nama_Tempat": "Coban Tarzan ꦕꦺꦴꦧꦤ꧀ꦠꦂꦱꦤ꧀ or Coban Toris",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -11044,7 +11045,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "595",
+    "Id_Tempat": "578",
     "Nama_Tempat": "Coban Jahe 3 ꦕꦺꦴꦧꦤ꧀ꦗꦲꦺ꧇꧓꧇ or Coban Toris",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -11062,7 +11063,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "596",
+    "Id_Tempat": "579",
     "Nama_Tempat": "BROMO_COBAN JIDOR (Via Dsn Benjor)",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata · XRW5+WJ5",
@@ -11080,7 +11081,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "597",
+    "Id_Tempat": "580",
     "Nama_Tempat": "Air Terjun Cinde",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -11098,7 +11099,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "598",
+    "Id_Tempat": "581",
     "Nama_Tempat": "Benjor Pine Camping Ground",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata · 2R5J+CCG",
@@ -11118,7 +11119,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "599",
+    "Id_Tempat": "582",
     "Nama_Tempat": "Pantai Bolu Bolu",
     "Kategori": "Wisata",
     "Sub_Kategori": "Pantai Bolu Bolu",
@@ -11137,7 +11138,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "600",
+    "Id_Tempat": "583",
     "Nama_Tempat": "Coban Srengenge",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -11157,7 +11158,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "601",
+    "Id_Tempat": "584",
     "Nama_Tempat": "Coban Sumber Wangi ꦕꦺꦴꦧꦤ꧀ꦱꦸꦩ꧀ꦧꦼꦂꦮꦔꦶ",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -11176,7 +11177,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "602",
+    "Id_Tempat": "585",
     "Nama_Tempat": "Coban Rendeng",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -11194,7 +11195,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "603",
+    "Id_Tempat": "586",
     "Nama_Tempat": "Candi Jawar Purbakala",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -11214,7 +11215,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "604",
+    "Id_Tempat": "587",
     "Nama_Tempat": "Coban Gintung",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -11233,7 +11234,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "605",
+    "Id_Tempat": "588",
     "Nama_Tempat": "Poncokusumo Rest Area",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -11253,7 +11254,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "606",
+    "Id_Tempat": "589",
     "Nama_Tempat": "Coban Kembar",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -11273,7 +11274,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "607",
+    "Id_Tempat": "590",
     "Nama_Tempat": "Coban Srikandi",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata · 2R5M+M5",
@@ -11291,7 +11292,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "608",
+    "Id_Tempat": "591",
     "Nama_Tempat": "Parking coban cinde coban srikandi dll",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata · 2R5M+M5",
@@ -11310,7 +11311,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "609",
+    "Id_Tempat": "592",
     "Nama_Tempat": "Coban Arema ꦕꦺꦴꦧꦤ꧀ꦄꦫꦺꦩ",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -11328,7 +11329,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "610",
+    "Id_Tempat": "593",
     "Nama_Tempat": "Coban Jodo",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -11347,7 +11348,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "611",
+    "Id_Tempat": "594",
     "Nama_Tempat": "Coban Trisula",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -11366,7 +11367,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "612",
+    "Id_Tempat": "595",
     "Nama_Tempat": "Puncak Bundu",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -11385,7 +11386,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "613",
+    "Id_Tempat": "596",
     "Nama_Tempat": "Air Terjun Telaga Warna",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -11405,7 +11406,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "614",
+    "Id_Tempat": "597",
     "Nama_Tempat": "Bukit Nando",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -11425,7 +11426,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "615",
+    "Id_Tempat": "598",
     "Nama_Tempat": "Air Terjun Ciblungan",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -11445,7 +11446,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "616",
+    "Id_Tempat": "599",
     "Nama_Tempat": "Coban Batu Lapis",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -11464,7 +11465,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "617",
+    "Id_Tempat": "600",
     "Nama_Tempat": "RUMAH POHON SALAK",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -11484,7 +11485,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "618",
+    "Id_Tempat": "601",
     "Nama_Tempat": "Candi Samudro",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -11503,7 +11504,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "619",
+    "Id_Tempat": "602",
     "Nama_Tempat": "WISATA NJULUNG AGROEDU TOURISM",
     "Kategori": "Wisata",
     "Sub_Kategori": "WISATA NJULUNG AGROEDU TOURISM",
@@ -11521,7 +11522,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "620",
+    "Id_Tempat": "603",
     "Nama_Tempat": "Taman Wisata Bromo Tengger",
     "Kategori": "Wisata",
     "Sub_Kategori": "Taman Wisata Bromo Tengger",
@@ -11539,7 +11540,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "622",
+    "Id_Tempat": "604",
     "Nama_Tempat": "Gunung Sari Sunset",
     "Kategori": "Wisata",
     "Sub_Kategori": "Gunung Sari Sunset",
@@ -11559,7 +11560,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "623",
+    "Id_Tempat": "605",
     "Nama_Tempat": "Ndayungadventure",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -11570,6 +11571,7 @@
     "Longitude": 112.8533603,
     "Link": "https://www.google.com/maps/place/Ndayungadventure/data=!4m7!3m6!1s0x2dd63af41bc0091f:0x8fa217d438108b53!8m2!3d-8.0140726!4d112.8533603!16s%2Fg%2F11_rg5crz!19sChIJHwnAG_Q61i0RU4sQONQXoo8?authuser=0&hl=id&rclk=1",
     "Gambar": [
+      "/assets/GAMBAR/wisata/Ndayungadventure/Ndayungadventure-1 copy.jpg",
       "/assets/GAMBAR/wisata/Ndayungadventure/Ndayungadventure-1.jpg",
       "/assets/GAMBAR/wisata/Ndayungadventure/Ndayungadventure-2.jpg",
       "/assets/GAMBAR/wisata/Ndayungadventure/Ndayungadventure-3.jpg"
@@ -11577,7 +11579,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "624",
+    "Id_Tempat": "606",
     "Nama_Tempat": "Pantai Sipelot",
     "Kategori": "Wisata",
     "Sub_Kategori": "Pantai Sipelot",
@@ -11597,7 +11599,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "625",
+    "Id_Tempat": "607",
     "Nama_Tempat": "Pondok banteng",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -11615,7 +11617,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "626",
+    "Id_Tempat": "608",
     "Nama_Tempat": "Bromo Hillside",
     "Kategori": "Wisata",
     "Sub_Kategori": "Tujuan Wisata · ",
@@ -11633,7 +11635,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "627",
+    "Id_Tempat": "609",
     "Nama_Tempat": "Pos Jemplang Bromo",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -11653,7 +11655,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "628",
+    "Id_Tempat": "610",
     "Nama_Tempat": "Coban Bidadari",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",
@@ -11673,7 +11675,7 @@
     "Has_Gambar": true
   },
   {
-    "Id_Tempat": "629",
+    "Id_Tempat": "611",
     "Nama_Tempat": "Gapura Selamat Datang",
     "Kategori": "Wisata",
     "Sub_Kategori": "Wisata Umum",

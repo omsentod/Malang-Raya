@@ -508,7 +508,7 @@
         </div>
     </div>
 
-<script src="{{ asset('assets/js/recom.js') }}"></script>
+<script src="{{ asset('assets/js/recom.js') }}?v={{ filemtime(public_path('assets/js/recom.js')) }}"></script>
 @include('auth-modal-and-dropdown')
 </body>
 </html>

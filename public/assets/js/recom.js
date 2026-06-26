@@ -847,7 +847,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 item.isOverBudget = (hypRunningCost > budgetLimit);
             });
 
-            // Urutkan ulang: opsi yang aman budget-nya ditaruh di atas, yang over budget dilempar ke bawah
+            // Mengurutkan alternatif: menempatkan opsi sesuai anggaran di atas dan opsi melebihi anggaran di bawah
             visibleAlts.sort((a, b) => {
                 if (a.isOverBudget && !b.isOverBudget) return 1;
                 if (!a.isOverBudget && b.isOverBudget) return -1;
@@ -1540,7 +1540,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const bSlider = document.getElementById('b-budget');
         if (bSlider) {
             bSlider.min = 0; // Biarkan slider fisik bebas mentok 0 demi UX yang smooth
-            bSlider.dataset.aiMin = bMin; // Simpan batas AI secara gaib
+            bSlider.dataset.aiMin = bMin; // Simpan batas AI secara implisit (data attribute)
             bSlider.max = bMax;
             bSlider.step = 10000;
 
@@ -1588,7 +1588,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // 0 merepresentasikan "Tanpa Batasan Budget"
             const dSliderMin = 0;
             dSlider.min = 0;
-            dSlider.dataset.aiMin = dMin; // Simpan batas AI secara gaib
+            dSlider.dataset.aiMin = dMin; // Simpan batas AI secara implisit (data attribute)
             dSlider.max = dMax;
             dSlider.step = 10000;
 
@@ -2964,6 +2964,311 @@ document.addEventListener('DOMContentLoaded', () => {
         requestAnimationFrame(() => initLeafletRouteMap('leaflet-route-map', routeWaypoints));
     }
 
+    function openCustomDetailModal(legs, accommodationCost, totalWisataCost, totalKulinerCost, transportCost, runningCost, totalDistance, duration, persons, vehDesc, pkg) {
+        const modal = document.getElementById('route-modal');
+        const body = document.getElementById('modal-body-content');
+        if (!modal || !body) return;
+
+        const getFolder = name => {
+            if (!name) return '';
+            const cleanName = name.includes(' & ') ? name.split(' & ')[0] : name;
+            return cleanName.trim().replace(/ /g, '_');
+        };
+
+        const nights = duration > 1 ? duration - 1 : 0;
+
+        // Bangun daftar waypoint berurutan dengan nama, koordinat, dan tipe tempat
+        const routeWaypoints = []; // [{name, coord, type, label}]
+        const pushWp = (name, coord, type, label) => {
+            if (!name || name === 'N/A' || name === 'Checkout' || !coord || coord === '0,0') return;
+            const clean = name.trim();
+            const last = routeWaypoints[routeWaypoints.length - 1];
+            if (!last || last.name !== clean) routeWaypoints.push({ name: clean, coord, type, label });
+        };
+
+        legs.forEach(leg => {
+            if (leg.from_coords) {
+                const coordStr = `${leg.from_coords[0]},${leg.from_coords[1]}`;
+                pushWp(leg.from, coordStr, leg.from_type || 'place', leg.from);
+            }
+        });
+        if (legs.length > 0) {
+            const lastLeg = legs[legs.length - 1];
+            if (lastLeg.to_coords) {
+                const coordStr = `${lastLeg.to_coords[0]},${lastLeg.to_coords[1]}`;
+                pushWp(lastLeg.to, coordStr, lastLeg.to_type || 'place', lastLeg.to);
+            }
+        }
+
+        // Build unique places image list for gallery view
+        const uniquePics = [];
+        const addPic = (name, cat, label) => {
+            if (!name || name === 'N/A' || name === 'Checkout') return;
+            const folder = getFolder(name);
+            const picPath = `/assets/GAMBAR/${cat}/${folder}/${folder}-1.jpg`;
+            if (!uniquePics.some(p => p.folder === folder)) {
+                uniquePics.push({ name, cat, folder, picPath, label });
+            }
+        };
+
+        legs.forEach(leg => {
+            let cat = 'wisata';
+            if (leg.from_type === 'hotel') cat = 'hotel';
+            else if (leg.from_type && leg.from_type.startsWith('kuliner')) cat = 'makan';
+            
+            let label = 'Tempat';
+            if (leg.from_type === 'hotel') label = 'Hotel';
+            else if (leg.from_type === 'wisata') label = 'Wisata';
+            else if (leg.from_type === 'kuliner-pagi') label = 'Makan Pagi';
+            else if (leg.from_type === 'kuliner-siang') label = 'Makan Siang';
+            else if (leg.from_type === 'kuliner-malam') label = 'Makan Malam';
+
+            addPic(leg.from, cat, label);
+        });
+
+        const imagesGridHTML = uniquePics.slice(0, 4).map(pic => {
+            let errorIcon = 'restaurant';
+            if (pic.cat === 'hotel') errorIcon = 'hotel';
+            if (pic.cat === 'wisata') errorIcon = 'landscape';
+
+            return `
+                <div class="detail-gallery-item" title="${pic.name}">
+                    <img src="${pic.picPath}" alt="${escapeHtmlAttr(pic.name)}" onerror="handleImgErrorRecom(this, '${errorIcon}')" />
+                    <div class="detail-gallery-caption">
+                        <span class="detail-gallery-label">${pic.label}</span>
+                        <span class="detail-gallery-name">${pic.name}</span>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        // Build accommodation cost breakdown HTML
+        let accommodationBreakdownHTML = '';
+        if (nights > 0) {
+            accommodationBreakdownHTML = `
+                <div class="detail-calc-row">
+                    <div class="detail-calc-label-col">
+                        <strong class="detail-calc-main-label">🏨 Akomodasi Hotel</strong>
+                        <span class="detail-calc-sub-label">
+                            ${nights} malam × ${pkg.num_rooms || 1} kamar
+                        </span>
+                    </div>
+                    <div class="detail-calc-val-col">
+                        <strong class="detail-calc-main-val">${fmtRp(accommodationCost)}</strong>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Calculate meals count
+        const mealsCount = duration === 1 ? 2 : (3 * (duration - 1) + 2);
+
+        // Build custom itinerary for the timeline
+        const customItinerary = [];
+        for (let dNum = 1; dNum <= duration; dNum++) {
+            let dayPlan = selectedDays[dNum];
+            if (!dayPlan) {
+                let dayItin = pkg.itinerary?.find(item => item.day === dNum) || {
+                    wisata: pkg.wisata_nama,
+                    kuliner: pkg.kuliner_nama,
+                    kuliner_pagi: pkg.kuliner_pagi_nama || pkg.kuliner_pagi || 'N/A',
+                    kuliner_malam: pkg.kuliner_malam_nama || pkg.kuliner_malam || 'N/A'
+                };
+                dayPlan = {
+                    day: dNum,
+                    wisata: dayItin.wisata || dayItin.wisata_nama || pkg.wisata_nama,
+                    kuliner: dayItin.kuliner || dayItin.kuliner_nama || pkg.kuliner_nama,
+                    kuliner_pagi: dayItin.kuliner_pagi || 'N/A',
+                    kuliner_malam: dayItin.kuliner_malam || 'N/A'
+                };
+            } else {
+                dayPlan = {
+                    day: dNum,
+                    wisata: dayPlan.wisata,
+                    kuliner: dayPlan.kuliner,
+                    kuliner_pagi: dayPlan.kuliner_pagi,
+                    kuliner_malam: dayPlan.kuliner_malam
+                };
+            }
+            // Add hotel info if applicable
+            let hotelNama = null;
+            if (nights > 0) {
+                if (hotelMode === 'same') {
+                    hotelNama = selectedHotel ? selectedHotel.nama : pkg.hotel_nama;
+                } else {
+                    const activeN = selectedHotelsByNight[dNum];
+                    hotelNama = activeN ? activeN.nama : pkg.hotel_nama;
+                }
+            }
+            dayPlan.hotel = hotelNama;
+            customItinerary.push(dayPlan);
+        }
+
+        // Build daily timeline cards
+        const timelineHTML = customItinerary.map(day => {
+            return `
+                <div style="background:#fff; border:1px solid var(--slate-200); border-radius:12px; padding:14px; box-shadow:0 2px 8px rgba(0,0,0,0.02);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; border-bottom:1px solid var(--slate-100); padding-bottom:6px;">
+                        <span style="font-size:11px; font-weight:800; color:var(--teal-600); letter-spacing:0.5px;">HARI ${day.day}</span>
+                        <span style="font-size:10px; color:var(--slate-400); font-weight:700;">Destinasi & Kuliner</span>
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:6px; font-size:12.5px; font-weight:600; color:var(--slate-600);">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span class="material-symbols-outlined" style="font-size:16px; color:var(--teal-500);">landscape</span>
+                            <span>Wisata: <strong style="color:var(--slate-800);">${day.wisata}</strong></span>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span class="material-symbols-outlined" style="font-size:16px; color:var(--teal-500);">wb_twilight</span>
+                            <span>Makan Pagi: <strong style="color:var(--slate-800);">${day.kuliner_pagi || 'N/A'}</strong></span>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span class="material-symbols-outlined" style="font-size:16px; color:var(--teal-500);">sunny</span>
+                            <span>Makan Siang: <strong style="color:var(--slate-800);">${day.kuliner}</strong></span>
+                        </div>
+                        ${(day.kuliner_malam && day.kuliner_malam !== 'N/A') ? `
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span class="material-symbols-outlined" style="font-size:16px; color:var(--teal-500);">dark_mode</span>
+                            <span>Makan Malam: <strong style="color:var(--slate-800);">${day.kuliner_malam}</strong></span>
+                        </div>
+                        ` : ''}
+                        ${(day.hotel && day.hotel !== 'Checkout' && day.hotel !== 'Tanpa Akomodasi (One Day Trip)') ? `
+                        <div style="display:flex; align-items:center; gap:8px; border-top:1px dashed var(--slate-100); margin-top:4px; padding-top:4px;">
+                            <span class="material-symbols-outlined" style="font-size:16px; color:var(--teal-500);">hotel</span>
+                            <span>Hotel: <strong style="color:var(--slate-800);">${day.hotel}</strong></span>
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        // Put everything together
+        body.innerHTML = `
+            <div class="pkg-detail-premium">
+                <!-- 1. Header Banner -->
+                <div class="detail-header-banner">
+                    <div class="detail-header-content">
+                        <div class="detail-header-top">
+                            <span class="detail-header-badge">
+                                Paket Kustom
+                            </span>
+                            <span class="detail-header-meta">
+                                👥 ${persons} Peserta · 📅 ${duration} Hari
+                            </span>
+                        </div>
+                        <h2 class="detail-header-title">Rencana Perjalanan Kustom Anda</h2>
+                        <p class="detail-header-desc">
+                            Kombinasi akomodasi, destinasi, dan kuliner yang telah Anda pilih secara kustom.
+                        </p>
+                    </div>
+                    <div class="detail-header-decor"></div>
+                </div>
+
+                <!-- 2. Visual Gallery of the Package (Gambar Tempat) -->
+                <div class="detail-gallery-wrap">
+                    <h4 class="detail-section-title">
+                        <span class="material-symbols-outlined" style="color:var(--teal-600); font-size:20px;">gallery_thumbnail</span>
+                        Galeri Destinasi & Akomodasi Pilihan
+                    </h4>
+                    <div class="detail-gallery-grid">
+                        ${imagesGridHTML}
+                    </div>
+                </div>
+
+                <!-- 3. Rincian Anggaran (Semua Hitungannya) -->
+                <div class="detail-calc-card">
+                    <h4 class="detail-calc-header">
+                        <span class="material-symbols-outlined" style="color:var(--teal-600); font-size:20px;">receipt_long</span>
+                        Kalkulasi Transparan & Rincian Biaya Rute
+                    </h4>
+                    <div class="detail-calc-list">
+                        ${accommodationBreakdownHTML}
+                        
+                        <div class="detail-calc-row">
+                            <div class="detail-calc-label-col">
+                                <strong class="detail-calc-main-label">🌲 Tiket Masuk Wisata</strong>
+                                <span class="detail-calc-sub-label">
+                                    1x Tiket Hari 1 (sesuai rumus skripsi) × ${persons} orang
+                                </span>
+                            </div>
+                            <div class="detail-calc-val-col">
+                                <strong class="detail-calc-main-val">${fmtRp(totalWisataCost)}</strong>
+                            </div>
+                        </div>
+
+                        <div class="detail-calc-row">
+                            <div class="detail-calc-label-col">
+                                <strong class="detail-calc-main-label">🍜 Konsumsi & Kuliner</strong>
+                                <span class="detail-calc-sub-label">
+                                    Makan ${persons} orang × ${mealsCount} porsi makan
+                                </span>
+                            </div>
+                            <div class="detail-calc-val-col">
+                                <strong class="detail-calc-main-val">${fmtRp(totalKulinerCost)}</strong>
+                            </div>
+                        </div>
+
+                        <div class="detail-calc-row">
+                            <div class="detail-calc-label-col">
+                                <strong class="detail-calc-main-label">🚗 Transportasi Darat</strong>
+                                <span class="detail-calc-sub-label transport-label-trunc">
+                                    ${vehDesc}
+                                </span>
+                            </div>
+                            <div class="detail-calc-val-col">
+                                <strong class="detail-calc-main-val">${fmtRp(transportCost)}</strong>
+                                <span class="detail-calc-sub-val">
+                                    📏 ${totalDistance.toFixed(1)} km
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="detail-calc-total-row">
+                            <strong class="detail-calc-total-label">Total Estimasi Gabungan:</strong>
+                            <strong class="detail-calc-total-val">${fmtRp(runningCost)}</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. Leaflet Route Map (OSRM geometry + OSM tiles) -->
+                <div class="detail-map-wrapper">
+                    <h4 class="detail-section-title">
+                        <span class="material-symbols-outlined" style="color:var(--teal-600); font-size:20px;">map</span>
+                        Peta Rute Perjalanan (OSRM + OpenStreetMap)
+                    </h4>
+                    <div id="leaflet-route-map" style="height:400px; border-radius:12px; overflow:hidden; border:1px solid var(--slate-200); background:#f1f5f9;">
+                        <div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--slate-400);font-size:13px;gap:8px;">
+                            <span class="material-symbols-outlined" style="font-size:20px;">sync</span> Memuat peta…
+                        </div>
+                    </div>
+                    <p style="margin:6px 0 0;font-size:11px;color:var(--slate-400);">
+                        Peta berbasis OpenStreetMap · Rute dihitung via OSRM · Klik marker untuk validasi di Google Maps
+                    </p>
+                </div>
+
+                <!-- 5. Day-by-Day Timeline -->
+                <div class="detail-timeline-wrapper">
+                    <h4 class="detail-section-title">
+                        <span class="material-symbols-outlined" style="color:var(--teal-600); font-size:20px;">calendar_today</span>
+                        Rencana Perjalanan Harian
+                    </h4>
+                    <div class="bookmark-day-list">
+                        ${timelineHTML}
+                    </div>
+                </div>
+
+                <!-- 6. Action Buttons -->
+                <div class="detail-footer-actions">
+                    <button onclick="document.getElementById('route-modal').classList.remove('show')" class="gmaps-btn" style="background:var(--slate-600);">Tutup</button>
+                </div>
+            </div>
+        `;
+
+        modal.classList.add('show');
+        // Render Leaflet setelah DOM modal sudah ada
+        requestAnimationFrame(() => initLeafletRouteMap('leaflet-route-map', routeWaypoints));
+    }
+
     // ─── Leaflet + OSRM Route Map ───────────────────────────────────────
     let _leafletMapInstance = null;
 
@@ -3450,7 +3755,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     item.isOverBudget = (hypRunningCost > budgetLimit);
                 });
 
-                // Urutkan ulang: opsi yang aman budget-nya ditaruh di atas, yang over budget dilempar ke bawah
+                // Mengurutkan alternatif: menempatkan opsi sesuai anggaran di atas dan opsi melebihi anggaran di bawah
                 visibleAlts.sort((a, b) => {
                     if (a.isOverBudget && !b.isOverBudget) return 1;
                     if (!a.isOverBudget && b.isOverBudget) return -1;
@@ -5167,8 +5472,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const d1 = haversineDist(kpLat, kpLon, wLat, wLon);
                 const d2 = haversineDist(wLat, wLon, ksLat, ksLon);
                 totalDistance += d1 + d2; // Accumulate circular route distance
-                legs.push({ from: dayPlan.kuliner_pagi, to: dayPlan.wisata, distance: d1, from_coords: [kpLat, kpLon], to_coords: [wLat, wLon] });
-                legs.push({ from: dayPlan.wisata, to: dayPlan.kuliner, distance: d2, from_coords: [wLat, wLon], to_coords: [ksLat, ksLon] });
+                legs.push({ from: dayPlan.kuliner_pagi, to: dayPlan.wisata, distance: d1, from_coords: [kpLat, kpLon], to_coords: [wLat, wLon], from_type: 'kuliner-pagi', to_type: 'wisata' });
+                legs.push({ from: dayPlan.wisata, to: dayPlan.kuliner, distance: d2, from_coords: [wLat, wLon], to_coords: [ksLat, ksLon], from_type: 'wisata', to_type: 'kuliner-siang' });
             } else if (dNum === 1) {
                 const d1 = haversineDist(kpLat, kpLon, wLat, wLon);
                 const d2 = haversineDist(wLat, wLon, ksLat, ksLon);
@@ -5176,19 +5481,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 const d4 = haversineDist(nhLat, nhLon, kmLat, kmLon);
                 const d5 = haversineDist(kmLat, kmLon, nhLat, nhLon);
                 totalDistance += d1 + d2 + d3 + d4 + d5;
-                legs.push({ from: dayPlan.kuliner_pagi, to: dayPlan.wisata, distance: d1, from_coords: [kpLat, kpLon], to_coords: [wLat, wLon] });
-                legs.push({ from: dayPlan.wisata, to: dayPlan.kuliner, distance: d2, from_coords: [wLat, wLon], to_coords: [ksLat, ksLon] });
-                legs.push({ from: dayPlan.kuliner, to: nextHotel.nama, distance: d3, from_coords: [ksLat, ksLon], to_coords: [nhLat, nhLon] });
-                legs.push({ from: nextHotel.nama, to: dayPlan.kuliner_malam, distance: d4, from_coords: [nhLat, nhLon], to_coords: [kmLat, kmLon] });
-                legs.push({ from: dayPlan.kuliner_malam, to: nextHotel.nama, distance: d5, from_coords: [kmLat, kmLon], to_coords: [nhLat, nhLon] });
+                legs.push({ from: dayPlan.kuliner_pagi, to: dayPlan.wisata, distance: d1, from_coords: [kpLat, kpLon], to_coords: [wLat, wLon], from_type: 'kuliner-pagi', to_type: 'wisata' });
+                legs.push({ from: dayPlan.wisata, to: dayPlan.kuliner, distance: d2, from_coords: [wLat, wLon], to_coords: [ksLat, ksLon], from_type: 'wisata', to_type: 'kuliner-siang' });
+                legs.push({ from: dayPlan.kuliner, to: nextHotel.nama, distance: d3, from_coords: [ksLat, ksLon], to_coords: [nhLat, nhLon], from_type: 'kuliner-siang', to_type: 'hotel' });
+                legs.push({ from: nextHotel.nama, to: dayPlan.kuliner_malam, distance: d4, from_coords: [nhLat, nhLon], to_coords: [kmLat, kmLon], from_type: 'hotel', to_type: 'kuliner-malam' });
+                legs.push({ from: dayPlan.kuliner_malam, to: nextHotel.nama, distance: d5, from_coords: [kmLat, kmLon], to_coords: [nhLat, nhLon], from_type: 'kuliner-malam', to_type: 'hotel' });
             } else if (dNum === duration) {
                 const d1 = haversineDist(chLat, chLon, kpLat, kpLon);
                 const d2 = haversineDist(kpLat, kpLon, wLat, wLon);
                 const d3 = haversineDist(wLat, wLon, ksLat, ksLon);
                 totalDistance += d1 + d2 + d3;
-                legs.push({ from: currentHotel.nama, to: dayPlan.kuliner_pagi, distance: d1, from_coords: [chLat, chLon], to_coords: [kpLat, kpLon] });
-                legs.push({ from: dayPlan.kuliner_pagi, to: dayPlan.wisata, distance: d2, from_coords: [kpLat, kpLon], to_coords: [wLat, wLon] });
-                legs.push({ from: dayPlan.wisata, to: dayPlan.kuliner, distance: d3, from_coords: [wLat, wLon], to_coords: [ksLat, ksLon] });
+                legs.push({ from: currentHotel.nama, to: dayPlan.kuliner_pagi, distance: d1, from_coords: [chLat, chLon], to_coords: [kpLat, kpLon], from_type: 'hotel', to_type: 'kuliner-pagi' });
+                legs.push({ from: dayPlan.kuliner_pagi, to: dayPlan.wisata, distance: d2, from_coords: [kpLat, kpLon], to_coords: [wLat, wLon], from_type: 'kuliner-pagi', to_type: 'wisata' });
+                legs.push({ from: dayPlan.wisata, to: dayPlan.kuliner, distance: d3, from_coords: [wLat, wLon], to_coords: [ksLat, ksLon], from_type: 'wisata', to_type: 'kuliner-siang' });
             } else {
                 const d1 = haversineDist(chLat, chLon, kpLat, kpLon);
                 const d2 = haversineDist(kpLat, kpLon, wLat, wLon);
@@ -5197,12 +5502,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 const d5 = haversineDist(nhLat, nhLon, kmLat, kmLon);
                 const d6 = haversineDist(kmLat, kmLon, nhLat, nhLon);
                 totalDistance += d1 + d2 + d3 + d4 + d5 + d6;
-                legs.push({ from: currentHotel.nama, to: dayPlan.kuliner_pagi, distance: d1, from_coords: [chLat, chLon], to_coords: [kpLat, kpLon] });
-                legs.push({ from: dayPlan.kuliner_pagi, to: dayPlan.wisata, distance: d2, from_coords: [kpLat, kpLon], to_coords: [wLat, wLon] });
-                legs.push({ from: dayPlan.wisata, to: dayPlan.kuliner, distance: d3, from_coords: [wLat, wLon], to_coords: [ksLat, ksLon] });
-                legs.push({ from: dayPlan.kuliner, to: nextHotel.nama, distance: d4, from_coords: [ksLat, ksLon], to_coords: [nhLat, nhLon] });
-                legs.push({ from: nextHotel.nama, to: dayPlan.kuliner_malam, distance: d5, from_coords: [nhLat, nhLon], to_coords: [kmLat, kmLon] });
-                legs.push({ from: dayPlan.kuliner_malam, to: nextHotel.nama, distance: d6, from_coords: [kmLat, kmLon], to_coords: [nhLat, nhLon] });
+                legs.push({ from: currentHotel.nama, to: dayPlan.kuliner_pagi, distance: d1, from_coords: [chLat, chLon], to_coords: [kpLat, kpLon], from_type: 'hotel', to_type: 'kuliner-pagi' });
+                legs.push({ from: dayPlan.kuliner_pagi, to: dayPlan.wisata, distance: d2, from_coords: [kpLat, kpLon], to_coords: [wLat, wLon], from_type: 'kuliner-pagi', to_type: 'wisata' });
+                legs.push({ from: dayPlan.wisata, to: dayPlan.kuliner, distance: d3, from_coords: [wLat, wLon], to_coords: [ksLat, ksLon], from_type: 'wisata', to_type: 'kuliner-siang' });
+                legs.push({ from: dayPlan.kuliner, to: nextHotel.nama, distance: d4, from_coords: [ksLat, ksLon], to_coords: [nhLat, nhLon], from_type: 'kuliner-siang', to_type: 'hotel' });
+                legs.push({ from: nextHotel.nama, to: dayPlan.kuliner_malam, distance: d5, from_coords: [nhLat, nhLon], to_coords: [kmLat, kmLon], from_type: 'hotel', to_type: 'kuliner-malam' });
+                legs.push({ from: dayPlan.kuliner_malam, to: nextHotel.nama, distance: d6, from_coords: [kmLat, kmLon], to_coords: [nhLat, nhLon], from_type: 'kuliner-malam', to_type: 'hotel' });
             }
         }
 
@@ -5965,47 +6270,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Preview Custom Maps Button listener
         document.getElementById('preview-custom-maps-btn')?.addEventListener('click', () => {
-            let routeStops = [];
             if (legs && legs.length > 0) {
-                const resolvedStops = legs.map(leg => leg.from);
-                resolvedStops.push(legs[legs.length - 1].to);
-
-                resolvedStops.forEach(name => {
-                    const cleanName = name ? name.trim() : "";
-                    // Bersihkan duplikat berurutan agar rute Google Maps tidak error
-                    if (cleanName && cleanName !== 'N/A' && cleanName !== 'Checkout') {
-                        if (routeStops.length === 0 || routeStops[routeStops.length - 1] !== cleanName) {
-                            routeStops.push(cleanName);
-                        }
-                    }
-                });
-            }
-
-            if (routeStops.length >= 2) {
-                const originSearch = routeStops[0];
-                const destinationSearch = routeStops[routeStops.length - 1];
-
-                // Google Maps memiliki limit 25 intermediate waypoints.
-                // Jika rute > 27 titik (Origin + 25 Waypoints + Dest), kita ambil sampel titik penting saja.
-                let waypointsArray = routeStops.slice(1, -1);
-                if (waypointsArray.length > 25) {
-                    // Ambil 25 titik secara merata (sampling) agar rute tetap merepresentasikan perjalanan panjang
-                    const sampledWaypoints = [];
-                    for (let i = 0; i < 25; i++) {
-                        sampledWaypoints.push(waypointsArray[Math.floor(i * waypointsArray.length / 25)]);
-                    }
-                    waypointsArray = sampledWaypoints;
-                }
-                const waypointsNames = waypointsArray.join('|');
-
-                let mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(originSearch)}&destination=${encodeURIComponent(destinationSearch)}`;
-                if (waypointsNames) {
-                    mapsUrl += `&waypoints=${encodeURIComponent(waypointsNames)}`;
-                }
-                mapsUrl += `&travelmode=driving`;
-                window.open(mapsUrl, '_blank');
-            } else if (routeStops.length === 1) {
-                window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(routeStops[0])}`, '_blank');
+                openCustomDetailModal(legs, accommodationCost, totalWisataCost, totalKulinerCost, transportCost, runningCost, totalDistance, duration, persons, vehDesc, pkg);
             } else {
                 alert("Pilih minimal akomodasi atau 1 destinasi terlebih dahulu untuk melihat rute.");
             }
