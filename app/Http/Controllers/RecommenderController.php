@@ -39,13 +39,16 @@ class RecommenderController extends Controller
     public function calculate(Request $request)
     {
         $validated = $request->validate([
-            'workflow'   => 'required|in:budget,flexible,destination',
-            'persons'    => 'required|integer|min:1|max:6',
-            'duration'   => 'required|integer|min:1|max:30',
-            'budget'     => 'nullable|numeric|min:0',
-            'dest_id'    => 'nullable|string',
-            'transport'  => 'nullable|string',
-            'hotel_mode' => 'nullable|string|in:same,split',
+            'workflow'      => 'required|in:budget,flexible,destination',
+            'persons'       => 'required|integer|min:1|max:6',
+            'duration'      => 'required|integer|min:1|max:30',
+            'budget'        => 'nullable|numeric|min:0',
+            'dest_id'       => 'nullable|string',
+            'transport'     => 'nullable|string',
+            'hotel_mode'    => 'nullable|string|in:same,split',
+            'pref_hemat'    => 'nullable|numeric|min:0|max:1',
+            'pref_balanced' => 'nullable|numeric|min:0|max:1',
+            'pref_premium'  => 'nullable|numeric|min:0|max:1',
         ]);
 
         $args = [
@@ -74,6 +77,21 @@ class RecommenderController extends Controller
         if (!empty($validated['hotel_mode'])) {
             $args[] = '--hotel_mode';
             $args[] = $validated['hotel_mode'];
+        }
+
+        if (isset($validated['pref_hemat'])) {
+            $args[] = '--pref_hemat';
+            $args[] = $validated['pref_hemat'];
+        }
+
+        if (isset($validated['pref_balanced'])) {
+            $args[] = '--pref_balanced';
+            $args[] = $validated['pref_balanced'];
+        }
+
+        if (isset($validated['pref_premium'])) {
+            $args[] = '--pref_premium';
+            $args[] = $validated['pref_premium'];
         }
 
         $process = new Process($args);

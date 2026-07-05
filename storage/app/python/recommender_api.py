@@ -40,6 +40,9 @@ def main():
     parser.add_argument('--transport', type=str, default=None)
     parser.add_argument('--hotel_mode', type=str, default='same',
                         choices=['same', 'split'])
+    parser.add_argument('--pref_hemat', type=float, default=0.33)
+    parser.add_argument('--pref_balanced', type=float, default=0.33)
+    parser.add_argument('--pref_premium', type=float, default=0.34)
 
     args = parser.parse_args()
 
@@ -67,6 +70,9 @@ def main():
                     verbose=True,
                     transport_mode=args.transport,
                     hotel_mode=args.hotel_mode,
+                    pref_hemat=args.pref_hemat,
+                    pref_balanced=args.pref_balanced,
+                    pref_premium=args.pref_premium,
                 )
 
             elif args.workflow == 'flexible':
@@ -75,7 +81,10 @@ def main():
                     duration=args.duration,
                     datasets=datasets,
                     verbose=True,
-                    transport_mode=args.transport
+                    transport_mode=args.transport,
+                    pref_hemat=args.pref_hemat,
+                    pref_balanced=args.pref_balanced,
+                    pref_premium=args.pref_premium,
                 )
 
             elif args.workflow == 'destination':
@@ -89,7 +98,10 @@ def main():
                     total_budget=args.budget,
                     verbose=True,
                     transport_mode=args.transport,
-                    hotel_mode=args.hotel_mode
+                    hotel_mode=args.hotel_mode,
+                    pref_hemat=args.pref_hemat,
+                    pref_balanced=args.pref_balanced,
+                    pref_premium=args.pref_premium,
                 )
             # Ekspor otomatis hasil rekomendasi ke berkas Excel di output/hasil-rekomendasi
             try:

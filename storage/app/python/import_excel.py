@@ -16,14 +16,15 @@ from config import DATASET_WISATA, DATASET_HOTEL, DATASET_MAKAN
 # Define expected columns for each dataset
 SCHEMAS = {
     "wisata": [
-        'Id_Tempat', 'Nama_Tempat', 'Rating', 'Jumlah_Ulasan', 'Kategori', 
+        'Id_Tempat', 'Nama_Tempat', 'Rating', 'Jumlah_Ulasan', 'Kategori', 'Nilai_Numerik',
         'Latitude', 'Longitude', 'Link', 'Estimasi_Harga', 'Sumber_Data', 'Link_Sumber'
     ],
     "hotel": [
-        'Id_Tempat', 'Nama_Tempat', 'Latitude', 'Longitude', 'Estimasi_Harga', 'Sumber_Data'
+        'Id_Tempat', 'Nama_Tempat', 'Rating', 'Jumlah_Ulasan', 'Kategori', 'Nilai_Numerik',
+        'Latitude', 'Longitude', 'Estimasi_Harga', 'Sumber_Data'
     ],
     "kuliner": [
-        'Id_Tempat', 'Nama_Tempat', 'Rating', 'Jumlah_Ulasan', 'Kategori', 
+        'Id_Tempat', 'Nama_Tempat', 'Rating', 'Jumlah_Ulasan', 'Kategori', 'Nilai_Numerik',
         'Latitude', 'Longitude', 'Link', 'Menu_Termurah', 'Harga_Termurah', 
         'Menu_Termahal', 'Harga_Termahal', 'Harga_Median', 'Status', 
         'Estimasi_Harga', 'Sumber_Data', 'Link_Sumber'
@@ -122,7 +123,7 @@ def clean_data(df, dataset_type):
         df_clean = df_clean[df_clean['Id_Tempat'] != ""]
 
     # Clean numerical columns
-    num_cols_int = ['Estimasi_Harga', 'Jumlah_Ulasan', 'Harga_Termurah', 'Harga_Termahal', 'Harga_Median']
+    num_cols_int = ['Estimasi_Harga', 'Jumlah_Ulasan', 'Harga_Termurah', 'Harga_Termahal', 'Harga_Median', 'Nilai_Numerik']
     for col in num_cols_int:
         if col in df_clean.columns:
             df_clean[col] = safe_to_int(df_clean[col], 0)

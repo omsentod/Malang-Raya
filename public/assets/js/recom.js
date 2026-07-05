@@ -36,6 +36,68 @@ document.addEventListener('DOMContentLoaded', () => {
     let searchIndex = [];
     let isSyncingBudget = false; // TAHAP 11: State sinkronisasi untuk integrasi response
 
+    // Personalization Initialization
+    function initPersonalization() {
+        const presets = {
+            balanced: { hemat: 33, balanced: 33, premium: 34 },
+            backpacker: { hemat: 80, balanced: 20, premium: 0 },
+            luxury: { hemat: 0, balanced: 30, premium: 70 },
+            custom: null
+        };
+
+        ['b', 'f', 'd'].forEach(prefix => {
+            // Preset buttons click handlers
+            document.querySelectorAll(`.preset-btn[data-prefix="${prefix}"]`).forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // Update active state
+                    document.querySelectorAll(`.preset-btn[data-prefix="${prefix}"]`).forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+
+                    const presetType = this.dataset.preset;
+                    const sliderPanel = document.getElementById(`${prefix}-personalization-sliders`);
+                    
+                    if (presetType === 'custom') {
+                        if (sliderPanel) {
+                            sliderPanel.style.display = 'flex';
+                        }
+                    } else {
+                        if (sliderPanel) {
+                            sliderPanel.style.display = 'none';
+                        }
+                        const values = presets[presetType];
+                        if (values) {
+                            const sh = document.getElementById(`${prefix}-pref-hemat`);
+                            const sb = document.getElementById(`${prefix}-pref-balanced`);
+                            const sp = document.getElementById(`${prefix}-pref-premium`);
+                            if (sh) { sh.value = values.hemat; document.getElementById(`${prefix}-pref-hemat-val`).innerText = values.hemat + '%'; }
+                            if (sb) { sb.value = values.balanced; document.getElementById(`${prefix}-pref-balanced-val`).innerText = values.balanced + '%'; }
+                            if (sp) { sp.value = values.premium; document.getElementById(`${prefix}-pref-premium-val`).innerText = values.premium + '%'; }
+                        }
+                    }
+                });
+            });
+
+            // Sliders input change handlers
+            ['hemat', 'balanced', 'premium'].forEach(attr => {
+                const slider = document.getElementById(`${prefix}-pref-${attr}`);
+                const valText = document.getElementById(`${prefix}-pref-${attr}-val`);
+                if (slider && valText) {
+                    slider.addEventListener('input', function() {
+                        valText.innerText = this.value + '%';
+                        // Switch preset button to custom since user manually dragged a slider
+                        const customBtn = document.querySelector(`.preset-btn[data-preset="custom"][data-prefix="${prefix}"]`);
+                        if (customBtn) {
+                            document.querySelectorAll(`.preset-btn[data-prefix="${prefix}"]`).forEach(b => b.classList.remove('active'));
+                            customBtn.classList.add('active');
+                        }
+                    });
+                }
+            });
+        });
+    }
+
+    initPersonalization();
+
     // Helper: Resolve real names of places to strip generic labels and get correct locations
     const resolveRealName = (label, pkg) => {
         if (!label) return "";
@@ -3432,6 +3494,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function getPersonalizationWeights(prefix) {
+        const h = parseFloat(document.getElementById(`${prefix}-pref-hemat`)?.value) || 33;
+        const b = parseFloat(document.getElementById(`${prefix}-pref-balanced`)?.value) || 33;
+        const p = parseFloat(document.getElementById(`${prefix}-pref-premium`)?.value) || 34;
+        
+        const total = h + b + p;
+        if (total === 0) return { pref_hemat: 0.33, pref_balanced: 0.33, pref_premium: 0.34 };
+        return {
+            pref_hemat: +(h / total).toFixed(4),
+            pref_balanced: +(b / total).toFixed(4),
+            pref_premium: +(p / total).toFixed(4)
+        };
+    }
+
     // ─────────────────────────────────────────────────
     // Form Submissions
     // ─────────────────────────────────────────────────
@@ -3442,13 +3518,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const duration = +document.getElementById('b-duration')?.value || 1;
         const transport = document.getElementById('b-transport')?.value || '';
         const hotel_mode = document.getElementById('b-hotel-mode')?.value || 'same';
-
+        
         if (!budget) {
             showError('Masukkan total anggaran terlebih dahulu.');
             return;
         }
 
-        callRecommend({ workflow: 'budget', budget, persons, duration, transport, hotel_mode },
+        const prefs = getPersonalizationWeights('b');
+        callRecommend({ workflow: 'budget', budget, persons, duration, transport, hotel_mode, ...prefs },
             `Budget Rp ${budget.toLocaleString('id-ID')} — ${persons} orang, ${duration} hari`);
     });
 
@@ -3456,7 +3533,9 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         const persons = +document.getElementById('f-persons')?.value || 1;
         const duration = +document.getElementById('f-duration')?.value || 1;
-        callRecommend({ workflow: 'flexible', persons, duration },
+        
+        const prefs = getPersonalizationWeights('f');
+        callRecommend({ workflow: 'flexible', persons, duration, ...prefs },
             `Flexible Explore — ${persons} orang, ${duration} hari`);
     });
 
@@ -3483,7 +3562,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const isNoBudget = sliderVal < dMin;
 
         const destSearchInp = document.getElementById('d-dest-search-input');
-        callRecommend({ workflow: 'destination', dest_id: destId, persons, duration, budget: (isNoBudget ? null : (budget || null)), transport, hotel_mode },
+        const prefs = getPersonalizationWeights('d');
+        callRecommend({ workflow: 'destination', dest_id: destId, persons, duration, budget: (isNoBudget ? null : (budget || null)), transport, hotel_mode, ...prefs },
             `Destination-First — ${destSearchInp ? destSearchInp.value : ''}`);
     });
 

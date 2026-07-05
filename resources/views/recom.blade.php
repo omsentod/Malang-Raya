@@ -15,6 +15,50 @@
     <meta name="csrf-token" content="{{ csrf_token() }}" />
 
     <link rel="stylesheet" href="{{ asset('assets/css/recom.css') }}" />
+    <style>
+        .preset-btn {
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            color: #475569;
+            padding: 8px 16px;
+            border-radius: 9999px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .preset-btn:hover {
+            background: #e2e8f0;
+        }
+        .preset-btn.active {
+            background: #0d9488;
+            border-color: #0d9488;
+            color: #fff;
+        }
+        .pref-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 6px;
+            border-radius: 9999px;
+            background: #cbd5e1;
+            outline: none;
+            transition: background 0.2s;
+        }
+        .pref-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #0d9488;
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+            transition: transform 0.1s;
+        }
+        .pref-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+        }
+    </style>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
@@ -196,6 +240,43 @@
                             </div>
                         </div>
 
+                        <!-- Preferensi Gaya Perjalanan (Personalization Sliders) -->
+                        <div class="form-group personalization-group" style="margin-top: 16px;">
+                            <label class="form-label">
+                                <span class="material-symbols-outlined">psychology</span>
+                                Preferensi Perjalanan (Personalisasi)
+                            </label>
+                            <div class="preset-buttons-container" style="display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap;">
+                                <button type="button" class="preset-btn active" data-preset="balanced" data-prefix="b">Seimbang</button>
+                                <button type="button" class="preset-btn" data-preset="backpacker" data-prefix="b">Backpacker (Hemat)</button>
+                                <button type="button" class="preset-btn" data-preset="luxury" data-prefix="b">Mewah (Premium)</button>
+                                <button type="button" class="preset-btn" data-preset="custom" data-prefix="b">Kustom</button>
+                            </div>
+                            <div class="personalization-sliders" id="b-personalization-sliders" style="display: none; background: #f8fafc; border: 1px solid #e2e8f0; padding: 16px; border-radius: 12px; gap: 12px; flex-direction: column; margin-bottom: 16px;">
+                                <div class="slider-item">
+                                    <div style="display:flex; justify-content:space-between; margin-bottom:4px; font-size:12px; font-weight:600; color:#475569">
+                                        <span>Gaya Ekonomis (Hemat)</span>
+                                        <span id="b-pref-hemat-val">33%</span>
+                                    </div>
+                                    <input type="range" class="pref-slider" id="b-pref-hemat" min="0" max="100" value="33" style="width:100%" />
+                                </div>
+                                <div class="slider-item" style="margin-top:8px;">
+                                    <div style="display:flex; justify-content:space-between; margin-bottom:4px; font-size:12px; font-weight:600; color:#475569">
+                                        <span>Gaya Menengah (Seimbang)</span>
+                                        <span id="b-pref-balanced-val">33%</span>
+                                    </div>
+                                    <input type="range" class="pref-slider" id="b-pref-balanced" min="0" max="100" value="33" style="width:100%" />
+                                </div>
+                                <div class="slider-item" style="margin-top:8px;">
+                                    <div style="display:flex; justify-content:space-between; margin-bottom:4px; font-size:12px; font-weight:600; color:#475569">
+                                        <span>Gaya Mewah (Premium)</span>
+                                        <span id="b-pref-premium-val">34%</span>
+                                    </div>
+                                    <input type="range" class="pref-slider" id="b-pref-premium" min="0" max="100" value="34" style="width:100%" />
+                                </div>
+                            </div>
+                        </div>
+
                         <button type="submit" class="submit-btn" id="b-submit">
                             <span class="material-symbols-outlined">search</span>
                             <span>Cari Paket Wisata</span>
@@ -243,6 +324,43 @@
                                 </div>
                             </div>
                         </div>
+                        <!-- Preferensi Gaya Perjalanan (Personalization Sliders) -->
+                        <div class="form-group personalization-group" style="margin-top: 16px;">
+                            <label class="form-label">
+                                <span class="material-symbols-outlined">psychology</span>
+                                Preferensi Perjalanan (Personalisasi)
+                            </label>
+                            <div class="preset-buttons-container" style="display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap;">
+                                <button type="button" class="preset-btn active" data-preset="balanced" data-prefix="f">Seimbang</button>
+                                <button type="button" class="preset-btn" data-preset="backpacker" data-prefix="f">Backpacker (Hemat)</button>
+                                <button type="button" class="preset-btn" data-preset="luxury" data-prefix="f">Mewah (Premium)</button>
+                                <button type="button" class="preset-btn" data-preset="custom" data-prefix="f">Kustom</button>
+                            </div>
+                            <div class="personalization-sliders" id="f-personalization-sliders" style="display: none; background: #f8fafc; border: 1px solid #e2e8f0; padding: 16px; border-radius: 12px; gap: 12px; flex-direction: column; margin-bottom: 16px;">
+                                <div class="slider-item">
+                                    <div style="display:flex; justify-content:space-between; margin-bottom:4px; font-size:12px; font-weight:600; color:#475569">
+                                        <span>Gaya Ekonomis (Hemat)</span>
+                                        <span id="f-pref-hemat-val">33%</span>
+                                    </div>
+                                    <input type="range" class="pref-slider" id="f-pref-hemat" min="0" max="100" value="33" style="width:100%" />
+                                </div>
+                                <div class="slider-item" style="margin-top:8px;">
+                                    <div style="display:flex; justify-content:space-between; margin-bottom:4px; font-size:12px; font-weight:600; color:#475569">
+                                        <span>Gaya Menengah (Seimbang)</span>
+                                        <span id="f-pref-balanced-val">33%</span>
+                                    </div>
+                                    <input type="range" class="pref-slider" id="f-pref-balanced" min="0" max="100" value="33" style="width:100%" />
+                                </div>
+                                <div class="slider-item" style="margin-top:8px;">
+                                    <div style="display:flex; justify-content:space-between; margin-bottom:4px; font-size:12px; font-weight:600; color:#475569">
+                                        <span>Gaya Mewah (Premium)</span>
+                                        <span id="f-pref-premium-val">34%</span>
+                                    </div>
+                                    <input type="range" class="pref-slider" id="f-pref-premium" min="0" max="100" value="34" style="width:100%" />
+                                </div>
+                            </div>
+                        </div>
+
                         <button type="submit" class="submit-btn" id="f-submit" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);box-shadow:0 4px 16px rgba(124,58,237,.3)">
                             <span class="material-symbols-outlined">travel_explore</span>
                             <span>Jelajahi Pilihan Paket</span>
@@ -370,8 +488,43 @@
                                 </div>
                             </div>
                             <span class="form-hint">Geser untuk memvalidasi budget (Kondisi B), atau geser mentok kiri untuk eksplorasi bebas (Kondisi A)</span>
-                            <div id="d-warning-box" class="budget-warning-box" style="display:none;"></div>
+                        <!-- Preferensi Gaya Perjalanan (Personalization Sliders) -->
+                        <div class="form-group personalization-group" style="margin-top: 16px;">
+                            <label class="form-label">
+                                <span class="material-symbols-outlined">psychology</span>
+                                Preferensi Perjalanan (Personalisasi)
+                            </label>
+                            <div class="preset-buttons-container" style="display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap;">
+                                <button type="button" class="preset-btn active" data-preset="balanced" data-prefix="d">Seimbang</button>
+                                <button type="button" class="preset-btn" data-preset="backpacker" data-prefix="d">Backpacker (Hemat)</button>
+                                <button type="button" class="preset-btn" data-preset="luxury" data-prefix="d">Mewah (Premium)</button>
+                                <button type="button" class="preset-btn" data-preset="custom" data-prefix="d">Kustom</button>
+                            </div>
+                            <div class="personalization-sliders" id="d-personalization-sliders" style="display: none; background: #f8fafc; border: 1px solid #e2e8f0; padding: 16px; border-radius: 12px; gap: 12px; flex-direction: column; margin-bottom: 16px;">
+                                <div class="slider-item">
+                                    <div style="display:flex; justify-content:space-between; margin-bottom:4px; font-size:12px; font-weight:600; color:#475569">
+                                        <span>Gaya Ekonomis (Hemat)</span>
+                                        <span id="d-pref-hemat-val">33%</span>
+                                    </div>
+                                    <input type="range" class="pref-slider" id="d-pref-hemat" min="0" max="100" value="33" style="width:100%" />
+                                </div>
+                                <div class="slider-item" style="margin-top:8px;">
+                                    <div style="display:flex; justify-content:space-between; margin-bottom:4px; font-size:12px; font-weight:600; color:#475569">
+                                        <span>Gaya Menengah (Seimbang)</span>
+                                        <span id="d-pref-balanced-val">33%</span>
+                                    </div>
+                                    <input type="range" class="pref-slider" id="d-pref-balanced" min="0" max="100" value="33" style="width:100%" />
+                                </div>
+                                <div class="slider-item" style="margin-top:8px;">
+                                    <div style="display:flex; justify-content:space-between; margin-bottom:4px; font-size:12px; font-weight:600; color:#475569">
+                                        <span>Gaya Mewah (Premium)</span>
+                                        <span id="d-pref-premium-val">34%</span>
+                                    </div>
+                                    <input type="range" class="pref-slider" id="d-pref-premium" min="0" max="100" value="34" style="width:100%" />
+                                </div>
+                            </div>
                         </div>
+
                         <button type="submit" class="submit-btn" id="d-submit" style="background:linear-gradient(135deg,#f59e0b,#d97706);box-shadow:0 4px 16px rgba(245,158,11,.3)">
                             <span class="material-symbols-outlined">search</span>
                             <span>Cari Paket Wisata</span>
