@@ -760,12 +760,18 @@ def generate_packages(total_budget, num_persons, duration, datasets,
         "kuliner": {i: [] for i in range(best_c)}
     }
 
+    # Hitung Preference Bias (-1.0 to 1.0). Negatif = Bias Hemat, Positif = Bias Premium
+    pref_bias = pref_premium - pref_hemat
+
     for key in ["hotel", "wisata", "kuliner"]:
         df = clustered[key]["df"]
         cat_anchor = budget_per_category[key]
         for i in range(best_c):
             items_in_c = df[df["Cluster"] == i].copy()
-            target_price = cat_anchor * ratios_for_c[i]
+            # Geser target price berdasarkan pref_bias (max 20% shift ke atas atau bawah)
+            base_target = cat_anchor * ratios_for_c[i]
+            target_price = base_target * (1.0 + (pref_bias * 0.20))
+
             
             best_items_list = []
             regions = ["Kota Batu", "Kota Malang", "Kabupaten Malang"]
@@ -774,8 +780,15 @@ def generate_packages(total_budget, num_persons, duration, datasets,
                 if not items_in_region.empty:
                     items_in_region_cp = items_in_region.copy()
                     items_in_region_cp["distance_to_target"] = (items_in_region_cp["Estimasi_Harga"] - target_price).abs()
-                    # Urutkan berdasarkan Fuzzy_Score descending, dan jarak ke budget ascending
-                    sorted_items = items_in_region_cp.sort_values(by=["Fuzzy_Score", "distance_to_target"], ascending=[False, True])
+                    # PERBAIKAN: Urutkan berdasarkan Membership_Degree (keanggotaan klaster i) descending,
+                    # kemudian jarak ke target price ascending.
+                    # Fuzzy_Score TIDAK digunakan di sini karena dapat menyebabkan kontaminasi klaster:
+                    # misal, saat preferensi backpacker (w_hemat tinggi), item murah dari klaster Hemat
+                    # akan memiliki Fuzzy_Score tinggi dan bisa masuk ke kandidat klaster Premium.
+                    sorted_items = items_in_region_cp.sort_values(
+                        by=["Membership_Degree", "distance_to_target"],
+                        ascending=[False, True]
+                    )
                     best_items_list.append(sorted_items.head(8))
             
             if best_items_list:
@@ -783,11 +796,11 @@ def generate_packages(total_budget, num_persons, duration, datasets,
             else:
                 if items_in_c.empty:
                     df["distance_to_target"] = (df["Estimasi_Harga"] - target_price).abs()
-                    sorted_items = df.sort_values(by=["Fuzzy_Score", "distance_to_target"], ascending=[False, True])
+                    sorted_items = df.sort_values(by=["Membership_Degree", "distance_to_target"], ascending=[False, True])
                     best_items = sorted_items.head(15)
                 else:
                     items_in_c["distance_to_target"] = (items_in_c["Estimasi_Harga"] - target_price).abs()
-                    sorted_items = items_in_c.sort_values(by=["Fuzzy_Score", "distance_to_target"], ascending=[False, True])
+                    sorted_items = items_in_c.sort_values(by=["Membership_Degree", "distance_to_target"], ascending=[False, True])
                     best_items = sorted_items.head(15)
                 
             candidates[key][i] = best_items.to_dict("records")
@@ -924,21 +937,29 @@ def generate_packages(total_budget, num_persons, duration, datasets,
                     x["wisata"].get("Fuzzy_Score", 0.0) + 
                     x["kuliner"].get("Fuzzy_Score", 0.0))
 
+
         if i == 0:
-            # Hemat: Jarak spasial terkecil + preferensi hemat tertinggi
+            # Hemat: Jarak spasial terkecil + Fuzzy_Score sebagai bobot ringan preferensi user
+            # Fuzzy_Score aman dipakai di sini karena klaster Hemat memang seharusnya diisi item murah
             valid_combinations = sorted(valid_combinations, key=lambda x: (x.get("selisih", 0) < 0, -get_comb_pref_score(x), x["total_dist"]))
         elif i == best_c - 1:
-            # Premium/kelas tertinggi: Rating + kemewahan hotel + preferensi premium tertinggi
+            # Premium/kelas tertinggi: Rating tertinggi + hotel termewah.
+            # PERBAIKAN: Hapus get_comb_pref_score() dari kriteria Premium.
+            # Fuzzy_Score bias ke preferensi user (backpacker -> w_hemat tinggi, w_premium=0)
+            # sehingga item premium memiliki Fuzzy_Score rendah dan tidak terpilih,
+            # dan paket Premium malah berisi item lebih murah dari paket Hemat.
             valid_combinations = sorted(
                 valid_combinations,
-                key=lambda x: (x.get("selisih", 0) < 0, -get_comb_pref_score(x), -get_val(x["wisata"], "Rating"), -get_val(x["hotel"], "Estimasi_Harga"), x["total_dist"])
+                key=lambda x: (x.get("selisih", 0) < 0, -get_val(x["wisata"], "Rating"), -get_val(x["hotel"], "Estimasi_Harga"), x["total_dist"])
             )
         else:
-            # Balanced: Hybrid rating + jarak + preferensi seimbang tertinggi
+            # Balanced: Hybrid rating + jarak.
+            # PERBAIKAN: Hapus get_comb_pref_score() dari kriteria Balanced (alasan sama dengan Premium).
             valid_combinations = sorted(
                 valid_combinations,
-                key=lambda x: (x.get("selisih", 0) < 0, -get_comb_pref_score(x), -get_val(x["wisata"], "Rating") * 10 - get_val(x["kuliner"], "Rating") * 2 + x["total_dist"] / 10.0)
+                key=lambda x: (x.get("selisih", 0) < 0, -get_val(x["wisata"], "Rating") * 10 - get_val(x["kuliner"], "Rating") * 2 + x["total_dist"] / 10.0)
             )
+
 
         # Fallback jika kosong (diselaraskan eksak dengan uji_gabungan.py)
         if not valid_combinations:
@@ -1626,11 +1647,16 @@ def generate_flexible_exploration_packages(num_persons, duration, datasets,
         "kuliner": {i: [] for i in range(best_c)}
     }
 
+    # Hitung Preference Bias (-1.0 to 1.0). Negatif = Bias Hemat, Positif = Bias Premium
+    pref_bias = pref_premium - pref_hemat
+
     for key in ["hotel", "wisata", "kuliner"]:
         df = clustered[key]["df"]
         cntrs = clustered[key]["cntr"]
         for i in range(best_c):
             items_in_c = df[df["Cluster"] == i].copy()
+            # Geser target price berdasarkan pref_bias (max 20% shift)
+            target_price = cntrs[i] * (1.0 + (pref_bias * 0.20))
             
             best_items_list = []
             regions = ["Kota Batu", "Kota Malang", "Kabupaten Malang"]
@@ -1638,21 +1664,24 @@ def generate_flexible_exploration_packages(num_persons, duration, datasets,
                 items_in_region = items_in_c[items_in_c["Region"] == region] if not items_in_c.empty else df[df["Region"] == region]
                 if not items_in_region.empty:
                     items_in_region_cp = items_in_region.copy()
-                    items_in_region_cp["distance_to_target"] = (items_in_region_cp["Estimasi_Harga"] - cntrs[i]).abs()
-                    # Urutkan berdasarkan Fuzzy_Score descending, dan jarak ke budget ascending
-                    sorted_items = items_in_region_cp.sort_values(by=["Fuzzy_Score", "distance_to_target"], ascending=[False, True])
+                    items_in_region_cp["distance_to_target"] = (items_in_region_cp["Estimasi_Harga"] - target_price).abs()
+                    # PERBAIKAN: Urutkan berdasarkan Membership_Degree
+                    sorted_items = items_in_region_cp.sort_values(
+                        by=["Membership_Degree", "distance_to_target"],
+                        ascending=[False, True]
+                    )
                     best_items_list.append(sorted_items.head(8))
             
             if best_items_list:
                 best_items = pd.concat(best_items_list)
             else:
                 if items_in_c.empty:
-                    df["distance_to_target"] = (df["Estimasi_Harga"] - cntrs[i]).abs()
-                    sorted_items = df.sort_values(by=["Fuzzy_Score", "distance_to_target"], ascending=[False, True])
+                    df["distance_to_target"] = (df["Estimasi_Harga"] - target_price).abs()
+                    sorted_items = df.sort_values(by=["Membership_Degree", "distance_to_target"], ascending=[False, True])
                     best_items = sorted_items.head(15)
                 else:
-                    items_in_c["distance_to_target"] = (items_in_c["Estimasi_Harga"] - cntrs[i]).abs()
-                    sorted_items = items_in_c.sort_values(by=["Fuzzy_Score", "distance_to_target"], ascending=[False, True])
+                    items_in_c["distance_to_target"] = (items_in_c["Estimasi_Harga"] - target_price).abs()
+                    sorted_items = items_in_c.sort_values(by=["Membership_Degree", "distance_to_target"], ascending=[False, True])
                     best_items = sorted_items.head(15)
                 
             candidates[key][i] = best_items.to_dict("records")
@@ -1784,20 +1813,24 @@ def generate_flexible_exploration_packages(num_persons, duration, datasets,
                     x["kuliner"].get("Fuzzy_Score", 0.0))
 
         if i == 0:
-            # Hemat: Jarak spasial terkecil + preferensi hemat tertinggi
+            # Hemat: Jarak spasial terkecil + Fuzzy_Score sebagai bobot ringan preferensi user
             valid_combinations = sorted(valid_combinations, key=lambda x: (x.get("selisih", 0) < 0, -get_comb_pref_score(x), x["total_dist"]))
         elif i == best_c - 1:
-            # Premium/kelas tertinggi: Rating + kemewahan hotel + preferensi premium tertinggi
+            # Premium/kelas tertinggi: Rating tertinggi + hotel termewah.
+            # PERBAIKAN: Hapus get_comb_pref_score() - bias ke preferensi user menyebabkan
+            # item Premium ber-Fuzzy_Score rendah (saat backpacker) tidak terpilih.
             valid_combinations = sorted(
                 valid_combinations,
-                key=lambda x: (x.get("selisih", 0) < 0, -get_comb_pref_score(x), -get_val(x["wisata"], "Rating"), -get_val(x["hotel"], "Estimasi_Harga"), x["total_dist"])
+                key=lambda x: (x.get("selisih", 0) < 0, -get_val(x["wisata"], "Rating"), -get_val(x["hotel"], "Estimasi_Harga"), x["total_dist"])
             )
         else:
-            # Balanced: Hybrid rating + jarak + preferensi seimbang tertinggi
+            # Balanced: Hybrid rating + jarak.
+            # PERBAIKAN: Hapus get_comb_pref_score() dari kriteria Balanced (alasan sama).
             valid_combinations = sorted(
                 valid_combinations,
-                key=lambda x: (x.get("selisih", 0) < 0, -get_comb_pref_score(x), -get_val(x["wisata"], "Rating") * 10 - get_val(x["kuliner"], "Rating") * 2 + x["total_dist"] / 10.0)
+                key=lambda x: (x.get("selisih", 0) < 0, -get_val(x["wisata"], "Rating") * 10 - get_val(x["kuliner"], "Rating") * 2 + x["total_dist"] / 10.0)
             )
+
 
         # --- Seleksi Beragam (Diversity Filter) untuk Keberagaman Paket ---
         diverse_combinations = []
@@ -2413,6 +2446,9 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
     }
 
     # Saring kandidat per kategori dan per klaster kelas (0=Hemat, 1=Balanced, 2=Premium)
+    # Hitung Preference Bias (-1.0 to 1.0)
+    pref_bias = pref_premium - pref_hemat
+
     for key in ["hotel", "kuliner"]:
         df = clustered[key]["df"]
         cntrs = clustered[key]["cntr"]
@@ -2427,7 +2463,9 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
 
         for i in range(best_c):
             items_in_c = df[df["Cluster"] == i].copy()
-            target_price = anchor * ratios_dest[i] if anchor is not None and ratios_dest is not None else cntrs[i]
+            base_target = anchor * ratios_dest[i] if anchor is not None and ratios_dest is not None else cntrs[i]
+            # Geser target price berdasarkan pref_bias (max 20% shift)
+            target_price = base_target * (1.0 + (pref_bias * 0.20))
             
             best_items_list = []
             regions = ["Kota Batu", "Kota Malang", "Kabupaten Malang"]
@@ -2436,8 +2474,11 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
                 if not items_in_region.empty:
                     items_in_region_cp = items_in_region.copy()
                     items_in_region_cp["distance_to_target"] = (items_in_region_cp["Estimasi_Harga"] - target_price).abs()
-                    # Urutkan berdasarkan Fuzzy_Score descending, dan jarak ke budget ascending
-                    sorted_items = items_in_region_cp.sort_values(by=["Fuzzy_Score", "distance_to_target"], ascending=[False, True])
+                    # PERBAIKAN: Urutkan berdasarkan Membership_Degree
+                    sorted_items = items_in_region_cp.sort_values(
+                        by=["Membership_Degree", "distance_to_target"], 
+                        ascending=[False, True]
+                    )
                     best_items_list.append(sorted_items.head(8))
             
             if best_items_list:
@@ -2445,11 +2486,11 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
             else:
                 if items_in_c.empty:
                     df["distance_to_target"] = (df["Estimasi_Harga"] - target_price).abs()
-                    sorted_items = df.sort_values(by=["Fuzzy_Score", "distance_to_target"], ascending=[False, True])
+                    sorted_items = df.sort_values(by=["Membership_Degree", "distance_to_target"], ascending=[False, True])
                     best_items = sorted_items.head(15)
                 else:
                     items_in_c["distance_to_target"] = (items_in_c["Estimasi_Harga"] - target_price).abs()
-                    sorted_items = items_in_c.sort_values(by=["Fuzzy_Score", "distance_to_target"], ascending=[False, True])
+                    sorted_items = items_in_c.sort_values(by=["Membership_Degree", "distance_to_target"], ascending=[False, True])
                     best_items = sorted_items.head(15)
                 
             candidates[key][i] = best_items.to_dict("records")
@@ -2457,10 +2498,10 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
     for i in range(best_c):
         wisatas_in_c = df_wisata[df_wisata["Cluster"] == i].copy()
         if wisatas_in_c.empty:
-            sorted_items = df_wisata.sort_values(by=["Fuzzy_Score", "Estimasi_Harga"], ascending=[False, True])
+            sorted_items = df_wisata.sort_values(by=["Membership_Degree", "Estimasi_Harga"], ascending=[False, True])
             best_items = sorted_items.head(15)
         else:
-            sorted_items = wisatas_in_c.sort_values(by=["Fuzzy_Score", "Estimasi_Harga"], ascending=[False, True])
+            sorted_items = wisatas_in_c.sort_values(by=["Membership_Degree", "Estimasi_Harga"], ascending=[False, True])
             best_items = sorted_items.head(15)
         candidates["wisata"][i] = best_items.to_dict("records")
 
@@ -2595,20 +2636,24 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
                     x["kuliner"].get("Fuzzy_Score", 0.0))
 
         if i == 0:
-            # Hemat: Jarak spasial terkecil + preferensi hemat tertinggi
+            # Hemat: Jarak spasial terkecil + Fuzzy_Score sebagai bobot ringan preferensi user
             valid_combinations = sorted(valid_combinations, key=lambda x: (x.get("selisih", 0) < 0, -get_comb_pref_score(x), x["total_dist"]))
         elif i == best_c - 1:
-            # Premium/kelas tertinggi: Rating + kemewahan hotel + preferensi premium tertinggi
+            # Premium/kelas tertinggi: Rating tertinggi + hotel termewah.
+            # PERBAIKAN: Hapus get_comb_pref_score() - bias ke preferensi user menyebabkan
+            # item Premium ber-Fuzzy_Score rendah (saat backpacker) tidak terpilih.
             valid_combinations = sorted(
                 valid_combinations,
-                key=lambda x: (x.get("selisih", 0) < 0, -get_comb_pref_score(x), -get_val(x["wisata"], "Rating"), -get_val(x["hotel"], "Estimasi_Harga"), x["total_dist"])
+                key=lambda x: (x.get("selisih", 0) < 0, -get_val(x["wisata"], "Rating"), -get_val(x["hotel"], "Estimasi_Harga"), x["total_dist"])
             )
         else:
-            # Balanced: Hybrid rating + jarak + preferensi seimbang tertinggi
+            # Balanced: Hybrid rating + jarak.
+            # PERBAIKAN: Hapus get_comb_pref_score() dari kriteria Balanced (alasan sama).
             valid_combinations = sorted(
                 valid_combinations,
-                key=lambda x: (x.get("selisih", 0) < 0, -get_comb_pref_score(x), -get_val(x["wisata"], "Rating") * 10 - get_val(x["kuliner"], "Rating") * 2 + x["total_dist"] / 10.0)
+                key=lambda x: (x.get("selisih", 0) < 0, -get_val(x["wisata"], "Rating") * 10 - get_val(x["kuliner"], "Rating") * 2 + x["total_dist"] / 10.0)
             )
+
 
         # Fallback jika kosong (diselaraskan eksak dengan uji_gabungan.py)
         if total_budget is not None and not valid_combinations:

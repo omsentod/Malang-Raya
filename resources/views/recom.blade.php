@@ -488,6 +488,8 @@
                                 </div>
                             </div>
                             <span class="form-hint">Geser untuk memvalidasi budget (Kondisi B), atau geser mentok kiri untuk eksplorasi bebas (Kondisi A)</span>
+                            <div id="d-warning-box" class="budget-warning-box" style="display:none;"></div>
+                        </div>
                         <!-- Preferensi Gaya Perjalanan (Personalization Sliders) -->
                         <div class="form-group personalization-group" style="margin-top: 16px;">
                             <label class="form-label">

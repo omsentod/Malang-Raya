@@ -48,14 +48,14 @@ document.addEventListener('DOMContentLoaded', () => {
         ['b', 'f', 'd'].forEach(prefix => {
             // Preset buttons click handlers
             document.querySelectorAll(`.preset-btn[data-prefix="${prefix}"]`).forEach(btn => {
-                btn.addEventListener('click', function() {
+                btn.addEventListener('click', function () {
                     // Update active state
                     document.querySelectorAll(`.preset-btn[data-prefix="${prefix}"]`).forEach(b => b.classList.remove('active'));
                     this.classList.add('active');
 
                     const presetType = this.dataset.preset;
                     const sliderPanel = document.getElementById(`${prefix}-personalization-sliders`);
-                    
+
                     if (presetType === 'custom') {
                         if (sliderPanel) {
                             sliderPanel.style.display = 'flex';
@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const slider = document.getElementById(`${prefix}-pref-${attr}`);
                 const valText = document.getElementById(`${prefix}-pref-${attr}-val`);
                 if (slider && valText) {
-                    slider.addEventListener('input', function() {
+                    slider.addEventListener('input', function () {
                         valText.innerText = this.value + '%';
                         // Switch preset button to custom since user manually dragged a slider
                         const customBtn = document.querySelector(`.preset-btn[data-preset="custom"][data-prefix="${prefix}"]`);
@@ -1329,7 +1329,7 @@ document.addEventListener('DOMContentLoaded', () => {
             container.id = 'custom-toast-container';
             container.className = 'custom-toast-container';
             document.body.appendChild(container);
-            
+
             const style = document.createElement('style');
             style.textContent = `
                 .custom-toast-container {
@@ -1442,44 +1442,44 @@ document.addEventListener('DOMContentLoaded', () => {
         const minus = document.getElementById(minusId);
         if (!inp || !plus || !minus) return;
         const max = inp.hasAttribute('max') ? +inp.getAttribute('max') : Infinity;
-        minus.addEventListener('click', () => { 
-            if (+inp.value > min) { 
-                inp.value = +inp.value - 1; 
-                updateBudgetSliders(); 
-                fetchApiMinMaxUpdate(); 
-                onBudgetChange(); 
-            } 
+        minus.addEventListener('click', () => {
+            if (+inp.value > min) {
+                inp.value = +inp.value - 1;
+                updateBudgetSliders();
+                fetchApiMinMaxUpdate();
+                onBudgetChange();
+            }
         });
-        plus.addEventListener('click', () => { 
-            if (+inp.value < max) { 
-                inp.value = +inp.value + 1; 
-                updateBudgetSliders(); 
-                fetchApiMinMaxUpdate(); 
-                onBudgetChange(); 
+        plus.addEventListener('click', () => {
+            if (+inp.value < max) {
+                inp.value = +inp.value + 1;
+                updateBudgetSliders();
+                fetchApiMinMaxUpdate();
+                onBudgetChange();
             } else {
                 if (max === 6 && (inputId === 'b-persons' || inputId === 'f-persons' || inputId === 'd-persons')) {
                     showToast("Batas Maksimal Peserta", "Jumlah peserta dibatasi maksimal 6 orang untuk menyesuaikan kapasitas GoCar XL (armada terbesar yang tersedia).");
                 }
             }
         });
-        inp.addEventListener('input', () => { 
+        inp.addEventListener('input', () => {
             if (+inp.value > max) {
                 inp.value = max;
                 if (max === 6 && (inputId === 'b-persons' || inputId === 'f-persons' || inputId === 'd-persons')) {
                     showToast("Batas Maksimal Peserta", "Jumlah peserta dibatasi maksimal 6 orang untuk menyesuaikan kapasitas GoCar XL (armada terbesar yang tersedia).");
                 }
             }
-            updateBudgetSliders(); 
-            fetchApiMinMaxUpdate(); 
-            onBudgetChange(); 
+            updateBudgetSliders();
+            fetchApiMinMaxUpdate();
+            onBudgetChange();
         });
-        inp.addEventListener('change', () => { 
+        inp.addEventListener('change', () => {
             if (+inp.value > max) {
                 inp.value = max;
             }
-            updateBudgetSliders(); 
-            fetchApiMinMaxUpdate(); 
-            onBudgetChange(); 
+            updateBudgetSliders();
+            fetchApiMinMaxUpdate();
+            onBudgetChange();
         });
     }
     setupCounter('b-persons', 'b-persons-minus', 'b-persons-plus');
@@ -2000,20 +2000,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 const bSlider = document.getElementById('b-budget');
                 if (bSlider) {
                     bSlider.dataset.aiMin = bRange.min_budget;
-                    const oldVal = parseInt(bSlider.value) || bRange.min_budget;
+                    const oldVal = parseInt(bSlider.value) || 0;
 
                     const safeMax = Math.max(bRange.min_budget + 50000, bRange.max_budget);
                     bSlider.max = safeMax;
                     bSlider.min = 0; // Biarkan slider tetap di 0
                     bSlider.step = 10000;
 
+                    // Jika nilai saat ini di bawah minimum budget, set ke minimum budget agar tombol submit tidak di-disable
                     let newVal = Math.max(0, Math.min(safeMax, oldVal));
+                    if (newVal < bRange.min_budget) newVal = bRange.min_budget;
                     bSlider.value = newVal;
 
                     document.getElementById('b-budget-val')?.textContent !== undefined &&
                         (document.getElementById('b-budget-val').textContent = fmtRp(newVal));
                     document.getElementById('b-budget-min-label') &&
-                        (document.getElementById('b-budget-min-label').textContent = "Min: Rp 0");
+                        (document.getElementById('b-budget-min-label').textContent = "Min: " + fmtRp(bRange.min_budget));
                     document.getElementById('b-budget-max-label') &&
                         (document.getElementById('b-budget-max-label').textContent = "Max: " + fmtRp(bRange.max_budget));
 
@@ -2237,7 +2239,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 itemEl.addEventListener('click', (e) => {
                     e.stopPropagation();
                     const idx = parseInt(itemEl.dataset.idx);
-                    
+
                     // Mark as active
                     options.forEach((opt, i) => opt.active = (i === idx));
 
@@ -3077,7 +3079,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let cat = 'wisata';
             if (leg.from_type === 'hotel') cat = 'hotel';
             else if (leg.from_type && leg.from_type.startsWith('kuliner')) cat = 'makan';
-            
+
             let label = 'Tempat';
             if (leg.from_type === 'hotel') label = 'Hotel';
             else if (leg.from_type === 'wisata') label = 'Wisata';
@@ -3498,7 +3500,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const h = parseFloat(document.getElementById(`${prefix}-pref-hemat`)?.value) || 33;
         const b = parseFloat(document.getElementById(`${prefix}-pref-balanced`)?.value) || 33;
         const p = parseFloat(document.getElementById(`${prefix}-pref-premium`)?.value) || 34;
-        
+
         const total = h + b + p;
         if (total === 0) return { pref_hemat: 0.33, pref_balanced: 0.33, pref_premium: 0.34 };
         return {
@@ -3518,7 +3520,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const duration = +document.getElementById('b-duration')?.value || 1;
         const transport = document.getElementById('b-transport')?.value || '';
         const hotel_mode = document.getElementById('b-hotel-mode')?.value || 'same';
-        
+
         if (!budget) {
             showError('Masukkan total anggaran terlebih dahulu.');
             return;
@@ -3533,7 +3535,7 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         const persons = +document.getElementById('f-persons')?.value || 1;
         const duration = +document.getElementById('f-duration')?.value || 1;
-        
+
         const prefs = getPersonalizationWeights('f');
         callRecommend({ workflow: 'flexible', persons, duration, ...prefs },
             `Flexible Explore — ${persons} orang, ${duration} hari`);
@@ -3583,7 +3585,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let bookmarkList = [];
     try {
         bookmarkList = JSON.parse(localStorage.getItem(getMrayaKey()) || '[]');
-    } catch(e) {
+    } catch (e) {
         bookmarkList = [];
     }
     let selectedHotel = null;
@@ -3888,7 +3890,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateBookmarkUI() {
         try {
             bookmarkList = JSON.parse(localStorage.getItem(getMrayaKey()) || '[]');
-        } catch(e) {
+        } catch (e) {
             bookmarkList = [];
         }
         const count = bookmarkList.length;

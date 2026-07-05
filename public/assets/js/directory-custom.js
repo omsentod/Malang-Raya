@@ -1,5 +1,5 @@
 // 2. IMAGE FALLBACK ERROR HANDLER
-window.handleImgError = function(el) {
+window.handleImgError = function (el) {
     if (el.dataset.fallbackTriggered) return;
     el.dataset.fallbackTriggered = "true";
     const parent = el.parentNode;
@@ -22,8 +22,8 @@ function levenshteinDistance(s, t) {
     for (let j = 0; j <= s.length; j++) { arr[0][j] = j; }
     for (let i = 1; i <= t.length; i++) {
         for (let j = 1; j <= s.length; j++) {
-            arr[i][j] = s[j - 1] === t[i - 1] 
-                ? arr[i - 1][j - 1] 
+            arr[i][j] = s[j - 1] === t[i - 1]
+                ? arr[i - 1][j - 1]
                 : Math.min(arr[i - 1][j - 1] + 1, arr[i][j - 1] + 1, arr[i - 1][j] + 1);
         }
     }
@@ -96,7 +96,7 @@ function updatePriceTierLabels(category) {
     const hematLabel = document.getElementById('tier-label-hemat');
     const menengahLabel = document.getElementById('tier-label-menengah');
     const premiumLabel = document.getElementById('tier-label-premium');
-    
+
     if (hematLabel) hematLabel.textContent = config.Hemat.label;
     if (menengahLabel) menengahLabel.textContent = config.Menengah.label;
     if (premiumLabel) premiumLabel.textContent = config.Premium.label;
@@ -118,7 +118,7 @@ fetch('/assets/search_index.json')
     .then(res => res.json())
     .then(data => {
         searchIndex = data;
-        
+
         // Parse URL query parameter for search if exists!
         const urlParams = new URLSearchParams(window.location.search);
         const searchParam = urlParams.get('search') || urlParams.get('q');
@@ -126,7 +126,7 @@ fetch('/assets/search_index.json')
             dirSearchInputs.forEach(input => input.value = searchParam);
             searchQuery = searchParam.toLowerCase().trim();
         }
-        
+
         applyFilters();
     })
     .catch(err => {
@@ -138,12 +138,12 @@ fetch('/assets/search_index.json')
 dirSearchInputs.forEach(input => {
     input.addEventListener('input', (e) => {
         searchQuery = e.target.value.toLowerCase().trim();
-        
+
         // Sinkronisasi teks otomatis ke semua kotak pencarian lain yang ada di layar
         dirSearchInputs.forEach(other => {
             if (other !== input) other.value = e.target.value;
         });
-        
+
         applyFilters();
     });
 });
@@ -178,7 +178,7 @@ priceTierButtons.forEach(btn => {
         priceTierButtons.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         activePriceTier = btn.dataset.priceTier;
-        
+
         // Clear custom price inputs when a quick tier is chosen
         const minInput = document.getElementById('price-min-input');
         const maxInput = document.getElementById('price-max-input');
@@ -186,7 +186,7 @@ priceTierButtons.forEach(btn => {
         if (maxInput) maxInput.value = '';
         customMinPrice = null;
         customMaxPrice = null;
-        
+
         applyFilters();
     });
 });
@@ -208,7 +208,7 @@ if (minInput && maxInput) {
             const originalLength = e.target.value.length;
             const formatted = formatNumberInput(e.target.value);
             e.target.value = formatted;
-            
+
             // Adjust cursor position to handle inserted dots
             const newLength = formatted.length;
             e.target.setSelectionRange(
@@ -225,16 +225,16 @@ if (btnApplyPrice) {
     btnApplyPrice.addEventListener('click', () => {
         const minVal = minInput ? minInput.value.replace(/\D/g, '') : '';
         const maxVal = maxInput ? maxInput.value.replace(/\D/g, '') : '';
-        
+
         customMinPrice = minVal ? Number(minVal) : null;
         customMaxPrice = maxVal ? Number(maxVal) : null;
-        
+
         // Deactivate tier buttons if custom prices are specified
         priceTierButtons.forEach(b => b.classList.remove('active'));
-        
+
         // If custom range is applied, activePriceTier is Kustom
         activePriceTier = 'Kustom';
-        
+
         applyFilters();
     });
 }
@@ -247,11 +247,11 @@ if (btnClearPrice) {
         if (maxInput) maxInput.value = '';
         customMinPrice = null;
         customMaxPrice = null;
-        
+
         priceTierButtons.forEach(b => b.classList.remove('active'));
         const allPriceBtn = document.querySelector('[data-price-tier="Semua"]');
         if (allPriceBtn) allPriceBtn.classList.add('active');
-        
+
         activePriceTier = 'Semua';
         applyFilters();
     });
@@ -269,7 +269,7 @@ if (sortTriggerBtn && customSortDropdown) {
     sortTriggerBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         customSortDropdown.classList.toggle('open');
-        
+
         // Toggle accessibility attributes
         const isOpen = customSortDropdown.classList.contains('open');
         sortTriggerBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
@@ -288,11 +288,11 @@ if (sortTriggerBtn && customSortDropdown) {
         item.addEventListener('click', (e) => {
             e.stopPropagation();
             const val = item.dataset.value;
-            
+
             let cleanText = 'Rekomendasi';
             if (val === 'price-asc') cleanText = 'Harga: Terendah ↑';
             else if (val === 'price-desc') cleanText = 'Harga: Tertinggi ↓';
-            
+
             if (selectedSortLabel) selectedSortLabel.textContent = cleanText;
 
             sortOptItems.forEach(opt => opt.classList.remove('active'));
@@ -306,13 +306,13 @@ if (sortTriggerBtn && customSortDropdown) {
     });
 }
 
-window.applyAutocorrect = function(correctedWord) {
+window.applyAutocorrect = function (correctedWord) {
     let updated = false;
     dirSearchInputs.forEach(input => {
         input.value = correctedWord;
         updated = true;
     });
-    
+
     if (updated) {
         searchQuery = correctedWord.toLowerCase().trim();
         applyFilters();
@@ -338,13 +338,13 @@ function applyFilters() {
             // High-precision geographic coordinate classification for Malang Raya
             // 1. Kota Malang: Central dense urban area
             const isKotaMalangCoords = (lat <= -7.91 && lat >= -8.04 && lng >= 112.58 && lng <= 112.69);
-            
+
             // 2. Kota Batu: Northwest mountainous area (excluding western districts Pujon/Ngantang/Kasembon)
             const isBatuCoords = (lat <= -7.74 && lat >= -7.92 && lng >= 112.475 && lng <= 112.578);
 
             // Default to Kabupaten Malang (since it surrounds both Kota Malang and Batu)
             let itemLoc = "Kab. Malang";
-            
+
             if (isKotaMalangCoords && !name.includes("kabupaten") && !link.includes("kabupaten")) {
                 itemLoc = "Kota Malang";
             } else if (isBatuCoords || name.includes("batu") || link.includes("batu") || subcat.includes("batu")) {
@@ -366,8 +366,8 @@ function applyFilters() {
         }
 
         // Search query filter
-        const matchesSearch = (searchQuery === '' || 
-            item.Nama_Tempat.toLowerCase().includes(searchQuery) || 
+        const matchesSearch = (searchQuery === '' ||
+            item.Nama_Tempat.toLowerCase().includes(searchQuery) ||
             item.Sub_Kategori.toLowerCase().includes(searchQuery) ||
             item.Kategori.toLowerCase().includes(searchQuery)
         );
@@ -538,10 +538,10 @@ function renderPaginationControls() {
     `;
 }
 
-window.changePage = function(page) {
+window.changePage = function (page) {
     currentPage = page;
     renderGrid();
-    
+
     // Smooth scroll grid to top
     const layoutEl = document.querySelector('.directory-layout');
     if (layoutEl) {
@@ -564,7 +564,7 @@ let activePlace = null;
 let modalImgIndex = 0;
 let modalSlideInterval = null;
 
-window.openOtaDetail = function(item) {
+window.openOtaDetail = function (item) {
     activePlace = item;
     modalImgIndex = 0;
 
@@ -583,13 +583,13 @@ window.openOtaDetail = function(item) {
     const subcatEl = document.getElementById('modal-place-subcat');
     const ratingEl = document.getElementById('modal-place-rating');
     const reviewsEl = document.getElementById('modal-place-reviews');
-    
+
     if (titleEl) titleEl.textContent = item.Nama_Tempat;
     if (catEl) catEl.textContent = item.Kategori;
     if (subcatEl) subcatEl.textContent = item.Sub_Kategori;
     if (ratingEl) ratingEl.textContent = Number(item.Rating).toFixed(1);
     if (reviewsEl) reviewsEl.textContent = item.Jumlah_Ulasan.toLocaleString('id-ID') + ' ulasan';
-    
+
     const priceLabel = document.getElementById('modal-price-label');
     if (priceLabel) {
         if (item.Kategori === 'Wisata') {
@@ -646,7 +646,7 @@ window.openOtaDetail = function(item) {
     if (detailModal) detailModal.classList.add('show');
 };
 
-window.closeOtaDetail = function() {
+window.closeOtaDetail = function () {
     if (detailModal) detailModal.classList.remove('show');
     clearInterval(modalSlideInterval);
 };
@@ -655,9 +655,9 @@ function renderModalSlideshow() {
     if (!modalTrack || !modalIndicators) return;
     modalTrack.innerHTML = '';
     modalIndicators.innerHTML = '';
-    
+
     const imgs = activePlace.Gambar || [];
-    
+
     if (imgs.length === 0) {
         modalTrack.innerHTML = `
             <div class="ota-modal-gallery-slide">
@@ -687,7 +687,7 @@ function renderModalSlideshow() {
     });
 
     slideModalTo(0);
-    
+
     clearInterval(modalSlideInterval);
     if (imgs.length > 1) {
         modalSlideInterval = setInterval(() => {
@@ -696,7 +696,7 @@ function renderModalSlideshow() {
     }
 }
 
-window.slideModalTo = function(index) {
+window.slideModalTo = function (index) {
     if (!modalTrack || !modalIndicators) return;
     const count = activePlace.Gambar ? activePlace.Gambar.length : 0;
     if (count <= 1) return;
@@ -728,7 +728,7 @@ function slideModalPrev() {
 if (modalPrev) modalPrev.addEventListener('click', () => { slideModalPrev(); clearInterval(modalSlideInterval); });
 if (modalNext) modalNext.addEventListener('click', () => { slideModalNext(); clearInterval(modalSlideInterval); });
 
-window.savePlaceToggle = function() {
+window.savePlaceToggle = function () {
     if (!activePlace) return;
     const savedPlacesKey = typeof window.getSavedPlacesKey === 'function' ? window.getSavedPlacesKey() : 'saved_places';
     const saved = JSON.parse(localStorage.getItem(savedPlacesKey) || '[]');
@@ -765,7 +765,7 @@ const navSearchInputs = [
     { input: document.getElementById('mobile-nav-search-input'), dropdown: document.getElementById('mobile-search-autocomplete-dropdown') }
 ].filter(item => item.input && item.dropdown);
 
-navSearchInputs.forEach(({input, dropdown}) => {
+navSearchInputs.forEach(({ input, dropdown }) => {
     input.addEventListener('input', (e) => {
         const query = e.target.value;
         renderNavSearchSuggestions(query, dropdown);
@@ -793,7 +793,7 @@ function escapeRegExp(string) {
 function renderNavSearchSuggestions(query, targetDropdown) {
     if (!targetDropdown) return;
     const cleanQuery = query.trim().toLowerCase();
-    
+
     if (cleanQuery.length === 0) {
         targetDropdown.classList.remove('open');
         return;
@@ -842,7 +842,7 @@ function renderNavSearchSuggestions(query, targetDropdown) {
     matches.forEach(item => {
         const priceFormatted = item.Estimasi_Harga > 0 ? fmtRupiah(item.Estimasi_Harga) : 'Gratis';
         const hasImg = item.Gambar && item.Gambar.length > 0;
-        
+
         const imgHTML = hasImg
             ? `<img class="suggestion-thumb" src="${item.Gambar[0]}" alt="${escapeRegExp(item.Nama_Tempat)}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" style="width: 40px; height: 40px; border-radius: 6px; object-fit: cover;" />
                <div class="suggestion-shimmer" style="display:none; width: 40px; height: 40px; border-radius: 6px; background: var(--slate-100);"></div>`
@@ -873,8 +873,8 @@ function renderNavSearchSuggestions(query, targetDropdown) {
     targetDropdown.innerHTML = html;
 }
 
-window.triggerNavAutocorrectClick = function(item) {
-    navSearchInputs.forEach(({input, dropdown}) => {
+window.triggerNavAutocorrectClick = function (item) {
+    navSearchInputs.forEach(({ input, dropdown }) => {
         input.value = '';
         dropdown.classList.remove('open');
     });

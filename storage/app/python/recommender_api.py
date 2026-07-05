@@ -7,8 +7,27 @@ os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
 
 import argparse
 import json
+import math
 import sys
 import io
+
+
+def sanitize_nan(obj):
+    """
+    Ganti NaN/Infinity (float non-finite) menjadi None secara rekursif.
+
+    Diperlukan karena json.dumps Python memancarkan token NaN/Infinity yang
+    BUKAN JSON valid, sehingga json_decode PHP menolaknya (respons 500 di web).
+    Nilai non-finite ini berasal dari sel kosong dataset yang ikut ter-dump
+    lewat to_dict("records") ke dalam clustered_items.
+    """
+    if isinstance(obj, float):
+        return obj if math.isfinite(obj) else None
+    if isinstance(obj, dict):
+        return {k: sanitize_nan(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [sanitize_nan(v) for v in obj]
+    return obj
 # pyrefly: ignore [missing-source-for-stubs]
 import pandas as pd
 import warnings
@@ -119,12 +138,14 @@ def main():
 
         verbose_text = captured_io.getvalue()
 
-        # Mengembalikan array packages sebagai respon JSON terstruktur
-        print(json.dumps({
+        # Mengembalikan array packages sebagai respon JSON terstruktur.
+        # sanitize_nan + allow_nan=False menjamin output selalu JSON valid
+        # agar bisa di-decode oleh PHP (json_decode menolak NaN/Infinity).
+        print(json.dumps(sanitize_nan({
             "status": "success",
             "data": packages,
             "verbose": verbose_text
-        }))
+        }), allow_nan=False))
 
     except Exception as e:
         sys.stdout = old_stdout  # Mengembalikan output stream standar ke sistem
