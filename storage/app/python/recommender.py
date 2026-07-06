@@ -576,36 +576,74 @@ def allocate_budget(total_budget, num_persons, duration):
 # ============================================================
 def _extract_wahana_info(wisata_item: dict) -> dict:
     """
-    Ekstrak informasi biaya wahana tambahan dari dict wisata.
-    Kolom ini ditambahkan oleh fix_dataset_wisata.py ke wisata_clean.xlsx.
-    Mengembalikan dict yang aman (default 0/False/string kosong) jika kolom tidak ada.
+    Mengembalikan dict wahana kosong secara aman karena kolom-kolom usang
+    telah dihapus dari dataset Excel.
     """
-    raw_has = wisata_item.get("has_additional_cost", 0)
-    has_cost = bool(raw_has) and not (isinstance(raw_has, float) and math.isnan(raw_has))
-
-    def safe_int(val, default=0):
-        try:
-            if val is None or (isinstance(val, float) and math.isnan(val)):
-                return default
-            return int(val)
-        except Exception:
-            return default
-
-    def safe_str(val):
-        """Konversi ke string, kembalikan '' jika None atau NaN (bukan literal 'nan')."""
-        if val is None:
-            return ""
-        if isinstance(val, float) and math.isnan(val):
-            return ""
-        s = str(val).strip()
-        return "" if s.lower() == "nan" else s
-
     return {
-        "has_additional_cost": 1 if has_cost else 0,
-        "additional_cost_min": safe_int(wisata_item.get("additional_cost_min", 0)),
-        "additional_cost_max": safe_int(wisata_item.get("additional_cost_max", 0)),
-        "additional_cost_label": safe_str(wisata_item.get("additional_cost_label", "")),
+        "has_additional_cost": 0,
+        "additional_cost_min": 0,
+        "additional_cost_max": 0,
+        "additional_cost_label": "",
     }
+
+
+def _get_additional_facilities_for_wisata(wisata_item: dict, df_wisata: pd.DataFrame) -> list:
+    """
+    Dapatkan daftar fasilitas/wahana opsional untuk destinasi wisata.
+    Jika destinasi ini memiliki relasi Induk-Anak (destination_family_id),
+    maka semua anak/induk lainnya dalam kompleks yang sama akan ditawarkan sebagai pilihan individual.
+    """
+    facilities = []
+    
+    tid = wisata_item.get("Id_Tempat")
+    if tid is None:
+        return facilities
+    
+    try:
+        tid = int(float(tid))
+    except Exception:
+        return facilities
+
+    # Cari di dataframe untuk mendapatkan data baris yang ter-update
+    target_rows = df_wisata[df_wisata["Id_Tempat"] == tid]
+    if target_rows.empty:
+        raw_w = wisata_item
+    else:
+        raw_w = target_rows.iloc[0].to_dict()
+
+    family_id = raw_w.get("destination_family_id")
+    
+    # Periksa jika family_id ada dan tidak null (NaN)
+    is_child = family_id is not None and not pd.isna(family_id)
+    parent_id = int(float(family_id)) if is_child else tid
+    
+    complex_members = []
+    
+    # Cari semua anak
+    children_df = df_wisata[df_wisata["destination_family_id"] == parent_id]
+    for _, row in children_df.iterrows():
+        mid = int(row["Id_Tempat"])
+        if mid != tid:
+            complex_members.append(row.to_dict())
+            
+    # Tambahkan parent jika parent_id != tid
+    if parent_id != tid:
+        parent_df = df_wisata[df_wisata["Id_Tempat"] == parent_id]
+        if not parent_df.empty:
+            complex_members.append(parent_df.iloc[0].to_dict())
+            
+    # Buat entri fasilitas opsional untuk setiap anggota kompleks
+    for idx, m in enumerate(complex_members):
+        price = int(float(m.get("Estimasi_Harga", 0)))
+        facilities.append({
+            "id": f"wahana_{idx}",
+            "label": m.get("Nama_Tempat", "Fasilitas Tambahan"),
+            "cost_per_person": price,
+            "cost_min": price,
+            "cost_max": price
+        })
+        
+    return facilities
 
 
 
@@ -1552,18 +1590,7 @@ def generate_packages(total_budget, num_persons, duration, datasets,
             pkg_formatted["total_cost"] = cost_h + cost_w + cost_k + cost_t
 
             # ── Fasilitas Wahana Opsional (array, untuk toggling individual di UI) ──
-            # Format: [{"id": str, "label": str, "cost_per_person": int, "cost_min": int, "cost_max": int}]
-            # Setiap destinasi saat ini hanya punya 1 wahana (bisa diperluas di masa depan).
-            if pkg_formatted.get("has_additional_cost"):
-                pkg_formatted["additional_facilities"] = [{
-                    "id": "wahana_0",
-                    "label": pkg_formatted.get("additional_cost_label", "Fasilitas Tambahan"),
-                    "cost_per_person": pkg_formatted.get("additional_cost_min", 0),
-                    "cost_min": pkg_formatted.get("additional_cost_min", 0),
-                    "cost_max": pkg_formatted.get("additional_cost_max", 0),
-                }]
-            else:
-                pkg_formatted["additional_facilities"] = []
+            pkg_formatted["additional_facilities"] = _get_additional_facilities_for_wisata(w_item, datasets["wisata"])
 
             # ── Sisa Budget (hanya untuk workflow dengan input budget) ──
             # Digunakan frontend untuk menampilkan tombol "Tambah Destinasi"
@@ -2206,6 +2233,8 @@ def generate_flexible_exploration_packages(num_persons, duration, datasets,
                 "kategori": label,
                 "transport_detail": transport_detail
             }
+            
+            pkg_formatted["additional_facilities"] = _get_additional_facilities_for_wisata(w_item, datasets["wisata"])
             
             # --- RENCANA PERJALANAN HARIAN DINAMIS (DAY-BY-DAY ITINERARY VARIATION) ---
             if duration > 1:
@@ -3152,6 +3181,8 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
                 "transport_detail": transport_detail
             }
             
+            pkg_formatted["additional_facilities"] = _get_additional_facilities_for_wisata(w_item, datasets["wisata"])
+            
             # --- RENCANA PERJALANAN HARIAN DINAMIS (DAY-BY-DAY ITINERARY VARIATION) ---
             if duration > 1:
                 itinerary = []
@@ -3312,6 +3343,13 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
             pkg_formatted["cost_hotel"] = cost_h
             pkg_formatted["cost_kuliner"] = cost_k
             pkg_formatted["total_cost"] = cost_h + cost_w + cost_k + cost_t
+
+            if total_budget is not None and total_budget > 0:
+                pkg_formatted["budget_input"] = float(total_budget)
+                pkg_formatted["budget_remaining"] = round(float(total_budget) - pkg_formatted["total_cost"], 2)
+            else:
+                pkg_formatted["budget_input"] = None
+                pkg_formatted["budget_remaining"] = None
 
             packages_for_option.append(pkg_formatted)
 

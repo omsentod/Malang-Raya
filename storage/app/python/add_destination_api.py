@@ -140,8 +140,6 @@ def main():
             except Exception:
                 return default
 
-        has_add = safe_int(row.get("has_additional_cost", 0))
-
         results.append({
             "id":                    tid,
             "nama":                  str(row.get("Nama_Tempat", "")),
@@ -152,10 +150,10 @@ def main():
             "distance_km":           round(dist, 2),
             "lat":                   float(row.get("Latitude", 0)),
             "lon":                   float(row.get("Longitude", 0)),
-            "has_additional_cost":   has_add,
-            "additional_cost_label": safe_str(row.get("additional_cost_label", "")),
-            "additional_cost_min":   safe_int(row.get("additional_cost_min", 0)),
-            "additional_cost_max":   safe_int(row.get("additional_cost_max", 0)),
+            "has_additional_cost":   0,
+            "additional_cost_label": "",
+            "additional_cost_min":   0,
+            "additional_cost_max":   0,
             # Total biaya tiket untuk seluruh peserta
             "total_ticket_cost":     int(harga) * args.persons,
         })

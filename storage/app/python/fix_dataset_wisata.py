@@ -30,64 +30,6 @@ DUPLICATE_THRESHOLD_M  = 10.0   # Jarak (meter) untuk deteksi duplikat sempurna
 FAMILY_THRESHOLD_M     = 300.0  # Jarak (meter) untuk deteksi destinasi satu kompleks
 
 # ─────────────────────────────────────────────────────────────
-# MANUAL RULES — Flagging Biaya Wahana
-# Kunci: Id_Tempat dari dataset asli
-# ─────────────────────────────────────────────────────────────
-WAHANA_FLAGS = {
-    # FORMAT:
-    # id: (has_cost, cost_min, cost_max, label)
-    # ─── RAFTING ──────────────────────────────────────────────
-    16:  (True,  175000, 250000, "Wahana Rafting"),
-    42:  (True,   50000, 150000, "Wahana Rafting"),
-    50:  (True,  150000, 275000, "Wahana Rafting"),  # 'Rafting Malang' — harga parkir Rp5k, wahana exclude
-    52:  (True,  150000, 195000, "Wahana Rafting"),
-    151: (True,  150000, 275000, "Wahana Rafting & Outbound"),
-    200: (True,  150000, 250000, "Wahana Rafting"),
-    207: (True,  150000, 185000, "Wahana Rafting"),
-    272: (True,  150000, 195000, "Wahana Rafting"),
-    # ─── TUBING ───────────────────────────────────────────────
-    439: (True,   30000,  75000, "Wahana Tubing"),
-    554: (True,   50000,  75000, "Wahana Tubing"),
-    # ─── OUTBOUND / ADVENTURE ─────────────────────────────────
-    49:  (True,   50000, 150000, "Wahana Outbound"),
-    122: (True,   65000, 150000, "Wahana Jungle Adventure"),
-    205: (True,   50000, 150000, "Wahana Farm Adventure"),
-    269: (True,   50000, 150000, "Wahana Farm Garden Adventure"),
-    320: (True,   50000, 200000, "Wahana Extreme Sports"),
-    486: (True,   80000, 200000, "Wahana Outbound & Edukasi"),
-    588: (True,  150000, 250000, "Wahana River Adventure"),
-    # ─── PAINTBALL ────────────────────────────────────────────
-    390: (True,  100000, 175000, "Wahana Paintball"),
-    # ─── KOLAM RENANG / WATERPARK (wahana seluncuran dll) ─────
-    66:  (True,    5000,  30000, "Wahana Kolam Renang"),
-    96:  (True,    5000,  20000, "Wahana Kolam Renang"),
-    117: (True,    5000,  20000, "Wahana Kolam Renang"),
-    144: (True,   25000,  75000, "Wahana Waterpark"),
-    171: (True,    5000,  20000, "Wahana Kolam Renang"),
-    181: (True,    5000,  20000, "Wahana Kolam Renang"),
-    255: (True,    5000,  20000, "Wahana Kolam Renang"),
-    395: (True,    5000,  20000, "Wahana Waterpark"),
-    419: (True,    5000,  30000, "Wahana Waterpark"),
-    423: (True,   10000,  50000, "Wahana Kolam Renang"),
-    426: (True,   20000,  80000, "Wahana Kolam Renang"),
-    477: (True,   50000, 120000, "Wahana Waterpark"),
-    481: (True,    5000,  20000, "Wahana Kolam Renang"),
-    528: (True,    5000,  20000, "Wahana Kolam Renang"),
-    543: (True,    5000,  30000, "Wahana Waterpark"),
-    # ─── BERKUDA / KUDA ───────────────────────────────────────
-    462: (True,   30000, 100000, "Wahana Berkuda"),
-    # ─── GLAMPING / CAMPING (biaya tenda/fasilitas malam) ─────
-    536: (True,  150000, 350000, "Biaya Glamping (per malam)"),
-    566: (True,   50000, 150000, "Biaya Camping (tenda/malam)"),
-    # ─── OFFROAD / ATV ────────────────────────────────────────
-    279: (True,   75000, 250000, "Wahana Offroad/ATV"),
-    # ─── WAHANA PINUS / TAMAN ─────────────────────────────────
-    458: (True,   10000,  50000, "Wahana Taman (flying fox/dll)"),
-    # ─── RESORT (fasilitas kolam renang/wahana include) ───────
-    446: (True,   60000, 150000, "Fasilitas Resort (kolam/wahana)"),
-}
-
-# ─────────────────────────────────────────────────────────────
 # HELPER FUNCTIONS
 # ─────────────────────────────────────────────────────────────
 def haversine(lat1, lon1, lat2, lon2):
@@ -176,78 +118,84 @@ def main():
     log(f"  Sisa data    : {len(df)} baris")
 
     # ════════════════════════════════════════════════════════════════════
-    # TAHAP 2 — Tambah Kolom Flagging Wahana
+    # TAHAP 2 — [DIHAPUS] Kolom Flagging Wahana Obsolet
+    # ════════════════════════════════════════════════════════════════════
+    # Tahap 2 telah dihapus untuk merapikan database. Wahana tambahan
+    # sekarang dikelola secara relasional via destination_family_id.
+    pass
+
+    # ════════════════════════════════════════════════════════════════════
+    # TAHAP 3 — Tandai destination_family_id (Parent-Child, < 300m)
     # ════════════════════════════════════════════════════════════════════
     log(f"\n{'─'*70}")
-    log("  TAHAP 2 — Flagging Biaya Wahana Tambahan")
+    log(f"  TAHAP 3 — Pengelompokan Induk-Anak (< {FAMILY_THRESHOLD_M:.0f}m)")
     log(f"{'─'*70}")
 
-    df["has_additional_cost"]   = 0
-    df["additional_cost_min"]   = 0
-    df["additional_cost_max"]   = 0
-    df["additional_cost_label"] = ""
-
-    flagged_count = 0
-    for idx, row in df.iterrows():
-        tid = int(row["Id_Tempat"])
-        if tid in WAHANA_FLAGS:
-            has_cost, cost_min, cost_max, label = WAHANA_FLAGS[tid]
-            df.at[idx, "has_additional_cost"]   = 1 if has_cost else 0
-            df.at[idx, "additional_cost_min"]   = cost_min
-            df.at[idx, "additional_cost_max"]   = cost_max
-            df.at[idx, "additional_cost_label"] = label
-            flagged_count += 1
-            log(f"  ⚠  [{tid:3d}] {row['Nama_Tempat'][:45]:<45} → {label} (+Rp {cost_min:,}–{cost_max:,})")
-
-    log(f"\n  Total diflag : {flagged_count} destinasi wahana")
-
-    # ════════════════════════════════════════════════════════════════════
-    # TAHAP 3 — Tandai destination_family_id (satu kompleks, < 300m)
-    # ════════════════════════════════════════════════════════════════════
-    log(f"\n{'─'*70}")
-    log(f"  TAHAP 3 — Pengelompokan Destinasi Satu Kompleks (< {FAMILY_THRESHOLD_M:.0f}m)")
-    log(f"{'─'*70}")
-
-    df["destination_family_id"] = pd.NA   # Null = bukan bagian dari kompleks
+    df["destination_family_id"] = pd.NA   # Null = Induk / Mandiri
     records_clean = df.to_dict("records")
-    family_id = 1
-    id_to_family = {}   # Id_Tempat -> family_id
+    
+    # Gunakan Disjoint Set Union (DSU) untuk mencari komponen terhubung
+    dsu_parent = {}
+    
+    def find(i):
+        if dsu_parent[i] == i: return i
+        dsu_parent[i] = find(dsu_parent[i])
+        return dsu_parent[i]
+        
+    def union(i, j):
+        root_i = find(i)
+        root_j = find(j)
+        if root_i != root_j:
+            dsu_parent[root_i] = root_j
+
+    for a in records_clean:
+        aid = a["Id_Tempat"]
+        if aid not in dsu_parent:
+            dsu_parent[aid] = aid
 
     for i, a in enumerate(records_clean):
         aid = a["Id_Tempat"]
-        nearby = []
         for j, b in enumerate(records_clean):
-            if i == j:
-                continue
+            if i >= j: continue
             bid = b["Id_Tempat"]
             dist = safe_haversine(a, b)
             if dist <= FAMILY_THRESHOLD_M and dist > DUPLICATE_THRESHOLD_M:
-                nearby.append(bid)
+                union(aid, bid)
 
-        if nearby:
-            # Jika a sudah punya family, gunakan yang sama; jika tidak, buat baru
-            existing_fid = id_to_family.get(aid)
-            if existing_fid is None:
-                existing_fid = family_id
-                id_to_family[aid] = existing_fid
-                family_id += 1
+    from collections import defaultdict
+    clusters_dict = defaultdict(set)
+    for aid in dsu_parent:
+        clusters_dict[find(aid)].add(aid)
+        
+    clusters = [c for c in clusters_dict.values() if len(c) > 1]
+    
+    log(f"\n  Ditemukan {len(clusters)} kompleks destinasi Induk-Anak:")
 
-            for bid in nearby:
-                if bid not in id_to_family:
-                    id_to_family[bid] = existing_fid
+    for cluster in clusters:
+        members = df[df["Id_Tempat"].isin(cluster)]
+        
+        # Urutkan berdasarkan Ulasan & Rating untuk mencari Induk yang paling populer
+        # FillNa dengan 0 untuk amannya
+        members_sorted = members.assign(
+            ulas = pd.to_numeric(members['Jumlah_Ulasan'], errors='coerce').fillna(0),
+            rate = pd.to_numeric(members['Rating'], errors='coerce').fillna(0)
+        ).sort_values(by=["ulas", "rate"], ascending=[False, False])
+        
+        parent = members_sorted.iloc[0]
+        parent_id = parent["Id_Tempat"]
+        
+        # Set family id untuk anak-anaknya saja (merujuk ke Id_Tempat induk)
+        children_ids = cluster - {parent_id}
+        df.loc[df["Id_Tempat"].isin(children_ids), "destination_family_id"] = parent_id
 
-    # Merge id_to_family ke df
-    df["destination_family_id"] = df["Id_Tempat"].map(id_to_family)
+        log(f"\n  📍 INDUK [{parent_id:3d}] {parent['Nama_Tempat']} ({len(children_ids)} Anak)")
+        for tid in cluster:
+            m = members[members["Id_Tempat"] == tid].iloc[0]
+            role = "INDUK" if tid == parent_id else "ANAK "
+            log(f"       [{tid:3d}] {role} - {m['Nama_Tempat'][:50]:<50} Rp {m['Estimasi_Harga']:,}")
 
-    family_counts = df["destination_family_id"].value_counts()
-    families_with_2plus = family_counts[family_counts >= 2]
-    log(f"\n  Ditemukan {len(families_with_2plus)} kompleks destinasi dengan 2+ anggota:")
-
-    for fid, cnt in families_with_2plus.sort_index().items():
-        members = df[df["destination_family_id"] == fid][["Id_Tempat", "Nama_Tempat", "Estimasi_Harga"]]
-        log(f"\n  📍 KOMPLEKS #{fid} ({cnt} destinasi):")
-        for _, m in members.iterrows():
-            log(f"       [{m['Id_Tempat']:3d}] {m['Nama_Tempat'][:50]:<50} Rp {m['Estimasi_Harga']:,}")
+    # Konversi tipe kolom ke nullable integer agar tidak menjadi float (cth: 1.0)
+    df["destination_family_id"] = df["destination_family_id"].astype("Int64")
 
     # ════════════════════════════════════════════════════════════════════
     # TAHAP 4 — Simpan ke Excel
@@ -262,8 +210,7 @@ def main():
         "Kategori", "Nilai_Numerik", "Latitude", "Longitude",
         "Link", "Estimasi_Harga", "Sumber_Data", "Link_Sumber",
         # Kolom baru
-        "has_additional_cost", "additional_cost_min", "additional_cost_max",
-        "additional_cost_label", "destination_family_id",
+        "destination_family_id",
     ]
     df = df[[c for c in final_cols if c in df.columns]]
 
@@ -271,9 +218,7 @@ def main():
     log(f"\n✅ Dataset disimpan: {DATASET_PATH}")
     log(f"   Baris awal  : {total_awal}")
     log(f"   Baris akhir : {len(df)} (berkurang {total_awal - len(df)} duplikat)")
-    log(f"   Kolom baru  : has_additional_cost, additional_cost_min,")
-    log(f"                 additional_cost_max, additional_cost_label,")
-    log(f"                 destination_family_id")
+    log(f"   Kolom baru  : destination_family_id")
 
     # ── Simpan Laporan ──────────────────────────────────────────────────
     os.makedirs(os.path.dirname(REPORT_PATH), exist_ok=True)

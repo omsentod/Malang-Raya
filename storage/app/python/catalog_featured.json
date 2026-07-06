@@ -1,28 +1,10 @@
 {
   "wisata": [
     {
-      "Id_Tempat": "492",
-      "Nama_Tempat": "Rest Area 84B Malang Strudel Playland",
-      "Kategori": "Wisata",
-      "Sub_Kategori": "Tujuan Wisata · 4M3W+6HW",
-      "Estimasi_Harga": 0,
-      "Rating": 5.0,
-      "Jumlah_Ulasan": 102,
-      "Latitude": -7.897184,
-      "Longitude": 112.6965623,
-      "Link": "https://www.google.com/maps/place/Rest+Area+84B+Malang+Strudel+Playland/data=!4m7!3m6!1s0x2dd62b001742429d:0x84beee5003f64a4e!8m2!3d-7.897184!4d112.6965623!16s%2Fg%2F11yz7q2hyh!19sChIJnUJCFwAr1i0RTkr2A1DuvoQ?authuser=0&hl=id&rclk=1",
-      "Gambar": [
-        "/assets/GAMBAR/wisata/Rest_Area_84B_Malang_Strudel_Playland/Rest_Area_84B_Malang_Strudel_Playland-1.jpg",
-        "/assets/GAMBAR/wisata/Rest_Area_84B_Malang_Strudel_Playland/Rest_Area_84B_Malang_Strudel_Playland-2.jpg",
-        "/assets/GAMBAR/wisata/Rest_Area_84B_Malang_Strudel_Playland/Rest_Area_84B_Malang_Strudel_Playland-3.jpg"
-      ],
-      "Has_Gambar": true
-    },
-    {
-      "Id_Tempat": "325",
+      "Id_Tempat": "317",
       "Nama_Tempat": "EXTREME SPORTS CENTER INDONESIA",
       "Kategori": "Wisata",
-      "Sub_Kategori": "Wisata Umum",
+      "Sub_Kategori": "Wisata Rekreasi Modern",
       "Estimasi_Harga": 35000,
       "Rating": 5.0,
       "Jumlah_Ulasan": 72,
@@ -37,10 +19,10 @@
       "Has_Gambar": true
     },
     {
-      "Id_Tempat": "326",
+      "Id_Tempat": "318",
       "Nama_Tempat": "Kebun Botol",
       "Kategori": "Wisata",
-      "Sub_Kategori": "Wisata Umum",
+      "Sub_Kategori": "Wisata Alam",
       "Estimasi_Harga": 20000,
       "Rating": 5.0,
       "Jumlah_Ulasan": 52,
@@ -56,10 +38,10 @@
       "Has_Gambar": true
     },
     {
-      "Id_Tempat": "600",
+      "Id_Tempat": "572",
       "Nama_Tempat": "RUMAH POHON SALAK",
       "Kategori": "Wisata",
-      "Sub_Kategori": "Wisata Umum",
+      "Sub_Kategori": "Wisata Budaya & Edukasi",
       "Estimasi_Harga": 10000,
       "Rating": 5.0,
       "Jumlah_Ulasan": 50,
@@ -76,10 +58,10 @@
       "Has_Gambar": true
     },
     {
-      "Id_Tempat": "356",
+      "Id_Tempat": "345",
       "Nama_Tempat": "Pantai Mahadewi",
       "Kategori": "Wisata",
-      "Sub_Kategori": "Pantai Mahadewi",
+      "Sub_Kategori": "Wisata Alam",
       "Estimasi_Harga": 10000,
       "Rating": 5.0,
       "Jumlah_Ulasan": 35,
@@ -94,10 +76,10 @@
       "Has_Gambar": true
     },
     {
-      "Id_Tempat": "478",
+      "Id_Tempat": "456",
       "Nama_Tempat": "Kebun Murbei",
       "Kategori": "Wisata",
-      "Sub_Kategori": "Wisata Umum",
+      "Sub_Kategori": "Wisata Alam",
       "Estimasi_Harga": 20000,
       "Rating": 5.0,
       "Jumlah_Ulasan": 34,
@@ -113,10 +95,10 @@
       "Has_Gambar": true
     },
     {
-      "Id_Tempat": "238",
+      "Id_Tempat": "234",
       "Nama_Tempat": "wisata petik jeruk super agro kota batu",
       "Kategori": "Wisata",
-      "Sub_Kategori": "Tujuan Wisata · Jl. Semeru",
+      "Sub_Kategori": "Wisata Alam",
       "Estimasi_Harga": 25000,
       "Rating": 5.0,
       "Jumlah_Ulasan": 26,
@@ -131,10 +113,10 @@
       "Has_Gambar": true
     },
     {
-      "Id_Tempat": "247",
+      "Id_Tempat": "242",
       "Nama_Tempat": "Muara Paradise",
       "Kategori": "Wisata",
-      "Sub_Kategori": "Wisata Umum",
+      "Sub_Kategori": "Wisata Rekreasi Modern",
       "Estimasi_Harga": 75000,
       "Rating": 5.0,
       "Jumlah_Ulasan": 22,
@@ -145,6 +127,24 @@
         "/assets/GAMBAR/wisata/Muara_Paradise/Muara_Paradise-1.jpg",
         "/assets/GAMBAR/wisata/Muara_Paradise/Muara_Paradise-2.jpg",
         "/assets/GAMBAR/wisata/Muara_Paradise/Muara_Paradise-3.jpg"
+      ],
+      "Has_Gambar": true
+    },
+    {
+      "Id_Tempat": "378",
+      "Nama_Tempat": "Akar Rumput ( Wisata Edukasi Pertanian )",
+      "Kategori": "Wisata",
+      "Sub_Kategori": "Wisata Budaya & Edukasi",
+      "Estimasi_Harga": 25000,
+      "Rating": 5.0,
+      "Jumlah_Ulasan": 22,
+      "Latitude": -7.915014,
+      "Longitude": 112.619593,
+      "Link": "https://www.google.com/maps/place/Akar+Rumput+%28+Wisata+Edukasi+Pertanian+%29/data=!4m7!3m6!1s0x2e788100260972c7:0x4fd8d67b12f8d3d8!8m2!3d-7.915014!4d112.619593!16s%2Fg%2F11ygycnncc!19sChIJx3IJJgCBeC4R2NP4EnvW2E8?authuser=0&hl=id&rclk=1",
+      "Gambar": [
+        "/assets/GAMBAR/wisata/Akar_Rumput_(_Wisata_Edukasi_Pertanian_)/Akar_Rumput_(_Wisata_Edukasi_Pertanian_)-1.jpg",
+        "/assets/GAMBAR/wisata/Akar_Rumput_(_Wisata_Edukasi_Pertanian_)/Akar_Rumput_(_Wisata_Edukasi_Pertanian_)-2.jpg",
+        "/assets/GAMBAR/wisata/Akar_Rumput_(_Wisata_Edukasi_Pertanian_)/Akar_Rumput_(_Wisata_Edukasi_Pertanian_)-3.jpg"
       ],
       "Has_Gambar": true
     }
@@ -311,7 +311,7 @@
       "Id_Tempat": "263",
       "Nama_Tempat": "KISARASA Restaurant",
       "Kategori": "Kuliner",
-      "Sub_Kategori": "Wisata Umum",
+      "Sub_Kategori": "Restoran",
       "Estimasi_Harga": 16500,
       "Rating": 5.0,
       "Jumlah_Ulasan": 82,
@@ -330,7 +330,7 @@
       "Id_Tempat": "47",
       "Nama_Tempat": "Warung De Uwais Ayam dan Bebek Goreng",
       "Kategori": "Kuliner",
-      "Sub_Kategori": "Wisata Umum",
+      "Sub_Kategori": "Warung / Kuliner Lokal",
       "Estimasi_Harga": 18200,
       "Rating": 5.0,
       "Jumlah_Ulasan": 74,
@@ -346,10 +346,10 @@
       "Has_Gambar": true
     },
     {
-      "Id_Tempat": "581",
+      "Id_Tempat": "580",
       "Nama_Tempat": "Warung Makan dan Kopi MAJU (57)",
       "Kategori": "Kuliner",
-      "Sub_Kategori": "Wisata Umum",
+      "Sub_Kategori": "Cafe & Coffee Shop",
       "Estimasi_Harga": 15875,
       "Rating": 5.0,
       "Jumlah_Ulasan": 57,
@@ -367,7 +367,7 @@
       "Id_Tempat": "307",
       "Nama_Tempat": "Mandhi Pagi Jual Nasi Goreng Kebuli, Briyani Nampan & Mandhi | Spesialist Arabic Plating Tercantik SeMalang Raya",
       "Kategori": "Kuliner",
-      "Sub_Kategori": "Wisata Umum",
+      "Sub_Kategori": "Warung / Kuliner Lokal",
       "Estimasi_Harga": 27000,
       "Rating": 5.0,
       "Jumlah_Ulasan": 45,
@@ -381,7 +381,7 @@
       "Id_Tempat": "140",
       "Nama_Tempat": "A-yem Tiamkopi",
       "Kategori": "Kuliner",
-      "Sub_Kategori": "Restoran · Jl. Indragiri",
+      "Sub_Kategori": "Restoran",
       "Estimasi_Harga": 49665,
       "Rating": 5.0,
       "Jumlah_Ulasan": 44,
@@ -399,7 +399,7 @@
       "Id_Tempat": "300",
       "Nama_Tempat": "Monggo Pinarak",
       "Kategori": "Kuliner",
-      "Sub_Kategori": "Wisata Umum",
+      "Sub_Kategori": "Warung / Kuliner Lokal",
       "Estimasi_Harga": 18000,
       "Rating": 5.0,
       "Jumlah_Ulasan": 33,
@@ -415,10 +415,10 @@
       "Has_Gambar": true
     },
     {
-      "Id_Tempat": "567",
+      "Id_Tempat": "566",
       "Nama_Tempat": "Warung Pedas Mbak Menir",
       "Kategori": "Kuliner",
-      "Sub_Kategori": "Warung Pedas Mbak Menir",
+      "Sub_Kategori": "Warung / Kuliner Lokal",
       "Estimasi_Harga": 12500,
       "Rating": 5.0,
       "Jumlah_Ulasan": 32,
@@ -436,7 +436,7 @@
       "Id_Tempat": "334",
       "Nama_Tempat": "Wangsa Rasa Eatery",
       "Kategori": "Kuliner",
-      "Sub_Kategori": "Wisata Umum",
+      "Sub_Kategori": "Cafe & Coffee Shop",
       "Estimasi_Harga": 7000,
       "Rating": 5.0,
       "Jumlah_Ulasan": 27,

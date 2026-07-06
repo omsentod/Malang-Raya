@@ -122,20 +122,12 @@ MEALS_PER_DAY = 2          # Asumsi makan 2x sehari
 MAX_PERSONS_PER_ROOM = 2   # Kapasitas kamar hotel
 
 # ============================================================
-# KOLOM WAHANA TAMBAHAN (ditambahkan oleh fix_dataset_wisata.py)
+# KOLOM KOMPLEKS WISATA (ditambahkan oleh fix_dataset_wisata.py)
 # Kolom ini ada di wisata_clean.xlsx setelah enrichment
 # ============================================================
-# has_additional_cost    : int  — 1 jika ada wahana bayar di luar tiket masuk
-# additional_cost_min    : int  — estimasi biaya wahana minimum per orang (Rp)
-# additional_cost_max    : int  — estimasi biaya wahana maksimum per orang (Rp)
-# additional_cost_label  : str  — deskripsi wahana (contoh: "Wahana Rafting")
 # destination_family_id  : float/int — ID kompleks wisata; NaN = destinasi tunggal
 
 WISATA_WAHANA_COLS = [
-    "has_additional_cost",
-    "additional_cost_min",
-    "additional_cost_max",
-    "additional_cost_label",
     "destination_family_id",
 ]
 
