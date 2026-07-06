@@ -2654,17 +2654,71 @@ document.addEventListener('DOMContentLoaded', () => {
                     ${legHTML}
                 </div>
 
-                <div class="pkg-total ${remaining !== null ? (isOver ? 'over' : 'ok') : 'neutral'}">
+                ${ (pkg.additional_facilities && pkg.additional_facilities.length > 0) ? `
+                <div class="wahana-panel" id="wahana-panel-${pkgUid}">
+                    <div class="wahana-panel-header">
+                        <span class="material-symbols-outlined" style="font-size:15px;color:var(--amber-500);">bolt</span>
+                        <span class="wahana-panel-title">Fasilitas Opsional</span>
+                        <span class="wahana-panel-badge">Pilih sesuka hati</span>
+                    </div>
+                    <div class="wahana-items-list">
+                        ${ pkg.additional_facilities.map((fac, fi) => `
+                        <label class="wahana-item" for="wahana-${pkgUid}-${fi}">
+                            <input type="checkbox"
+                                   class="wahana-checkbox"
+                                   id="wahana-${pkgUid}-${fi}"
+                                   data-pkg-uid="${pkgUid}"
+                                   data-cost="${fac.cost_per_person}"
+                                   data-cost-min="${fac.cost_min}"
+                                   data-cost-max="${fac.cost_max}"
+                                   data-label="${fac.label}"
+                                   data-facility-id="${fac.id}">
+                            <div class="wahana-item-info">
+                                <span class="wahana-item-name">${fac.label}</span>
+                                <span class="wahana-item-range">estimasi Rp ${fac.cost_min.toLocaleString('id-ID')}–${fac.cost_max.toLocaleString('id-ID')}/org</span>
+                            </div>
+                            <span class="wahana-item-cost">+${fmtRp(fac.cost_per_person)}/org</span>
+                        </label>
+                        `).join('') }
+                    </div>
+                    <div class="wahana-subtotal" id="wahana-subtotal-${pkgUid}">
+                        <span>Dipilih: <strong id="wahana-chosen-${pkgUid}">Rp 0</strong></span>
+                        <span class="wahana-note">Tidak dihitung ke total wajib</span>
+                    </div>
+                </div>` : '' }
+
+                <div class="pkg-total ${remaining !== null ? (isOver ? 'over' : 'ok') : 'neutral'}" id="pkg-total-box-${pkgUid}">
                     <div>
                         <div class="total-label">TOTAL PAKET</div>
-                        <div class="total-amount">${fmtRp(pkg.total_cost)}</div>
+                        <div class="total-amount" id="total-display-${pkgUid}">${fmtRp(pkg.total_cost)}</div>
                     </div>
                     ${remaining !== null ? `
-                    <span class="material-symbols-outlined" style="font-size:28px;color:${isOver ? '#dc2626' : 'var(--teal-400)'}">
+                    <span class="material-symbols-outlined" style="font-size:28px;color:${isOver ? '#dc2626' : 'var(--teal-400)'}" id="total-icon-${pkgUid}">
                         ${isOver ? 'warning' : 'check_circle'}
                     </span>` : ''}
                 </div>
-                ${remainHTML}
+                <div id="remain-display-${pkgUid}">${remainHTML}</div>
+
+                ${ pkg.budget_remaining !== null && pkg.budget_remaining !== undefined ? `
+                <div class="extra-dest-panel" id="extra-dest-${pkgUid}" style="display:none;">
+                    <div class="extra-dest-header">
+                        <span class="material-symbols-outlined" style="font-size:15px;color:var(--teal-600);">add_location_alt</span>
+                        <span class="extra-dest-title">Maksimalkan Budget</span>
+                    </div>
+                    <div class="extra-dest-info" id="extra-dest-info-${pkgUid}"></div>
+                    <div class="extra-dest-added" id="extra-dest-added-${pkgUid}"></div>
+                    <button class="btn-add-dest" id="btn-add-dest-${pkgUid}"
+                            data-pkg-uid="${pkgUid}"
+                            data-lat="${pkg.wisata_lat || 0}"
+                            data-lon="${pkg.wisata_lon || 0}"
+                            data-persons="${pkg.num_persons}"
+                            data-wisata-id="${pkg.wisata_id || ''}"
+                    >
+                        <span class="material-symbols-outlined" style="font-size:15px;">add</span>
+                        Tambah Destinasi Wisata Hari Ini
+                    </button>
+                </div>` : '' }
+
             </div>
             <div class="pkg-footer" style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
                 <button class="pkg-btn-detail" style="flex:1;">Lihat Detail & Rute</button>
@@ -2674,6 +2728,84 @@ document.addEventListener('DOMContentLoaded', () => {
                 </button>
             </div>
         `;
+
+        // ─── Wahana Toggle: real-time recalculation ───────────────────────
+        card.querySelectorAll('.wahana-checkbox').forEach(cb => {
+            cb.addEventListener('change', () => {
+                const uid = cb.dataset.pkgUid;
+
+                // Sum selected wahana cost for all persons
+                let wahanaCostTotal = 0;
+                const selectedFacilities = [];
+                card.querySelectorAll(`.wahana-checkbox[data-pkg-uid="${uid}"]:checked`).forEach(chk => {
+                    const cPerPerson = parseInt(chk.dataset.cost, 10) || 0;
+                    wahanaCostTotal += cPerPerson * pkg.num_persons;
+                    selectedFacilities.push({ id: chk.dataset.facilityId, label: chk.dataset.label, cost_per_person: cPerPerson });
+                });
+
+                // Store on card for Simpan Rencana
+                card._selectedFacilities = selectedFacilities;
+
+                // Update display subtotal
+                const chosenEl = document.getElementById(`wahana-chosen-${uid}`);
+                if (chosenEl) chosenEl.textContent = fmtRp(wahanaCostTotal);
+
+                // Update displayed total
+                const newTotal = pkg.total_cost + wahanaCostTotal;
+                const totalEl = document.getElementById(`total-display-${uid}`);
+                if (totalEl) totalEl.textContent = fmtRp(newTotal);
+
+                // Update remaining budget display
+                const budgetInput = pkg.budget_input || 0;
+                const newRemaining = budgetInput > 0 ? budgetInput - newTotal : null;
+                const remainEl = document.getElementById(`remain-display-${uid}`);
+                if (remainEl && newRemaining !== null) {
+                    const isNewOver = newRemaining < 0;
+                    remainEl.innerHTML = `<div class="pkg-sisa ${isNewOver ? 'over' : 'ok'}">${isNewOver ? '⚠ Melebihi budget ' + fmtRp(Math.abs(newRemaining)) : '✓ Sisa ' + fmtRp(newRemaining)}</div>`;
+                    // Update total box class
+                    const tbox = document.getElementById(`pkg-total-box-${uid}`);
+                    if (tbox) { tbox.className = `pkg-total ${isNewOver ? 'over' : 'ok'}`; }
+                    const ticon = document.getElementById(`total-icon-${uid}`);
+                    if (ticon) { ticon.textContent = isNewOver ? 'warning' : 'check_circle'; ticon.style.color = isNewOver ? '#dc2626' : 'var(--teal-400)'; }
+                }
+
+                // Show/hide extra-dest panel based on remaining after wahana
+                const extraPanel = document.getElementById(`extra-dest-${uid}`);
+                if (extraPanel) {
+                    const effectiveRemaining = newRemaining !== null ? newRemaining : (pkg.budget_remaining || 0);
+                    const MIN_TICKET = 5000; // minimum tiket destinasi tambahan
+                    const addedCount = card._extraDestinations ? card._extraDestinations.length : 0;
+                    const MAX_EXTRA = 2;
+                    if (effectiveRemaining >= MIN_TICKET && addedCount < MAX_EXTRA) {
+                        extraPanel.style.display = 'block';
+                        const infoEl = document.getElementById(`extra-dest-info-${uid}`);
+                        if (infoEl) infoEl.textContent = `Sisa ${fmtRp(effectiveRemaining)} — tambah 1 destinasi lagi hari ini!`;
+                    } else {
+                        extraPanel.style.display = 'none';
+                    }
+                }
+            });
+        });
+
+        // ─── Initial: show extra-dest panel if original remaining is sufficient ────
+        (() => {
+            const uid = pkgUid;
+            const extraPanel = document.getElementById(`extra-dest-${uid}`);
+            if (!extraPanel) return;
+            const budgetRem = pkg.budget_remaining;
+            const MIN_TICKET = 5000;
+            if (budgetRem !== null && budgetRem !== undefined && budgetRem >= MIN_TICKET) {
+                extraPanel.style.display = 'block';
+                const infoEl = document.getElementById(`extra-dest-info-${uid}`);
+                if (infoEl) infoEl.textContent = `Sisa ${fmtRp(budgetRem)} — tambah destinasi wisata lagi hari ini!`;
+            }
+        })();
+
+        // ─── Tambah Destinasi button ────────────────────────────────────────────
+        const addDestBtn = card.querySelector('.btn-add-dest');
+        if (addDestBtn) {
+            addDestBtn.addEventListener('click', () => openAddDestinationModal(pkg, card, pkgUid));
+        }
 
         const btn = card.querySelector('.pkg-btn-detail');
         if (btn) {
@@ -2716,7 +2848,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     title: `Rencana Wisata Malang (${pkg.kategori || 'Hemat'} - ${pkg.duration} Hari)`,
                     persons: pkg.num_persons,
                     duration: pkg.duration,
-                    totalCost: pkg.total_cost,
+                    totalCost: pkg.total_cost + (card._wahanaTotalCost || 0) + (card._extraTransportCost || 0),
+                    selected_facilities: card._selectedFacilities || [],
+                    extra_destinations: card._extraDestinations || [],
                     hotel: pkg.duration > 1 ? {
                         nama: pkg.hotel_nama_real || pkg.hotel_nama,
                         harga: pkg.hotel_harga,
@@ -3492,23 +3626,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (err) {
             hideLoading();
-            showError('Koneksi ke server gagal. Pastikan PHP artisan serve berjalan.');
+            const msg = err.message || 'Koneksi ke server gagal. Pastikan PHP artisan serve berjalan.';
+            showError(msg);
         }
     }
 
-    function getPersonalizationWeights(prefix) {
-        const h = parseFloat(document.getElementById(`${prefix}-pref-hemat`)?.value) || 33;
-        const b = parseFloat(document.getElementById(`${prefix}-pref-balanced`)?.value) || 33;
-        const p = parseFloat(document.getElementById(`${prefix}-pref-premium`)?.value) || 34;
-
-        const total = h + b + p;
-        if (total === 0) return { pref_hemat: 0.33, pref_balanced: 0.33, pref_premium: 0.34 };
-        return {
-            pref_hemat: +(h / total).toFixed(4),
-            pref_balanced: +(b / total).toFixed(4),
-            pref_premium: +(p / total).toFixed(4)
-        };
-    }
 
     // ─────────────────────────────────────────────────
     // Form Submissions
@@ -3526,8 +3648,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const prefs = getPersonalizationWeights('b');
-        callRecommend({ workflow: 'budget', budget, persons, duration, transport, hotel_mode, ...prefs },
+        callRecommend({ workflow: 'budget', budget, persons, duration, transport, hotel_mode },
             `Budget Rp ${budget.toLocaleString('id-ID')} — ${persons} orang, ${duration} hari`);
     });
 
@@ -3536,8 +3657,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const persons = +document.getElementById('f-persons')?.value || 1;
         const duration = +document.getElementById('f-duration')?.value || 1;
 
-        const prefs = getPersonalizationWeights('f');
-        callRecommend({ workflow: 'flexible', persons, duration, ...prefs },
+        callRecommend({ workflow: 'flexible', persons, duration },
             `Flexible Explore — ${persons} orang, ${duration} hari`);
     });
 
@@ -3564,8 +3684,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const isNoBudget = sliderVal < dMin;
 
         const destSearchInp = document.getElementById('d-dest-search-input');
-        const prefs = getPersonalizationWeights('d');
-        callRecommend({ workflow: 'destination', dest_id: destId, persons, duration, budget: (isNoBudget ? null : (budget || null)), transport, hotel_mode, ...prefs },
+        callRecommend({ workflow: 'destination', dest_id: destId, persons, duration, budget: (isNoBudget ? null : (budget || null)), transport, hotel_mode },
             `Destination-First — ${destSearchInp ? destSearchInp.value : ''}`);
     });
 
@@ -6583,3 +6702,174 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 });
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   FITUR: TAMBAH DESTINASI WISATA HARIAN (Multi-Destinasi)
+   Fungsi ini dipanggil dari event listener ".btn-add-dest" di buildPkgCard()
+   ═══════════════════════════════════════════════════════════════════════════ */
+function fmtRpGlobal(val) {
+    if (val === null || val === undefined) return 'Rp 0';
+    return 'Rp ' + Math.round(val).toLocaleString('id-ID');
+}
+
+async function openAddDestinationModal(pkg, card, pkgUid) {
+    // Kumpulkan existing IDs (wisata yang sudah ada di paket hari ini)
+    const extraDests = card._extraDestinations || [];
+    const existingIds = [pkg.wisata_id].concat(extraDests.map(d => d.id)).filter(Boolean).join(',');
+
+    // Hitung sisa budget setelah wahana yang dipilih
+    const wahanaCost = (card._selectedFacilities || []).reduce((s, f) => s + f.cost_per_person * pkg.num_persons, 0);
+    const effectiveBudgetRemaining = (pkg.budget_remaining || 0) - wahanaCost - (card._extraTransportCost || 0);
+
+    // Buat atau ambil modal overlay
+    let modal = document.getElementById('add-dest-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'add-dest-modal';
+        modal.className = 'add-dest-modal-overlay';
+        modal.innerHTML = `
+            <div class="add-dest-modal-box">
+                <div class="add-dest-modal-header">
+                    <div>
+                        <div class="add-dest-modal-title">
+                            <span class="material-symbols-outlined" style="font-size:18px;color:var(--teal-500);">add_location_alt</span>
+                            Tambah Destinasi Wisata
+                        </div>
+                        <div class="add-dest-modal-sub" id="add-dest-modal-sub"></div>
+                    </div>
+                    <button class="add-dest-modal-close" id="add-dest-modal-close">&times;</button>
+                </div>
+                <div class="add-dest-modal-body" id="add-dest-modal-body">
+                    <div class="add-dest-loading">
+                        <span class="material-symbols-outlined" style="font-size:32px;color:var(--teal-400);animation:spin 1s linear infinite;">progress_activity</span>
+                        <p>Mencari destinasi terdekat...</p>
+                    </div>
+                </div>
+            </div>`;
+        document.body.appendChild(modal);
+    }
+
+    // Show modal
+    modal.style.display = 'flex';
+    const subEl = document.getElementById('add-dest-modal-sub');
+    if (subEl) subEl.textContent = `Sisa budget: ${fmtRpGlobal(effectiveBudgetRemaining)} — maks. ${2 - extraDests.length} tambahan lagi`;
+
+    document.getElementById('add-dest-modal-close').onclick = () => { modal.style.display = 'none'; };
+    modal.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
+
+    // Fetch candidates
+    const bodyEl = document.getElementById('add-dest-modal-body');
+    bodyEl.innerHTML = `<div class="add-dest-loading"><span class="material-symbols-outlined" style="font-size:32px;color:var(--teal-400);animation:spin 1s linear infinite;">progress_activity</span><p>Mencari destinasi terdekat...</p></div>`;
+
+    try {
+        const resp = await fetch('/api/add-destination', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '' },
+            body: JSON.stringify({
+                lat: pkg.wisata_lat || 0,
+                lon: pkg.wisata_lon || 0,
+                budget_remaining: effectiveBudgetRemaining,
+                persons: pkg.num_persons,
+                existing_ids: existingIds,
+                max_results: 12,
+                max_dist_km: 20,
+            }),
+        });
+        const data = await resp.json();
+
+        if (data.status !== 'success' || !data.candidates || data.candidates.length === 0) {
+            bodyEl.innerHTML = `<div class="add-dest-empty"><span class="material-symbols-outlined" style="font-size:36px;color:var(--slate-300);">location_off</span><p>Tidak ada destinasi tambahan yang terjangkau di sekitar sini.</p></div>`;
+            return;
+        }
+
+        // Render candidates list
+        bodyEl.innerHTML = data.candidates.map((c, ci) => `
+            <div class="add-dest-candidate" id="add-dest-cand-${ci}" data-idx="${ci}">
+                <div class="add-dest-cand-info">
+                    <div class="add-dest-cand-name">${c.nama}</div>
+                    <div class="add-dest-cand-meta">
+                        <span class="add-dest-tag">${c.kategori}</span>
+                        <span class="add-dest-dist"><span class="material-symbols-outlined" style="font-size:12px;">near_me</span>${c.distance_km} km</span>
+                        ${ c.rating > 0 ? `<span class="add-dest-rating">⭐ ${c.rating.toFixed(1)}</span>` : '' }
+                    </div>
+                    ${ c.has_additional_cost ? `<div class="add-dest-wahana-note">⚡ ${c.additional_cost_label} (+${fmtRpGlobal(c.additional_cost_min)}–${fmtRpGlobal(c.additional_cost_max)}/org)</div>` : '' }
+                </div>
+                <div class="add-dest-cand-price">
+                    <div class="add-dest-cand-ticket">${fmtRpGlobal(c.harga_tiket)}/org</div>
+                    <div class="add-dest-cand-total">Total: ${fmtRpGlobal(c.total_ticket_cost)}</div>
+                    <button class="btn-pick-dest" data-ci="${ci}">Pilih</button>
+                </div>
+            </div>
+        `).join('');
+
+        // Pilih destinasi
+        bodyEl.querySelectorAll('.btn-pick-dest').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const ci = parseInt(btn.dataset.ci, 10);
+                const chosen = data.candidates[ci];
+
+                // Tambahkan ke daftar extra destinasi di card
+                if (!card._extraDestinations) card._extraDestinations = [];
+                card._extraDestinations.push({
+                    id: chosen.id,
+                    nama: chosen.nama,
+                    harga_tiket: chosen.harga_tiket,
+                    lat: chosen.lat,
+                    lon: chosen.lon,
+                    total_ticket_cost: chosen.total_ticket_cost,
+                });
+
+                // Estimasi biaya transport tambahan (jarak × tarif motor 500/km sederhana)
+                const addTransport = Math.round(chosen.distance_km * 500);
+                card._extraTransportCost = (card._extraTransportCost || 0) + addTransport;
+
+                // Update tampilan "extra-dest-added"
+                const addedEl = document.getElementById(`extra-dest-added-${pkgUid}`);
+                if (addedEl) {
+                    addedEl.innerHTML = card._extraDestinations.map((d, i) => `
+                        <div class="extra-dest-item">
+                            <span class="material-symbols-outlined" style="font-size:13px;color:var(--teal-500);">check_circle</span>
+                            <span>${d.nama}</span>
+                            <span style="margin-left:auto;font-weight:700;">${fmtRpGlobal(d.total_ticket_cost)}</span>
+                        </div>
+                    `).join('');
+                }
+
+                // Update tampilan total + remaining setelah tambah destinasi
+                const newWahana = (card._selectedFacilities || []).reduce((s, f) => s + f.cost_per_person * pkg.num_persons, 0);
+                const extraTickets = card._extraDestinations.reduce((s, d) => s + d.total_ticket_cost, 0);
+                const newTotal = pkg.total_cost + newWahana + extraTickets + (card._extraTransportCost || 0);
+                const totalEl = document.getElementById(`total-display-${pkgUid}`);
+                if (totalEl) totalEl.textContent = fmtRpGlobal(newTotal);
+
+                const budgetInput = pkg.budget_input || 0;
+                const newRemaining = budgetInput > 0 ? budgetInput - newTotal : null;
+                const remainEl = document.getElementById(`remain-display-${pkgUid}`);
+                if (remainEl && newRemaining !== null) {
+                    const isNewOver = newRemaining < 0;
+                    remainEl.innerHTML = `<div class="pkg-sisa ${isNewOver ? 'over' : 'ok'}">${isNewOver ? '⚠ Melebihi budget ' + fmtRpGlobal(Math.abs(newRemaining)) : '✓ Sisa ' + fmtRpGlobal(newRemaining)}</div>`;
+                }
+
+                // Sembunyikan atau update tombol berdasarkan MAX_EXTRA
+                const MAX_EXTRA = 2;
+                const infoEl = document.getElementById(`extra-dest-info-${pkgUid}`);
+                const addBtn  = document.getElementById(`btn-add-dest-${pkgUid}`);
+                if (card._extraDestinations.length >= MAX_EXTRA) {
+                    if (addBtn) addBtn.style.display = 'none';
+                    if (infoEl) infoEl.textContent = 'Batas maksimal 2 destinasi tambahan per hari tercapai.';
+                } else if (newRemaining !== null && newRemaining >= 5000) {
+                    if (infoEl) infoEl.textContent = `Sisa ${fmtRpGlobal(newRemaining)} — masih bisa tambah ${MAX_EXTRA - card._extraDestinations.length} destinasi lagi!`;
+                } else {
+                    if (addBtn) addBtn.style.display = 'none';
+                    if (infoEl) infoEl.textContent = 'Budget habis — tidak bisa tambah destinasi lagi.';
+                }
+
+                modal.style.display = 'none';
+            });
+        });
+
+    } catch (err) {
+        bodyEl.innerHTML = `<div class="add-dest-empty"><span class="material-symbols-outlined" style="font-size:36px;color:var(--slate-300);">wifi_off</span><p>Gagal memuat kandidat. Coba lagi.</p></div>`;
+        console.error('[addDestination] error:', err);
+    }
+}

@@ -60,9 +60,11 @@ Route::get('/directory', function () {
 Route::get('/recommender', [RecommenderController::class, 'index']);
 
 $nocsrf = [\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class];
-Route::post('/api/recommend',    [RecommenderController::class, 'calculate'])->withoutMiddleware($nocsrf);
-Route::post('/api/how-it-works', [RecommenderController::class, 'runVisualization'])->withoutMiddleware($nocsrf);
-Route::post('/api/min-budget', [RecommenderController::class, 'minBudget'])->withoutMiddleware($nocsrf);
+Route::post('/api/recommend',        [RecommenderController::class, 'calculate'])->withoutMiddleware($nocsrf);
+Route::post('/api/how-it-works',     [RecommenderController::class, 'runVisualization'])->withoutMiddleware($nocsrf);
+Route::post('/api/min-budget',       [RecommenderController::class, 'minBudget'])->withoutMiddleware($nocsrf);
+Route::post('/api/add-destination',  [RecommenderController::class, 'addDestination'])->withoutMiddleware($nocsrf);
+
 
 // Auth API (AJAX)
 Route::post('/api/auth/login', [AuthController::class, 'ajaxLogin']);

@@ -6,6 +6,7 @@ from typing import cast, Any
 import numpy as np
 # pyrefly: ignore [missing-source-for-stubs]
 import pandas as pd
+import hashlib
 
 from config import (
     GOOGLE_MAPS_API_KEY, CLUSTER_LABELS,
@@ -573,6 +574,41 @@ def allocate_budget(total_budget, num_persons, duration):
 # ============================================================
 # 2. HITUNG BIAYA PAKET
 # ============================================================
+def _extract_wahana_info(wisata_item: dict) -> dict:
+    """
+    Ekstrak informasi biaya wahana tambahan dari dict wisata.
+    Kolom ini ditambahkan oleh fix_dataset_wisata.py ke wisata_clean.xlsx.
+    Mengembalikan dict yang aman (default 0/False/string kosong) jika kolom tidak ada.
+    """
+    raw_has = wisata_item.get("has_additional_cost", 0)
+    has_cost = bool(raw_has) and not (isinstance(raw_has, float) and math.isnan(raw_has))
+
+    def safe_int(val, default=0):
+        try:
+            if val is None or (isinstance(val, float) and math.isnan(val)):
+                return default
+            return int(val)
+        except Exception:
+            return default
+
+    def safe_str(val):
+        """Konversi ke string, kembalikan '' jika None atau NaN (bukan literal 'nan')."""
+        if val is None:
+            return ""
+        if isinstance(val, float) and math.isnan(val):
+            return ""
+        s = str(val).strip()
+        return "" if s.lower() == "nan" else s
+
+    return {
+        "has_additional_cost": 1 if has_cost else 0,
+        "additional_cost_min": safe_int(wisata_item.get("additional_cost_min", 0)),
+        "additional_cost_max": safe_int(wisata_item.get("additional_cost_max", 0)),
+        "additional_cost_label": safe_str(wisata_item.get("additional_cost_label", "")),
+    }
+
+
+
 def calculate_package_cost(hotel, wisata, kuliner, num_persons, duration,
                            transport_cost=0):
     """
@@ -583,6 +619,10 @@ def calculate_package_cost(hotel, wisata, kuliner, num_persons, duration,
     - Wisata    = harga tiket × jumlah_peserta
     - Kuliner   = harga menu × jumlah_peserta × 3 (makan/hari) × durasi
     - Transport = biaya dari transport_api
+
+    Catatan: has_additional_cost, additional_cost_min/max, additional_cost_label
+    adalah biaya OPSIONAL wahana yang TIDAK dimasukkan ke total_cost.
+    Mereka hanya diteruskan ke frontend sebagai peringatan.
 
     Args:
         hotel: dict data hotel (Estimasi_Harga, dll)
@@ -616,6 +656,9 @@ def calculate_package_cost(hotel, wisata, kuliner, num_persons, duration,
 
     total = cost_akomodasi + cost_wisata + cost_kuliner + cost_transport
 
+    # Info wahana opsional (TIDAK dimasukkan ke total_cost)
+    wahana_info = _extract_wahana_info(wisata)
+
     return {
         "hotel_nama": hotel_nama,
         "hotel_harga": hotel_harga,
@@ -626,6 +669,11 @@ def calculate_package_cost(hotel, wisata, kuliner, num_persons, duration,
         "wisata_harga": wisata["Estimasi_Harga"],
         "wisata_lat": wisata.get("Latitude", 0),
         "wisata_lon": wisata.get("Longitude", 0),
+        # Info biaya wahana opsional
+        "has_additional_cost": wahana_info["has_additional_cost"],
+        "additional_cost_min": wahana_info["additional_cost_min"],
+        "additional_cost_max": wahana_info["additional_cost_max"],
+        "additional_cost_label": wahana_info["additional_cost_label"],
         "kuliner_nama": kuliner["Nama_Tempat"],
         "kuliner_harga": kuliner["Estimasi_Harga"],
         "kuliner_lat": kuliner.get("Latitude", 0),
@@ -649,7 +697,7 @@ def generate_packages(total_budget, num_persons, duration, datasets,
                        api_key=None, ratio_scheme=DEFAULT_RATIO_SCHEME,
                        max_packages=MAX_PACKAGES_DISPLAY, verbose=True,
                        transport_mode=None, hotel_mode='same', best_c=None,
-                       pref_hemat=0.33, pref_balanced=0.33, pref_premium=0.34):
+                       pref_hemat=0.33, pref_balanced=0.33, pref_premium=0.34, user_id='guest'):
     """
     Alur utama Budget-First Workflow (Diselaraskan Eksak dengan Uji_Gabungan.py):
     1. Alokasikan budget ke komponen secara proporsional.
@@ -677,6 +725,10 @@ def generate_packages(total_budget, num_persons, duration, datasets,
     if best_c is None:
         datasets_prices = {cat: datasets[cat]["Estimasi_Harga"].values for cat in ["hotel", "wisata", "kuliner"]}
         best_c = find_best_c_for_budget(datasets_prices, total_budget, verbose=verbose)
+
+    # Deterministic Seed untuk Top-N Random Sampling
+    seed_str = f"{user_id}_{total_budget}_{duration}_{num_persons}"
+    base_seed = int(hashlib.md5(seed_str.encode()).hexdigest(), 16) % (2**32 - 1)
 
     cluster_labels = get_cluster_labels(best_c)
     ratios_for_c = get_ratio_scheme(best_c)
@@ -780,16 +832,16 @@ def generate_packages(total_budget, num_persons, duration, datasets,
                 if not items_in_region.empty:
                     items_in_region_cp = items_in_region.copy()
                     items_in_region_cp["distance_to_target"] = (items_in_region_cp["Estimasi_Harga"] - target_price).abs()
-                    # PERBAIKAN: Urutkan berdasarkan Membership_Degree (keanggotaan klaster i) descending,
-                    # kemudian jarak ke target price ascending.
-                    # Fuzzy_Score TIDAK digunakan di sini karena dapat menyebabkan kontaminasi klaster:
-                    # misal, saat preferensi backpacker (w_hemat tinggi), item murah dari klaster Hemat
-                    # akan memiliki Fuzzy_Score tinggi dan bisa masuk ke kandidat klaster Premium.
+                    # PERBAIKAN: Top-N Stochastic Pool Sampling
                     sorted_items = items_in_region_cp.sort_values(
                         by=["Membership_Degree", "distance_to_target"],
                         ascending=[False, True]
                     )
-                    best_items_list.append(sorted_items.head(8))
+                    pool = sorted_items.head(25) # Ambil top 25 sebagai pool
+                    if not pool.empty:
+                        sample_size = min(8, len(pool))
+                        local_seed = (base_seed + hash(key) + i + hash(region)) % (2**32 - 1)
+                        best_items_list.append(pool.sample(n=sample_size, random_state=local_seed))
             
             if best_items_list:
                 best_items = pd.concat(best_items_list)
@@ -797,11 +849,15 @@ def generate_packages(total_budget, num_persons, duration, datasets,
                 if items_in_c.empty:
                     df["distance_to_target"] = (df["Estimasi_Harga"] - target_price).abs()
                     sorted_items = df.sort_values(by=["Membership_Degree", "distance_to_target"], ascending=[False, True])
-                    best_items = sorted_items.head(15)
+                    pool = sorted_items.head(30)
+                    local_seed = (base_seed + hash(key) + i) % (2**32 - 1)
+                    best_items = pool.sample(n=min(15, len(pool)), random_state=local_seed) if not pool.empty else pool
                 else:
                     items_in_c["distance_to_target"] = (items_in_c["Estimasi_Harga"] - target_price).abs()
                     sorted_items = items_in_c.sort_values(by=["Membership_Degree", "distance_to_target"], ascending=[False, True])
-                    best_items = sorted_items.head(15)
+                    pool = sorted_items.head(30)
+                    local_seed = (base_seed + hash(key) + i) % (2**32 - 1)
+                    best_items = pool.sample(n=min(15, len(pool)), random_state=local_seed) if not pool.empty else pool
                 
             candidates[key][i] = best_items.to_dict("records")
 
@@ -939,22 +995,23 @@ def generate_packages(total_budget, num_persons, duration, datasets,
 
 
         if i == 0:
-            # Hemat: Jarak spasial terkecil + Fuzzy_Score sebagai bobot ringan preferensi user
-            # Fuzzy_Score aman dipakai di sini karena klaster Hemat memang seharusnya diisi item murah
-            valid_combinations = sorted(valid_combinations, key=lambda x: (x.get("selisih", 0) < 0, -get_comb_pref_score(x), x["total_dist"]))
+            # Hemat: Harga total termurah, Jarak spasial terkecil
+            valid_combinations = sorted(valid_combinations, key=lambda x: (x.get("selisih", 0) < 0, x["total_cost"], x["total_dist"]))
         elif i == best_c - 1:
-            # Premium/kelas tertinggi: Rating tertinggi + hotel termewah.
-            # PERBAIKAN: Hapus get_comb_pref_score() dari kriteria Premium.
-            # Fuzzy_Score bias ke preferensi user (backpacker -> w_hemat tinggi, w_premium=0)
-            # sehingga item premium memiliki Fuzzy_Score rendah dan tidak terpilih,
-            # dan paket Premium malah berisi item lebih murah dari paket Hemat.
+            # Premium/kelas tertinggi: Personalisasi dengan pref_bias
+            # Jika Backpacker (pref_bias negatif), prioritaskan hotel termurah di klaster Premium
+            # Jika Luxury (pref_bias positif), prioritaskan hotel termahal di klaster Premium
             valid_combinations = sorted(
                 valid_combinations,
-                key=lambda x: (x.get("selisih", 0) < 0, -get_val(x["wisata"], "Rating"), -get_val(x["hotel"], "Estimasi_Harga"), x["total_dist"])
+                key=lambda x: (
+                    x.get("selisih", 0) < 0, 
+                    -get_val(x["wisata"], "Rating"), 
+                    get_val(x["hotel"], "Estimasi_Harga") if pref_bias < -0.1 else -get_val(x["hotel"], "Estimasi_Harga"), 
+                    x["total_dist"]
+                )
             )
         else:
-            # Balanced: Hybrid rating + jarak.
-            # PERBAIKAN: Hapus get_comb_pref_score() dari kriteria Balanced (alasan sama dengan Premium).
+            # Balanced: Hybrid rating + jarak
             valid_combinations = sorted(
                 valid_combinations,
                 key=lambda x: (x.get("selisih", 0) < 0, -get_val(x["wisata"], "Rating") * 10 - get_val(x["kuliner"], "Rating") * 2 + x["total_dist"] / 10.0)
@@ -1286,6 +1343,9 @@ def generate_packages(total_budget, num_persons, duration, datasets,
                 
 
 
+            # Ekstrak info wahana utama (wisata hari pertama / wisata terpilih)
+            _w_wahana = _extract_wahana_info(w_item)
+
             pkg_formatted: dict[str, Any] = {
                 "hotel_nama": h_item["Nama_Tempat"] if duration > 1 else "Tanpa Akomodasi (One Day Trip)",
                 "hotel_harga": h_item["Estimasi_Harga"] if duration > 1 else 0,
@@ -1296,6 +1356,11 @@ def generate_packages(total_budget, num_persons, duration, datasets,
                 "wisata_harga": w_item["Estimasi_Harga"],
                 "wisata_lat": w_item.get("Latitude", 0),
                 "wisata_lon": w_item.get("Longitude", 0),
+                # Info biaya wahana opsional untuk frontend
+                "has_additional_cost": _w_wahana["has_additional_cost"],
+                "additional_cost_min": _w_wahana["additional_cost_min"],
+                "additional_cost_max": _w_wahana["additional_cost_max"],
+                "additional_cost_label": _w_wahana["additional_cost_label"],
                 "kuliner_pagi_nama": k_pagi_item["Nama_Tempat"] if k_pagi_item else "N/A",
                 "kuliner_pagi_harga": k_pagi_item["Estimasi_Harga"] if k_pagi_item else 0,
                 "kuliner_pagi_lat": k_pagi_item.get("Latitude", 0) if k_pagi_item else 0,
@@ -1486,7 +1551,31 @@ def generate_packages(total_budget, num_persons, duration, datasets,
             pkg_formatted["cost_kuliner"] = cost_k
             pkg_formatted["total_cost"] = cost_h + cost_w + cost_k + cost_t
 
+            # ── Fasilitas Wahana Opsional (array, untuk toggling individual di UI) ──
+            # Format: [{"id": str, "label": str, "cost_per_person": int, "cost_min": int, "cost_max": int}]
+            # Setiap destinasi saat ini hanya punya 1 wahana (bisa diperluas di masa depan).
+            if pkg_formatted.get("has_additional_cost"):
+                pkg_formatted["additional_facilities"] = [{
+                    "id": "wahana_0",
+                    "label": pkg_formatted.get("additional_cost_label", "Fasilitas Tambahan"),
+                    "cost_per_person": pkg_formatted.get("additional_cost_min", 0),
+                    "cost_min": pkg_formatted.get("additional_cost_min", 0),
+                    "cost_max": pkg_formatted.get("additional_cost_max", 0),
+                }]
+            else:
+                pkg_formatted["additional_facilities"] = []
+
+            # ── Sisa Budget (hanya untuk workflow dengan input budget) ──
+            # Digunakan frontend untuk menampilkan tombol "Tambah Destinasi"
+            if total_budget is not None and total_budget > 0:
+                pkg_formatted["budget_input"] = float(total_budget)
+                pkg_formatted["budget_remaining"] = round(float(total_budget) - pkg_formatted["total_cost"], 2)
+            else:
+                pkg_formatted["budget_input"] = None
+                pkg_formatted["budget_remaining"] = None
+
             packages_for_option.append(pkg_formatted)
+
 
         # Enforce uniqueness of option combinations
         sorted_pkgs = sorted(packages_for_option, key=lambda x: x.get("cluster_id", 0))
@@ -1582,7 +1671,7 @@ def generate_packages(total_budget, num_persons, duration, datasets,
 def generate_flexible_exploration_packages(num_persons, duration, datasets,
                                            api_key=None, verbose=True,
                                            transport_mode=None,
-                                           pref_hemat=0.33, pref_balanced=0.33, pref_premium=0.34):
+                                           pref_hemat=0.33, pref_balanced=0.33, pref_premium=0.34, user_id='guest'):
     """
     Alur Skenario Alternatif 1: Flexible Exploration.
     Digunakan ketika pengguna belum menentukan budget.
@@ -1594,6 +1683,10 @@ def generate_flexible_exploration_packages(num_persons, duration, datasets,
 
     if api_key is None:
         api_key = GOOGLE_MAPS_API_KEY
+
+    # Deterministic Seed untuk Top-N Random Sampling
+    seed_str = f"FLEX_{user_id}_{duration}_{num_persons}"
+    base_seed = int(hashlib.md5(seed_str.encode()).hexdigest(), 16) % (2**32 - 1)
 
     # --- Auto-c: Tentukan jumlah klaster optimal via Xie-Beni (offline) ---
     datasets_prices_flex = {cat: datasets[cat]["Estimasi_Harga"].values for cat in ["hotel", "wisata", "kuliner"]}
@@ -1665,12 +1758,16 @@ def generate_flexible_exploration_packages(num_persons, duration, datasets,
                 if not items_in_region.empty:
                     items_in_region_cp = items_in_region.copy()
                     items_in_region_cp["distance_to_target"] = (items_in_region_cp["Estimasi_Harga"] - target_price).abs()
-                    # PERBAIKAN: Urutkan berdasarkan Membership_Degree
+                    # PERBAIKAN: Top-N Stochastic Pool Sampling
                     sorted_items = items_in_region_cp.sort_values(
                         by=["Membership_Degree", "distance_to_target"],
                         ascending=[False, True]
                     )
-                    best_items_list.append(sorted_items.head(8))
+                    pool = sorted_items.head(25)
+                    if not pool.empty:
+                        sample_size = min(8, len(pool))
+                        local_seed = (base_seed + hash(key) + i + hash(region)) % (2**32 - 1)
+                        best_items_list.append(pool.sample(n=sample_size, random_state=local_seed))
             
             if best_items_list:
                 best_items = pd.concat(best_items_list)
@@ -1678,11 +1775,15 @@ def generate_flexible_exploration_packages(num_persons, duration, datasets,
                 if items_in_c.empty:
                     df["distance_to_target"] = (df["Estimasi_Harga"] - target_price).abs()
                     sorted_items = df.sort_values(by=["Membership_Degree", "distance_to_target"], ascending=[False, True])
-                    best_items = sorted_items.head(15)
+                    pool = sorted_items.head(30)
+                    local_seed = (base_seed + hash(key) + i) % (2**32 - 1)
+                    best_items = pool.sample(n=min(15, len(pool)), random_state=local_seed) if not pool.empty else pool
                 else:
                     items_in_c["distance_to_target"] = (items_in_c["Estimasi_Harga"] - target_price).abs()
                     sorted_items = items_in_c.sort_values(by=["Membership_Degree", "distance_to_target"], ascending=[False, True])
-                    best_items = sorted_items.head(15)
+                    pool = sorted_items.head(30)
+                    local_seed = (base_seed + hash(key) + i) % (2**32 - 1)
+                    best_items = pool.sample(n=min(15, len(pool)), random_state=local_seed) if not pool.empty else pool
                 
             candidates[key][i] = best_items.to_dict("records")
 
@@ -1813,15 +1914,18 @@ def generate_flexible_exploration_packages(num_persons, duration, datasets,
                     x["kuliner"].get("Fuzzy_Score", 0.0))
 
         if i == 0:
-            # Hemat: Jarak spasial terkecil + Fuzzy_Score sebagai bobot ringan preferensi user
-            valid_combinations = sorted(valid_combinations, key=lambda x: (x.get("selisih", 0) < 0, -get_comb_pref_score(x), x["total_dist"]))
+            # Hemat: Harga total termurah, Jarak spasial terkecil
+            valid_combinations = sorted(valid_combinations, key=lambda x: (x.get("selisih", 0) < 0, x["total_cost"], x["total_dist"]))
         elif i == best_c - 1:
-            # Premium/kelas tertinggi: Rating tertinggi + hotel termewah.
-            # PERBAIKAN: Hapus get_comb_pref_score() - bias ke preferensi user menyebabkan
-            # item Premium ber-Fuzzy_Score rendah (saat backpacker) tidak terpilih.
+            # Premium/kelas tertinggi: Personalisasi dengan pref_bias
             valid_combinations = sorted(
                 valid_combinations,
-                key=lambda x: (x.get("selisih", 0) < 0, -get_val(x["wisata"], "Rating"), -get_val(x["hotel"], "Estimasi_Harga"), x["total_dist"])
+                key=lambda x: (
+                    x.get("selisih", 0) < 0, 
+                    -get_val(x["wisata"], "Rating"), 
+                    get_val(x["hotel"], "Estimasi_Harga") if pref_bias < -0.1 else -get_val(x["hotel"], "Estimasi_Harga"), 
+                    x["total_dist"]
+                )
             )
         else:
             # Balanced: Hybrid rating + jarak.
@@ -2295,7 +2399,7 @@ def generate_flexible_exploration_packages(num_persons, duration, datasets,
 def generate_destination_first_packages(locked_wisata_id, num_persons, duration, datasets,
                                         total_budget=None, api_key=None, verbose=True,
                                         transport_mode=None, hotel_mode='same',
-                                        pref_hemat=0.33, pref_balanced=0.33, pref_premium=0.34):
+                                        pref_hemat=0.33, pref_balanced=0.33, pref_premium=0.34, user_id='guest'):
     """
     Alur Skenario Alternatif 2: Destination-First.
     Digunakan ketika pengguna sudah mengunci 1 destinasi wisata pasti.
@@ -2313,6 +2417,10 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
 
     if api_key is None:
         api_key = GOOGLE_MAPS_API_KEY
+
+    # Deterministic Seed untuk Top-N Random Sampling
+    seed_str = f"DEST_{user_id}_{total_budget}_{duration}_{num_persons}_{locked_wisata_id}"
+    base_seed = int(hashlib.md5(seed_str.encode()).hexdigest(), 16) % (2**32 - 1)
 
     # Cari destinasi wisata yg dikunci (Copy dan klaster untuk menghindari KeyError pada Cluster)
     df_wisata = datasets["wisata"].copy()
@@ -2474,12 +2582,16 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
                 if not items_in_region.empty:
                     items_in_region_cp = items_in_region.copy()
                     items_in_region_cp["distance_to_target"] = (items_in_region_cp["Estimasi_Harga"] - target_price).abs()
-                    # PERBAIKAN: Urutkan berdasarkan Membership_Degree
+                    # PERBAIKAN: Top-N Stochastic Pool Sampling
                     sorted_items = items_in_region_cp.sort_values(
                         by=["Membership_Degree", "distance_to_target"], 
                         ascending=[False, True]
                     )
-                    best_items_list.append(sorted_items.head(8))
+                    pool = sorted_items.head(25)
+                    if not pool.empty:
+                        sample_size = min(8, len(pool))
+                        local_seed = (base_seed + hash(key) + i + hash(region)) % (2**32 - 1)
+                        best_items_list.append(pool.sample(n=sample_size, random_state=local_seed))
             
             if best_items_list:
                 best_items = pd.concat(best_items_list)
@@ -2487,11 +2599,15 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
                 if items_in_c.empty:
                     df["distance_to_target"] = (df["Estimasi_Harga"] - target_price).abs()
                     sorted_items = df.sort_values(by=["Membership_Degree", "distance_to_target"], ascending=[False, True])
-                    best_items = sorted_items.head(15)
+                    pool = sorted_items.head(30)
+                    local_seed = (base_seed + hash(key) + i) % (2**32 - 1)
+                    best_items = pool.sample(n=min(15, len(pool)), random_state=local_seed) if not pool.empty else pool
                 else:
                     items_in_c["distance_to_target"] = (items_in_c["Estimasi_Harga"] - target_price).abs()
                     sorted_items = items_in_c.sort_values(by=["Membership_Degree", "distance_to_target"], ascending=[False, True])
-                    best_items = sorted_items.head(15)
+                    pool = sorted_items.head(30)
+                    local_seed = (base_seed + hash(key) + i) % (2**32 - 1)
+                    best_items = pool.sample(n=min(15, len(pool)), random_state=local_seed) if not pool.empty else pool
                 
             candidates[key][i] = best_items.to_dict("records")
 
@@ -2636,15 +2752,18 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
                     x["kuliner"].get("Fuzzy_Score", 0.0))
 
         if i == 0:
-            # Hemat: Jarak spasial terkecil + Fuzzy_Score sebagai bobot ringan preferensi user
-            valid_combinations = sorted(valid_combinations, key=lambda x: (x.get("selisih", 0) < 0, -get_comb_pref_score(x), x["total_dist"]))
+            # Hemat: Harga total termurah, Jarak spasial terkecil
+            valid_combinations = sorted(valid_combinations, key=lambda x: (x.get("selisih", 0) < 0, x["total_cost"], x["total_dist"]))
         elif i == best_c - 1:
-            # Premium/kelas tertinggi: Rating tertinggi + hotel termewah.
-            # PERBAIKAN: Hapus get_comb_pref_score() - bias ke preferensi user menyebabkan
-            # item Premium ber-Fuzzy_Score rendah (saat backpacker) tidak terpilih.
+            # Premium/kelas tertinggi: Personalisasi dengan pref_bias
             valid_combinations = sorted(
                 valid_combinations,
-                key=lambda x: (x.get("selisih", 0) < 0, -get_val(x["wisata"], "Rating"), -get_val(x["hotel"], "Estimasi_Harga"), x["total_dist"])
+                key=lambda x: (
+                    x.get("selisih", 0) < 0, 
+                    -get_val(x["wisata"], "Rating"), 
+                    get_val(x["hotel"], "Estimasi_Harga") if pref_bias < -0.1 else -get_val(x["hotel"], "Estimasi_Harga"), 
+                    x["total_dist"]
+                )
             )
         else:
             # Balanced: Hybrid rating + jarak.

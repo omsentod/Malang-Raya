@@ -46,10 +46,28 @@ class RecommenderController extends Controller
             'dest_id'       => 'nullable|string',
             'transport'     => 'nullable|string',
             'hotel_mode'    => 'nullable|string|in:same,split',
-            'pref_hemat'    => 'nullable|numeric|min:0|max:1',
-            'pref_balanced' => 'nullable|numeric|min:0|max:1',
-            'pref_premium'  => 'nullable|numeric|min:0|max:1',
         ]);
+
+        // Implicit Profiling (Zero-Click Personalization)
+        $pref_hemat = 0.33;
+        $pref_balanced = 0.33;
+        $pref_premium = 0.34;
+        
+        if (!empty($validated['budget'])) {
+            $budgetPerPersonPerDay = $validated['budget'] / ($validated['persons'] * $validated['duration']);
+            if ($budgetPerPersonPerDay < 200000) { // Backpacker
+                $pref_hemat = 0.80;
+                $pref_balanced = 0.20;
+                $pref_premium = 0.00;
+            } elseif ($budgetPerPersonPerDay > 500000) { // Luxury
+                $pref_hemat = 0.00;
+                $pref_balanced = 0.30;
+                $pref_premium = 0.70;
+            }
+        }
+
+        // Deterministic Seed basis
+        $userId = auth()->id() ?? session()->getId();
 
         $args = [
             $this->pythonBinary(),
@@ -57,6 +75,10 @@ class RecommenderController extends Controller
             '--workflow', $validated['workflow'],
             '--persons',  $validated['persons'],
             '--duration', $validated['duration'],
+            '--user_id',  (string) $userId,
+            '--pref_hemat', (string) $pref_hemat,
+            '--pref_balanced', (string) $pref_balanced,
+            '--pref_premium', (string) $pref_premium,
         ];
 
         if (!empty($validated['budget'])) {
@@ -79,20 +101,6 @@ class RecommenderController extends Controller
             $args[] = $validated['hotel_mode'];
         }
 
-        if (isset($validated['pref_hemat'])) {
-            $args[] = '--pref_hemat';
-            $args[] = $validated['pref_hemat'];
-        }
-
-        if (isset($validated['pref_balanced'])) {
-            $args[] = '--pref_balanced';
-            $args[] = $validated['pref_balanced'];
-        }
-
-        if (isset($validated['pref_premium'])) {
-            $args[] = '--pref_premium';
-            $args[] = $validated['pref_premium'];
-        }
 
         $process = new Process($args);
         $process->setWorkingDirectory($this->workingDir());
@@ -237,7 +245,7 @@ public function minBudget(Request $request)
         'NUMEXPR_NUM_THREADS' => '1',
         'VECLIB_MAXIMUM_THREADS' => '1',
     ]);
-    $process->setTimeout(30);
+    $process->setTimeout(120);
 
     try {
         $process->mustRun();
@@ -256,4 +264,75 @@ public function minBudget(Request $request)
         ], 500);
     }
 }
+
+    /**
+     * API: Cari kandidat destinasi tambahan untuk fitur multi-destinasi per hari.
+     * Dipanggil oleh recom.js saat user klik "+ Tambah Destinasi"
+     */
+    public function addDestination(Request $request)
+    {
+        $validated = $request->validate([
+            'lat'              => 'required|numeric',
+            'lon'              => 'required|numeric',
+            'budget_remaining' => 'required|numeric|min:0',
+            'persons'          => 'required|integer|min:1|max:20',
+            'existing_ids'     => 'nullable|string',
+            'max_results'      => 'nullable|integer|min:1|max:30',
+            'max_dist_km'      => 'nullable|numeric|min:1|max:100',
+        ]);
+
+        $python = $this->pythonBinary();
+        $script = storage_path('app/python/add_destination_api.py');
+
+        $cmd = [
+            $python, $script,
+            '--lat',              (string) $validated['lat'],
+            '--lon',              (string) $validated['lon'],
+            '--budget_remaining', (string) $validated['budget_remaining'],
+            '--persons',          (string) $validated['persons'],
+        ];
+
+        if (!empty($validated['existing_ids'])) {
+            $cmd[] = '--existing_ids';
+            $cmd[] = $validated['existing_ids'];
+        }
+        if (!empty($validated['max_results'])) {
+            $cmd[] = '--max_results';
+            $cmd[] = (string) $validated['max_results'];
+        }
+        if (!empty($validated['max_dist_km'])) {
+            $cmd[] = '--max_dist_km';
+            $cmd[] = (string) $validated['max_dist_km'];
+        }
+
+        $process = new Process($cmd);
+        $process->setWorkingDirectory($this->workingDir());
+        $process->setEnv([
+            'OPENBLAS_NUM_THREADS'    => '1',
+            'MKL_NUM_THREADS'         => '1',
+            'OMP_NUM_THREADS'         => '1',
+            'NUMEXPR_NUM_THREADS'     => '1',
+            'VECLIB_MAXIMUM_THREADS'  => '1',
+        ]);
+        $process->setTimeout(120);
+
+        try {
+            $process->mustRun();
+            $output = $process->getOutput();
+            $result = json_decode($output, true);
+
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                return response()->json(['status' => 'error', 'message' => 'Output bukan JSON valid'], 500);
+            }
+            return response()->json($result);
+
+        } catch (ProcessFailedException $e) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Proses gagal.',
+                'detail'  => $e->getProcess()->getErrorOutput(),
+            ], 500);
+        }
+    }
 }
+

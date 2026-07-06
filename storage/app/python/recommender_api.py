@@ -62,6 +62,7 @@ def main():
     parser.add_argument('--pref_hemat', type=float, default=0.33)
     parser.add_argument('--pref_balanced', type=float, default=0.33)
     parser.add_argument('--pref_premium', type=float, default=0.34)
+    parser.add_argument('--user_id', type=str, default='guest')
 
     args = parser.parse_args()
 
@@ -92,6 +93,7 @@ def main():
                     pref_hemat=args.pref_hemat,
                     pref_balanced=args.pref_balanced,
                     pref_premium=args.pref_premium,
+                    user_id=args.user_id,
                 )
 
             elif args.workflow == 'flexible':
@@ -104,6 +106,7 @@ def main():
                     pref_hemat=args.pref_hemat,
                     pref_balanced=args.pref_balanced,
                     pref_premium=args.pref_premium,
+                    user_id=args.user_id,
                 )
 
             elif args.workflow == 'destination':
@@ -121,6 +124,7 @@ def main():
                     pref_hemat=args.pref_hemat,
                     pref_balanced=args.pref_balanced,
                     pref_premium=args.pref_premium,
+                    user_id=args.user_id,
                 )
             # Ekspor otomatis hasil rekomendasi ke berkas Excel di output/hasil-rekomendasi
             try:
