@@ -63,7 +63,9 @@ def main():
     parser.add_argument('--pref_balanced', type=float, default=0.33)
     parser.add_argument('--pref_premium', type=float, default=0.34)
     parser.add_argument('--user_id', type=str, default='guest')
-
+    parser.add_argument('--pref_wisata', type=str, default='')
+    parser.add_argument('--pref_hotel', type=str, default='')
+    parser.add_argument('--pref_kuliner', type=str, default='')
     args = parser.parse_args()
 
     # Simpan stdout asli di sini, sebelum blok try, agar selalu terdefinisi

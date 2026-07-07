@@ -105,6 +105,21 @@ def main():
     dataset_path = os.path.join(base_dir, "datasets", "wisata_clean.xlsx")
     df = pd.read_excel(dataset_path)
 
+    # Expand excluded_ids to include all members of the same destination family
+    # Ini memastikan wisata yang sudah jadi "Fasilitas Opsional" tidak muncul lagi
+    if "destination_family_id" in df.columns:
+        extended_ids = set(excluded_ids)
+        for eid in excluded_ids:
+            row = df[df["Id_Tempat"] == eid]
+            if not row.empty:
+                fam_id = row.iloc[0].get("destination_family_id")
+                parent_id = int(float(fam_id)) if (fam_id is not None and not pd.isna(fam_id)) else eid
+                extended_ids.add(parent_id)
+                children = df[df["destination_family_id"] == parent_id]["Id_Tempat"]
+                for child in children:
+                    extended_ids.add(int(child))
+        excluded_ids = extended_ids
+
     results = []
     for _, row in df.iterrows():
         tid = int(row["Id_Tempat"])

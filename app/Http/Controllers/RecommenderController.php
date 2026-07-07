@@ -8,6 +8,11 @@ use Symfony\Component\Process\Exception\ProcessFailedException;
 
 class RecommenderController extends Controller
 {
+    public function __construct()
+    {
+        set_time_limit(600);
+    }
+
     private function pythonBinary(): string
     {
         // Prioritas 1: venv permanen di luar direktori deployment (tidak terhapus saat deploy)
@@ -111,7 +116,7 @@ class RecommenderController extends Controller
             'NUMEXPR_NUM_THREADS' => '1',
             'VECLIB_MAXIMUM_THREADS' => '1',
         ]);
-        $process->setTimeout(90);
+        $process->setTimeout(600); // 10 menit untuk memberi waktu pengguna melihat matplotlib
 
         try {
             $process->mustRun();

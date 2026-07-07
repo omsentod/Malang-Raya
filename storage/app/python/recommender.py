@@ -17,6 +17,156 @@ from config import (
 from fcm_clustering import run_budget_anchored_fcm, run_percentile_fcm, find_best_c_for_budget, find_best_c_offline, run_fcm
 from transport_api import calculate_route_cost, haversine_distance, get_osrm_route_distance
 
+import matplotlib
+import matplotlib.pyplot as plt
+
+def show_recommendation_scatter(clustered, options_list, workflow_name="Workflow"):
+    """
+    Displays a matplotlib scatter plot showing cluster distribution and membership data,
+    highlighting the top recommendation's items.
+    """
+    if not options_list or not clustered:
+        return
+        
+    try:
+        import numpy as np
+        
+        # Membuat 1 grafik saja (Klaster vs Membership)
+        fig, ax = plt.subplots(figsize=(14, 8))
+        fig.subplots_adjust(right=0.65) # Beri ruang kosong 35% di sisi kanan untuk info dan legend
+        ax.set_title(f"Distribusi Klaster & Membership - {workflow_name}", fontsize=14, fontweight='bold')
+        ax.set_xlabel("Kategori Klaster (Hasil best_c)", fontsize=12)
+        ax.set_ylabel("Derajat Keanggotaan (Membership Degree)", fontsize=12)
+        
+        # Tambahkan teks info jumlah, nilai centroid, dan jumlah anggotanya
+        centroid_info = []
+        for cat, data in clustered.items():
+            if 'cntr' in data and 'df' in data:
+                cntr_vals = data['cntr']
+                df_cat = data['df']
+                cntr_count = len(cntr_vals)
+                
+                # Hitung jumlah item di tiap klaster
+                cluster_counts = df_cat['Cluster'].value_counts() if 'Cluster' in df_cat.columns else {}
+                
+                formatted_vals = []
+                for i, val in enumerate(cntr_vals):
+                    c_count = cluster_counts.get(i, 0)
+                    formatted_vals.append(f"Rp {val:,.0f} ({c_count} item)")
+                    
+                vals_str = "\n      ".join(formatted_vals)
+                centroid_info.append(f"• {cat.capitalize()} ({cntr_count} Klaster):\n      {vals_str}")
+        
+        if centroid_info:
+            info_text = "Detail Centroid & Jumlah Anggota:\n(Berdasarkan Estimasi Harga)\n\n" + "\n".join(centroid_info)
+            props = dict(boxstyle='round', facecolor='wheat', alpha=0.8)
+            # Posisikan teks di luar grafik bagian kanan
+            ax.text(1.05, 0.98, info_text, transform=ax.transAxes, fontsize=10,
+                    verticalalignment='top', bbox=props, zorder=10)
+        
+        colors = {'hotel': '#1f77b4', 'wisata': '#2ca02c', 'kuliner': '#d62728'}
+        labels_added = set()
+        
+        # 1. Kumpulkan dan petakan semua nama kategori ke indeks numerik
+        cat_mapping = {}
+        for category, cat_data in clustered.items():
+            if 'df' in cat_data:
+                df = cat_data['df']
+                x_c = 'Kategori' if 'Kategori' in df.columns else ('Cluster' if 'Cluster' in df.columns else None)
+                if x_c:
+                    for val in df[x_c].unique():
+                        if val not in cat_mapping:
+                            cat_mapping[val] = len(cat_mapping)
+                            
+        # 2. Plot titik-titik dengan efek Jitter (sebaran horizontal) agar tidak numpuk jadi garis vertikal
+        for category, cat_data in clustered.items():
+            if 'df' in cat_data:
+                df = cat_data['df']
+                if 'Membership_Degree' in df.columns:
+                    valid_df = df.copy()
+                    if not valid_df.empty:
+                        sizes = valid_df['Membership_Degree'] * 90 + 20
+                        label = category.capitalize() if category not in labels_added else ""
+                        labels_added.add(category)
+                        
+                        x_col = 'Kategori' if 'Kategori' in valid_df.columns else ('Cluster' if 'Cluster' in valid_df.columns else None)
+                        if x_col:
+                            # Ambil nilai numerik dari kategori
+                            x_base = valid_df[x_col].map(cat_mapping).astype(float)
+                            # Tambahkan sedikit angka acak (jitter) agar menyebar ke samping
+                            jitter = np.random.uniform(-0.15, 0.15, size=len(x_base))
+                            x_jittered = x_base + jitter
+                            
+                            ax.scatter(
+                                x_jittered, valid_df['Membership_Degree'], 
+                                s=sizes, c=colors.get(category, 'gray'), 
+                                alpha=0.65, label=label, edgecolors='white', linewidth=0.3
+                            )
+                            
+        # 3. Atur label sumbu X kembali menjadi teks kategori
+        if cat_mapping:
+            ax.set_xticks(list(cat_mapping.values()))
+            ax.set_xticklabels(list(cat_mapping.keys()))
+        
+        top_pkg = options_list[0]
+        
+        # Data untuk Plot Klaster vs Membership rute terbaik
+        route_clusters = []
+        
+        # Fungsi bantu untuk mencari Membership Degree & Klaster dari data yang terpilih
+        def get_cluster_info(name, cat):
+            if cat in clustered and 'df' in clustered[cat]:
+                df = clustered[cat]['df']
+                match = df[df['Nama_Tempat'] == name]
+                if not match.empty:
+                    x_val = match.iloc[0]['Kategori'] if 'Kategori' in df.columns else match.iloc[0]['Cluster']
+                    return (x_val, match.iloc[0]['Membership_Degree'])
+            return ("Unknown", 1.0) # Fallback
+            
+        if top_pkg.get('hotel_nama_real'):
+            info = get_cluster_info(top_pkg['hotel_nama_real'], 'hotel')
+            route_clusters.append((info[0], info[1], "Hotel"))
+            
+        if top_pkg.get('kuliner_pagi_nama') and top_pkg.get('kuliner_pagi_nama') != 'N/A':
+            info = get_cluster_info(top_pkg.get('kuliner_pagi_nama', ''), 'kuliner')
+            route_clusters.append((info[0], info[1], "Makan Pagi"))
+            
+        if top_pkg.get('wisata_nama'):
+            info = get_cluster_info(top_pkg['wisata_nama'], 'wisata')
+            route_clusters.append((info[0], info[1], "Wisata"))
+            
+        if top_pkg.get('kuliner_nama'):
+            info = get_cluster_info(top_pkg['kuliner_nama'], 'kuliner')
+            route_clusters.append((info[0], info[1], "Makan Siang"))
+            
+        if top_pkg.get('kuliner_malam_nama') and top_pkg.get('kuliner_malam_nama') != 'N/A':
+            info = get_cluster_info(top_pkg.get('kuliner_malam_nama', ''), 'kuliner')
+            route_clusters.append((info[0], info[1], "Makan Malam"))
+
+        if route_clusters:
+            # --- Plot Klaster vs Keanggotaan Rute Terbaik ---
+            # Posisi persis di tengah kategori (tanpa jitter)
+            cluster_labels_list = [cat_mapping.get(p[0], 0) for p in route_clusters]
+            memberships = [p[1] for p in route_clusters]
+            
+            ax.scatter(cluster_labels_list, memberships, color='gold', s=300, edgecolors='black', zorder=5, label='Item Paket Terpilih')
+            
+            # Beri offset sedikit pada posisi X dari teks agar tidak menumpuk persis di tengah
+            for i, (c_label, membership, lbl) in enumerate(route_clusters):
+                x_pos = cat_mapping.get(c_label, 0)
+                ax.annotate(f"{lbl}", (x_pos, membership), xytext=(12, 0), textcoords='offset points', fontweight='bold', zorder=6,
+                            bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="black", alpha=0.8))
+
+        # Legend juga digeser ke luar agar tidak menutupi grafik sama sekali
+        ax.legend(loc='lower left', bbox_to_anchor=(1.05, 0.0))
+        ax.grid(True, linestyle=':', alpha=0.6)
+        # plt.tight_layout() dihapus agar tidak me-reset jarak subplots_adjust
+        plt.show()
+        
+    except Exception as e:
+        print(f"Plotting error: {e}")
+
+
 
 LAST_CLUSTERED = None
 
@@ -1413,6 +1563,7 @@ def generate_packages(total_budget, num_persons, duration, datasets,
                 "hotel_nama_real": h_item["Nama_Tempat"],
                 "hotel_lat": h_item.get("Latitude", 0),
                 "hotel_lon": h_item.get("Longitude", 0),
+                "wisata_id": int(float(w_item.get("Id_Tempat"))) if pd.notna(w_item.get("Id_Tempat")) else None,
                 "wisata_nama": w_item["Nama_Tempat"],
                 "wisata_harga": w_item["Estimasi_Harga"],
                 "wisata_lat": w_item.get("Latitude", 0),
@@ -1518,6 +1669,7 @@ def generate_packages(total_budget, num_persons, duration, datasets,
                         
                     itinerary.append({
                         "day": d,
+                        "wisata_id": int(float(w_var.get("Id_Tempat"))) if w_var and pd.notna(w_var.get("Id_Tempat")) else None,
                         "wisata": w_var.get("Nama_Tempat", "N/A") if w_var else "N/A",
                         "wisata_harga": w_var.get("Estimasi_Harga", 0) if w_var else 0,
                         "wisata_lat": w_var.get("Latitude", 0.0) if w_var else 0.0,
@@ -1712,6 +1864,7 @@ def generate_packages(total_budget, num_persons, duration, datasets,
         "kuliner": clustered.get("kuliner", {}).get("df") if "kuliner" in clustered else None,
     }
 
+    show_recommendation_scatter(clustered, options_list, 'Budget-First Workflow')
     return options_list
 
 
@@ -2242,7 +2395,7 @@ def generate_flexible_exploration_packages(num_persons, duration, datasets,
                 "hotel_rating": h_item.get("Rating", 0.0) if duration > 1 else 0.0,
                 "hotel_lat": h_item.get("Latitude", 0.0) if duration > 1 else 0.0,
                 "hotel_lon": h_item.get("Longitude", 0.0) if duration > 1 else 0.0,
-                
+                "wisata_id": int(float(w_item.get("Id_Tempat"))) if pd.notna(w_item.get("Id_Tempat")) else None,
                 "wisata_nama": w_item.get("Nama_Tempat", "N/A"),
                 "wisata_harga": w_item.get("Estimasi_Harga", 0),
                 "wisata_rating": w_item.get("Rating", 0.0),
@@ -2341,6 +2494,7 @@ def generate_flexible_exploration_packages(num_persons, duration, datasets,
                         day_hotel_lon = 0.0
                     itinerary.append({
                         "day": d,
+                        "wisata_id": int(float(w_var.get("Id_Tempat"))) if w_var and pd.notna(w_var.get("Id_Tempat")) else None,
                         "wisata": w_var.get("Nama_Tempat", "N/A") if w_var else "N/A",
                         "wisata_harga": w_var.get("Estimasi_Harga", 0) if w_var else 0,
                         "wisata_lat": w_var.get("Latitude", 0.0) if w_var else 0.0,
@@ -2469,6 +2623,7 @@ def generate_flexible_exploration_packages(num_persons, duration, datasets,
         "kuliner": clustered.get("kuliner", {}).get("df") if "kuliner" in clustered else None,
     }
 
+    show_recommendation_scatter(clustered, options_list, 'Flexible Workflow')
     return options_list
 
 # ============================================================
@@ -3215,7 +3370,7 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
                 "hotel_rating": h_item.get("Rating", 0.0) if duration > 1 else 0.0,
                 "hotel_lat": h_item.get("Latitude", 0.0) if duration > 1 else 0.0,
                 "hotel_lon": h_item.get("Longitude", 0.0) if duration > 1 else 0.0,
-                
+                "wisata_id": int(float(w_item.get("Id_Tempat"))) if pd.notna(w_item.get("Id_Tempat")) else None,
                 "wisata_nama": w_item.get("Nama_Tempat", "N/A"),
                 "wisata_harga": w_item.get("Estimasi_Harga", 0),
                 "wisata_rating": w_item.get("Rating", 0.0),
@@ -3325,6 +3480,7 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
                         
                     itinerary.append({
                         "day": d,
+                        "wisata_id": int(float(w_var.get("Id_Tempat"))) if w_var and pd.notna(w_var.get("Id_Tempat")) else None,
                         "wisata": w_var.get("Nama_Tempat", "N/A") if w_var else "N/A",
                         "wisata_harga": w_var.get("Estimasi_Harga", 0) if w_var else 0,
                         "wisata_lat": w_var.get("Latitude", 0.0) if w_var else 0.0,
@@ -3463,6 +3619,7 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
         "kuliner": clustered.get("kuliner", {}).get("df") if "kuliner" in clustered else None,
     }
 
+    show_recommendation_scatter(clustered, options_list, 'Destination-First Workflow')
     return options_list
 
 

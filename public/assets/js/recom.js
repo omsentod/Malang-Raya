@@ -2684,7 +2684,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="pkg-breakdown">
                     ${akomodasiRowHTML}
                     <div class="pkg-breakdown-row">
-                        <span>🎯 Tiket Wisata (${pkg.num_persons} orang × ${pkg.duration} wisata)</span>
+                        <span id="wisata-label-${pkgUid}">🎯 Tiket Wisata (${pkg.num_persons} orang × ${pkg.duration} wisata)</span>
                         <span id="wisata-display-${pkgUid}">${fmtRp(pkg.cost_wisata)}</span>
                     </div>
                     <div class="pkg-breakdown-row">
@@ -2794,40 +2794,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const chosenEl = document.getElementById(`wahana-chosen-${uid}`);
                 if (chosenEl) chosenEl.textContent = fmtRp(wahanaCostTotal);
 
-                // Update displayed total
-                const newTotal = pkg.total_cost + wahanaCostTotal;
-                const totalEl = document.getElementById(`total-display-${uid}`);
-                if (totalEl) totalEl.textContent = fmtRp(newTotal);
-
-                // Update remaining budget display
-                const budgetInput = pkg.budget_input || 0;
-                const newRemaining = budgetInput > 0 ? budgetInput - newTotal : null;
-                const remainEl = document.getElementById(`remain-display-${uid}`);
-                if (remainEl && newRemaining !== null) {
-                    const isNewOver = newRemaining < 0;
-                    remainEl.innerHTML = `<div class="pkg-sisa ${isNewOver ? 'over' : 'ok'}">${isNewOver ? '⚠ Melebihi budget ' + fmtRp(Math.abs(newRemaining)) : '✓ Sisa ' + fmtRp(newRemaining)}</div>`;
-                    // Update total box class
-                    const tbox = document.getElementById(`pkg-total-box-${uid}`);
-                    if (tbox) { tbox.className = `pkg-total ${isNewOver ? 'over' : 'ok'}`; }
-                    const ticon = document.getElementById(`total-icon-${uid}`);
-                    if (ticon) { ticon.textContent = isNewOver ? 'warning' : 'check_circle'; ticon.style.color = isNewOver ? '#dc2626' : 'var(--teal-400)'; }
-                }
-
-                // Show/hide extra-dest panel based on remaining after wahana
-                const extraPanel = document.getElementById(`extra-dest-${uid}`);
-                if (extraPanel) {
-                    const effectiveRemaining = newRemaining !== null ? newRemaining : (pkg.budget_remaining || 0);
-                    const MIN_TICKET = 5000; // minimum tiket destinasi tambahan
-                    const addedCount = card._extraDestinations ? card._extraDestinations.length : 0;
-                    const MAX_EXTRA = pkg.duration;
-                    if (effectiveRemaining >= MIN_TICKET && addedCount < MAX_EXTRA) {
-                        extraPanel.style.display = 'block';
-                        const infoEl = document.getElementById(`extra-dest-info-${uid}`);
-                        if (infoEl) infoEl.textContent = `Sisa ${fmtRp(effectiveRemaining)} — tambah destinasi wisata lagi untuk Hari ${addedCount + 1}!`;
-                    } else {
-                        extraPanel.style.display = 'none';
-                    }
-                }
+                // Gunakan single source of truth untuk menghitung ulang semuanya
+                _refreshExtraDestUI(pkg, card, uid, pkg.duration);
             });
         });
 
@@ -3147,7 +3115,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const wahanaTotal = selectedWahana.reduce((s, f) => s + f.cost_per_person * pkg.num_persons, 0);
         const extraTickets = extraDests.reduce((s, d) => s + d.total_ticket_cost, 0);
         const totalCost = pkg.total_cost + wahanaTotal + extraTickets + extraTransportCost;
-        const costWisata = pkg.cost_wisata + extraTickets;
+        const costWisata = pkg.cost_wisata + wahanaTotal + extraTickets;
         const costTransport = pkg.cost_transport + extraTransportCost;
 
         let originalDist = pkg.transport_detail?.total_distance_km || 0;
@@ -7123,7 +7091,15 @@ function _refreshExtraDestUI(pkg, card, pkgUid, MAX_EXTRA) {
 
     // 4. Update wisata breakdown
     const wisataEl = document.getElementById(`wisata-display-${pkgUid}`);
-    if (wisataEl) wisataEl.textContent = fmtRpGlobal(pkg.cost_wisata + extraTickets);
+    if (wisataEl) wisataEl.textContent = fmtRpGlobal(pkg.cost_wisata + newWahana + extraTickets);
+
+    const wisataLabelEl = document.getElementById(`wisata-label-${pkgUid}`);
+    if (wisataLabelEl) {
+        const totalWisata = pkg.duration + extraDests.length;
+        let lbl = `🎯 Tiket Wisata (${pkg.num_persons} orang × ${totalWisata} wisata)`;
+        if (newWahana > 0) lbl += " + Tambahan";
+        wisataLabelEl.textContent = lbl;
+    }
 
     // 5. Update transport breakdown
     const transportEl = document.getElementById(`transport-display-${pkgUid}`);
