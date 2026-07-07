@@ -26,7 +26,7 @@ def get_pref_weights(c, pref_hemat, pref_balanced, pref_premium):
     Menyelaraskan bobot preferensi pengguna untuk C klaster secara proporsional.
     """
     if c == 2:
-        w = [pref_hemat, pref_premium]
+        w = [pref_hemat + (pref_balanced / 2.0), pref_premium + (pref_balanced / 2.0)]
     elif c == 3:
         w = [pref_hemat, pref_balanced, pref_premium]
     elif c == 4:
@@ -574,7 +574,7 @@ def allocate_budget(total_budget, num_persons, duration):
 # ============================================================
 # 2. HITUNG BIAYA PAKET
 # ============================================================
-def _extract_wahana_info(wisata_item: dict) -> dict:
+def _extract_wahana_info(_wisata_item: dict) -> dict:
     """
     Mengembalikan dict wahana kosong secara aman karena kolom-kolom usang
     telah dihapus dari dataset Excel.
@@ -614,8 +614,7 @@ def _get_additional_facilities_for_wisata(wisata_item: dict, df_wisata: pd.DataF
     family_id = raw_w.get("destination_family_id")
     
     # Periksa jika family_id ada dan tidak null (NaN)
-    is_child = family_id is not None and not pd.isna(family_id)
-    parent_id = int(float(family_id)) if is_child else tid
+    parent_id = int(float(family_id)) if (family_id is not None and not pd.isna(family_id)) else tid
     
     complex_members = []
     
@@ -1045,31 +1044,38 @@ def generate_packages(total_budget, num_persons, duration, datasets,
 
 
         if i == 0:
-            # Hemat: paket termurah yang tetap MENGIKUTI skala budget.
-            # Target = porsi hemat dari total budget (ratio klaster terendah),
-            # bukan minimum absolut dataset — agar paket Hemat ikut naik saat
-            # budget dinaikkan, bukan mentok di lantai harga dataset.
-            hemat_target = total_budget * ratios_for_c[0]
-            valid_combinations = sorted(valid_combinations, key=lambda x: (x.get("selisih", 0) < 0, -get_comb_pref_score(x), abs(x["total_cost"] - hemat_target), x["total_dist"]))
+            # Hemat: paket termurah yang MENGIKUTI skala budget bila budget diisi.
+            # Jika budget None (mode destinasi tanpa budget), tetap pilih termurah.
+            hemat_target = total_budget * ratios_for_c[0] if total_budget is not None else None
+            hemat_key = (lambda x: x["total_cost"]) if hemat_target is None else (lambda x: abs(x["total_cost"] - hemat_target))
+            valid_combinations = sorted(valid_combinations, key=lambda x: (x.get("selisih", 0) < 0, -get_comb_pref_score(x), hemat_key(x), x["total_dist"]))
         elif i == best_c - 1:
-            # Premium/kelas tertinggi: Personalisasi dengan pref_bias
-            # Jika Backpacker (pref_bias negatif), prioritaskan hotel termurah di klaster Premium
-            # Jika Luxury (pref_bias positif), prioritaskan hotel termahal di klaster Premium
+            # Premium/kelas tertinggi: Personalisasi dengan target budget
+            premium_target = total_budget * ratios_for_c[-1] if total_budget is not None else None
+            premium_key = (lambda x: get_val(x["hotel"], "Estimasi_Harga") if pref_bias < -0.1 else -get_val(x["hotel"], "Estimasi_Harga")) if premium_target is None else (lambda x: abs(x["total_cost"] - premium_target))
             valid_combinations = sorted(
                 valid_combinations,
                 key=lambda x: (
                     x.get("selisih", 0) < 0, 
                     -get_comb_pref_score(x),
+                    premium_key(x),
                     -get_val(x["wisata"], "Rating"), 
-                    get_val(x["hotel"], "Estimasi_Harga") if pref_bias < -0.1 else -get_val(x["hotel"], "Estimasi_Harga"), 
                     x["total_dist"]
                 )
             )
         else:
-            # Balanced: Hybrid rating + jarak
+            # Balanced: Hybrid rating + jarak dan target budget
+            balanced_target = total_budget * ratios_for_c[i] if total_budget is not None else None
+            balanced_key = (lambda x: -get_val(x["wisata"], "Rating") * 10 - get_val(x["kuliner"], "Rating") * 2 + x["total_dist"] / 10.0) if balanced_target is None else (lambda x: abs(x["total_cost"] - balanced_target))
             valid_combinations = sorted(
                 valid_combinations,
-                key=lambda x: (x.get("selisih", 0) < 0, -get_comb_pref_score(x), -get_val(x["wisata"], "Rating") * 10 - get_val(x["kuliner"], "Rating") * 2 + x["total_dist"] / 10.0)
+                key=lambda x: (
+                    x.get("selisih", 0) < 0, 
+                    -get_comb_pref_score(x), 
+                    balanced_key(x),
+                    -get_val(x["wisata"], "Rating"),
+                    x["total_dist"]
+                )
             )
 
 
@@ -1970,25 +1976,39 @@ def generate_flexible_exploration_packages(num_persons, duration, datasets,
             return score
 
         if i == 0:
-            # Hemat: Harga total termurah, Jarak spasial terkecil
-            valid_combinations = sorted(valid_combinations, key=lambda x: (x.get("selisih", 0) < 0, -get_comb_pref_score(x), x["total_cost"], x["total_dist"]))
+            # Hemat: paket termurah yang MENGIKUTI skala budget bila budget diisi.
+            # Pada mode flexible, budget selalu None (tanpa budget).
+            total_budget = None 
+            hemat_target = None
+            hemat_key = (lambda x: x["total_cost"]) if hemat_target is None else (lambda x: abs(x["total_cost"] - hemat_target))
+            valid_combinations = sorted(valid_combinations, key=lambda x: (x.get("selisih", 0) < 0, -get_comb_pref_score(x), hemat_key(x), x["total_dist"]))
         elif i == best_c - 1:
-            # Premium/kelas tertinggi: Personalisasi dengan pref_bias
+            # Premium/kelas tertinggi: Personalisasi dengan target budget
+            premium_target = None
+            premium_key = (lambda x: get_val(x["hotel"], "Estimasi_Harga") if pref_bias < -0.1 else -get_val(x["hotel"], "Estimasi_Harga")) if premium_target is None else (lambda x: abs(x["total_cost"] - premium_target))
             valid_combinations = sorted(
                 valid_combinations,
                 key=lambda x: (
                     x.get("selisih", 0) < 0, 
                     -get_comb_pref_score(x),
+                    premium_key(x),
                     -get_val(x["wisata"], "Rating"), 
-                    get_val(x["hotel"], "Estimasi_Harga") if pref_bias < -0.1 else -get_val(x["hotel"], "Estimasi_Harga"), 
                     x["total_dist"]
                 )
             )
         else:
-            # Balanced: Hybrid rating + jarak.
+            # Balanced: Hybrid rating + jarak dan target budget
+            balanced_target = None
+            balanced_key = (lambda x: -get_val(x["wisata"], "Rating") * 10 - get_val(x["kuliner"], "Rating") * 2 + x["total_dist"] / 10.0) if balanced_target is None else (lambda x: abs(x["total_cost"] - balanced_target))
             valid_combinations = sorted(
                 valid_combinations,
-                key=lambda x: (x.get("selisih", 0) < 0, -get_comb_pref_score(x), -get_val(x["wisata"], "Rating") * 10 - get_val(x["kuliner"], "Rating") * 2 + x["total_dist"] / 10.0)
+                key=lambda x: (
+                    x.get("selisih", 0) < 0, 
+                    -get_comb_pref_score(x), 
+                    balanced_key(x),
+                    -get_val(x["wisata"], "Rating"),
+                    x["total_dist"]
+                )
             )
 
 
@@ -2621,13 +2641,13 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
         df = clustered[key]["df"]
         cntrs = clustered[key]["cntr"]
         
-        # Calculate target prices subjective to budget if budget exists
+        # Calculate target prices subjective to budget if budget exists.
+        # ratios_dest sudah didefinisikan tanpa syarat di awal fungsi (selalu tuple),
+        # jadi di sini cukup tentukan anchor per-kategori.
         if total_budget is not None:
             anchor = anchor_hotel if key == "hotel" else anchor_kul
-            ratios_dest = get_ratio_scheme(best_c)
         else:
             anchor = None
-            ratios_dest = None
 
         for i in range(best_c):
             items_in_c = df[df["Cluster"] == i].copy()
@@ -2829,22 +2849,32 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
             hemat_key = (lambda x: x["total_cost"]) if hemat_target is None else (lambda x: abs(x["total_cost"] - hemat_target))
             valid_combinations = sorted(valid_combinations, key=lambda x: (x.get("selisih", 0) < 0, -get_comb_pref_score(x), hemat_key(x), x["total_dist"]))
         elif i == best_c - 1:
-            # Premium/kelas tertinggi: Personalisasi dengan pref_bias
+            # Premium/kelas tertinggi: Personalisasi dengan target budget
+            premium_target = total_budget * ratios_dest[-1] if total_budget is not None else None
+            premium_key = (lambda x: get_val(x["hotel"], "Estimasi_Harga") if pref_bias < -0.1 else -get_val(x["hotel"], "Estimasi_Harga")) if premium_target is None else (lambda x: abs(x["total_cost"] - premium_target))
             valid_combinations = sorted(
                 valid_combinations,
                 key=lambda x: (
                     x.get("selisih", 0) < 0,
                     -get_comb_pref_score(x),
+                    premium_key(x),
                     -get_val(x["wisata"], "Rating"),
-                    get_val(x["hotel"], "Estimasi_Harga") if pref_bias < -0.1 else -get_val(x["hotel"], "Estimasi_Harga"),
                     x["total_dist"]
                 )
             )
         else:
-            # Balanced: Hybrid rating + jarak.
+            # Balanced: Hybrid rating + jarak dan target budget
+            balanced_target = total_budget * ratios_dest[i] if total_budget is not None else None
+            balanced_key = (lambda x: -get_val(x["wisata"], "Rating") * 10 - get_val(x["kuliner"], "Rating") * 2 + x["total_dist"] / 10.0) if balanced_target is None else (lambda x: abs(x["total_cost"] - balanced_target))
             valid_combinations = sorted(
                 valid_combinations,
-                key=lambda x: (x.get("selisih", 0) < 0, -get_comb_pref_score(x), -get_val(x["wisata"], "Rating") * 10 - get_val(x["kuliner"], "Rating") * 2 + x["total_dist"] / 10.0)
+                key=lambda x: (
+                    x.get("selisih", 0) < 0, 
+                    -get_comb_pref_score(x), 
+                    balanced_key(x),
+                    -get_val(x["wisata"], "Rating"),
+                    x["total_dist"]
+                )
             )
 
 
