@@ -999,6 +999,26 @@ document.addEventListener('DOMContentLoaded', () => {
             if (nameInput) nameInput.value = window.currentUser.name;
             if (emailInput) emailInput.value = window.currentUser.email;
             if (bioInput) bioInput.value = window.currentUser.bio || '';
+            
+            const prefWisata = document.getElementById('edit-profile-wisata');
+            const prefHotel = document.getElementById('edit-profile-hotel');
+            const prefKuliner = document.getElementById('edit-profile-kuliner');
+            
+            if (prefWisata && window.currentUser.pref_wisata && window.currentUser.pref_wisata.length > 0) {
+                prefWisata.value = window.currentUser.pref_wisata[0];
+            } else if (prefWisata) {
+                prefWisata.value = "";
+            }
+            if (prefHotel && window.currentUser.pref_hotel && window.currentUser.pref_hotel.length > 0) {
+                prefHotel.value = window.currentUser.pref_hotel[0];
+            } else if (prefHotel) {
+                prefHotel.value = "";
+            }
+            if (prefKuliner && window.currentUser.pref_kuliner && window.currentUser.pref_kuliner.length > 0) {
+                prefKuliner.value = window.currentUser.pref_kuliner[0];
+            } else if (prefKuliner) {
+                prefKuliner.value = "";
+            }
 
             // Set active avatar radio preset selection
             const activePreset = window.currentUser.avatar || 'explorer';

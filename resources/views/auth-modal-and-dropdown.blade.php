@@ -73,7 +73,49 @@
                             <input type="password" id="register-password" name="password" placeholder="Minimal 6 karakter" required />
                         </div>
                     </div>
-                    <button type="submit" class="auth-submit-btn">
+                    
+                    <div class="auth-input-group" style="margin-top: 15px;">
+                        <label>Preferensi Kategori Wisata (Opsional)</label>
+                        <div class="auth-input-wrap" style="padding: 0;">
+                            <select name="pref_wisata" class="auth-select" style="width: 100%; border: none; background: transparent; padding: 12px; color: var(--text-color); font-size: 14px; outline: none; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif;">
+                                <option value="" selected>Tidak ada preferensi (Bebas)</option>
+                                <option value="Wisata Alam">Wisata Alam</option>
+                                <option value="Wisata Budaya & Edukasi">Wisata Budaya & Edukasi</option>
+                                <option value="Wisata Rekreasi Modern">Wisata Rekreasi Modern</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="auth-input-group">
+                        <label>Preferensi Akomodasi (Opsional)</label>
+                        <div class="auth-input-wrap" style="padding: 0;">
+                            <select name="pref_hotel" class="auth-select" style="width: 100%; border: none; background: transparent; padding: 12px; color: var(--text-color); font-size: 14px; outline: none; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif;">
+                                <option value="" selected>Tidak ada preferensi (Bebas)</option>
+                                <option value="Resort / Villa">Resort / Villa</option>
+                                <option value="Penginapan / Homestay">Penginapan / Homestay</option>
+                                <option value="Hotel Bintang 5">Hotel Bintang 5</option>
+                                <option value="Hotel Bintang 4">Hotel Bintang 4</option>
+                                <option value="Hotel Bintang 3">Hotel Bintang 3</option>
+                                <option value="Hotel Bintang 2">Hotel Bintang 2</option>
+                                <option value="Hotel Bintang 1">Hotel Bintang 1</option>
+                                <option value="Hotel">Hotel (Umum)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="auth-input-group">
+                        <label>Preferensi Kuliner (Opsional)</label>
+                        <div class="auth-input-wrap" style="padding: 0;">
+                            <select name="pref_kuliner" class="auth-select" style="width: 100%; border: none; background: transparent; padding: 12px; color: var(--text-color); font-size: 14px; outline: none; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif;">
+                                <option value="" selected>Tidak ada preferensi (Bebas)</option>
+                                <option value="Warung / Kuliner Lokal">Warung / Kuliner Lokal</option>
+                                <option value="Restoran">Restoran</option>
+                                <option value="Cafe & Coffee Shop">Cafe & Coffee Shop</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="auth-submit-btn" style="margin-top: 20px;">
                         <span>Buat Akun</span>
                         <span class="material-symbols-outlined">person_add</span>
                     </button>

@@ -17,6 +17,10 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->json('pref_wisata')->nullable();
+            $table->json('pref_hotel')->nullable();
+            $table->json('pref_kuliner')->nullable();
+            $table->float('pref_strength')->default(0.0);
             $table->rememberToken();
             $table->timestamps();
         });

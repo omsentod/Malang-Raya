@@ -45,14 +45,18 @@ class AuthController extends Controller
                     'email' => $user->email,
                     'avatar' => $user->avatar,
                     'bio' => $user->bio,
-                    'role' => $user->role ?? 'user'
+                    'role' => $user->role ?? 'user',
+                    'pref_wisata' => $user->pref_wisata ?? [],
+                    'pref_hotel' => $user->pref_hotel ?? [],
+                    'pref_kuliner' => $user->pref_kuliner ?? [],
+                    'pref_strength' => $user->pref_strength ?? 0.0
                 ]
             ]);
         }
 
         return response()->json([
             'success' => false,
-            'errors' => ['Kredensial yang diberikan tidak cocok dengan data kami.']
+            'errors' => ['Usernama/Password salah']
         ], 401);
     }
 
@@ -139,7 +143,11 @@ class AuthController extends Controller
                     'email' => $user->email,
                     'avatar' => $user->avatar,
                     'bio' => $user->bio,
-                    'role' => $user->role ?? 'user'
+                    'role' => $user->role ?? 'user',
+                    'pref_wisata' => $user->pref_wisata ?? [],
+                    'pref_hotel' => $user->pref_hotel ?? [],
+                    'pref_kuliner' => $user->pref_kuliner ?? [],
+                    'pref_strength' => $user->pref_strength ?? 0.0
                 ]
             ]);
         }
@@ -186,6 +194,20 @@ class AuthController extends Controller
         if ($request->has('avatar')) {
             $user->avatar = $request->avatar;
         }
+
+        if ($request->has('pref_wisata')) {
+            $user->pref_wisata = array_filter((array)$request->pref_wisata);
+        }
+        if ($request->has('pref_hotel')) {
+            $user->pref_hotel = array_filter((array)$request->pref_hotel);
+        }
+        if ($request->has('pref_kuliner')) {
+            $user->pref_kuliner = array_filter((array)$request->pref_kuliner);
+        }
+        if ($request->has('pref_wisata') || $request->has('pref_hotel') || $request->has('pref_kuliner')) {
+             $user->pref_strength = (!empty($user->pref_wisata) || !empty($user->pref_hotel) || !empty($user->pref_kuliner)) ? 0.8 : 0.0;
+        }
+
         $user->save();
 
         return response()->json([

@@ -481,6 +481,53 @@
                             <label class="profile-form-label" for="edit-profile-bio">Biografi Traveler</label>
                             <textarea id="edit-profile-bio" name="bio" rows="4" class="profile-textarea" placeholder="Ceritakan gaya petualangan Anda..."></textarea>
                         </div>
+                        
+                        <!-- Preferensi Wisata -->
+                        <div class="profile-form-group">
+                            <label class="profile-form-label" for="edit-pref-wisata">Kategori Wisata Favorit</label>
+                            <div class="profile-input-wrap">
+                                <span class="material-symbols-outlined profile-input-icon">map</span>
+                                <select id="edit-pref-wisata" name="pref_wisata" class="profile-input" style="appearance: auto;">
+                                    <option value="" selected>Tidak ada preferensi (Bebas)</option>
+                                    <option value="Wisata Alam">Wisata Alam</option>
+                                    <option value="Wisata Budaya & Edukasi">Wisata Budaya & Edukasi</option>
+                                    <option value="Wisata Rekreasi Modern">Wisata Rekreasi Modern</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Preferensi Hotel -->
+                        <div class="profile-form-group">
+                            <label class="profile-form-label" for="edit-pref-hotel">Akomodasi Favorit</label>
+                            <div class="profile-input-wrap">
+                                <span class="material-symbols-outlined profile-input-icon">hotel</span>
+                                <select id="edit-pref-hotel" name="pref_hotel" class="profile-input" style="appearance: auto;">
+                                    <option value="" selected>Tidak ada preferensi (Bebas)</option>
+                                    <option value="Resort / Villa">Resort / Villa</option>
+                                    <option value="Penginapan / Homestay">Penginapan / Homestay</option>
+                                    <option value="Hotel Bintang 5">Hotel Bintang 5</option>
+                                    <option value="Hotel Bintang 4">Hotel Bintang 4</option>
+                                    <option value="Hotel Bintang 3">Hotel Bintang 3</option>
+                                    <option value="Hotel Bintang 2">Hotel Bintang 2</option>
+                                    <option value="Hotel Bintang 1">Hotel Bintang 1</option>
+                                    <option value="Hotel">Hotel (Umum)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Preferensi Kuliner -->
+                        <div class="profile-form-group">
+                            <label class="profile-form-label" for="edit-pref-kuliner">Kuliner Favorit</label>
+                            <div class="profile-input-wrap">
+                                <span class="material-symbols-outlined profile-input-icon">restaurant</span>
+                                <select id="edit-pref-kuliner" name="pref_kuliner" class="profile-input" style="appearance: auto;">
+                                    <option value="" selected>Tidak ada preferensi (Bebas)</option>
+                                    <option value="Warung / Kuliner Lokal">Warung / Kuliner Lokal</option>
+                                    <option value="Restoran">Restoran</option>
+                                    <option value="Cafe & Coffee Shop">Cafe & Coffee Shop</option>
+                                </select>
+                            </div>
+                        </div>
 
                         <!-- Submit Button -->
                         <button type="submit" class="btn-save-profile">

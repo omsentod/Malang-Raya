@@ -72,6 +72,25 @@ def main():
 
     try:
         datasets = load_datasets()
+        
+        # Implement 3-tier min rating filter
+        pref_bias = args.pref_premium - args.pref_hemat
+        if pref_bias < -0.1: # Backpacker
+            min_rating = 0.0
+        elif pref_bias > 0.1: # Luxury
+            min_rating = 4.2
+        else: # Mid-range
+            min_rating = 3.8
+            
+        for key in datasets:
+            if 'Kategori' in datasets[key].columns:
+                datasets[key]['Kategori_Asli'] = datasets[key]['Kategori']
+            
+            if 'Rating' in datasets[key].columns:
+                filtered_df = datasets[key][datasets[key]['Rating'] >= min_rating].copy()
+                if not filtered_df.empty:
+                    datasets[key] = filtered_df
+        
         packages = []
 
         # Setup redirection to capture verbose prints
@@ -125,6 +144,9 @@ def main():
                     pref_balanced=args.pref_balanced,
                     pref_premium=args.pref_premium,
                     user_id=args.user_id,
+                    pref_wisata=args.pref_wisata,
+                    pref_hotel=args.pref_hotel,
+                    pref_kuliner=args.pref_kuliner,
                 )
             # Ekspor otomatis hasil rekomendasi ke berkas Excel di output/hasil-rekomendasi
             try:

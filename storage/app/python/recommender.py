@@ -735,7 +735,8 @@ def generate_packages(total_budget, num_persons, duration, datasets,
                        api_key=None, ratio_scheme=DEFAULT_RATIO_SCHEME,
                        max_packages=MAX_PACKAGES_DISPLAY, verbose=True,
                        transport_mode=None, hotel_mode='same', best_c=None,
-                       pref_hemat=0.33, pref_balanced=0.33, pref_premium=0.34, user_id='guest'):
+                       pref_hemat=0.33, pref_balanced=0.33, pref_premium=0.34, user_id='guest',
+                       pref_wisata='', pref_hotel='', pref_kuliner=''):
     """
     Alur utama Budget-First Workflow (Diselaraskan Eksak dengan Uji_Gabungan.py):
     1. Alokasikan budget ke komponen secara proporsional.
@@ -1027,14 +1028,29 @@ def generate_packages(total_budget, num_persons, duration, datasets,
             return default if (pd.isna(val) or val is None) else float(val)
 
         def get_comb_pref_score(x):
-            return (x["hotel"].get("Fuzzy_Score", 0.0) + 
-                    x["wisata"].get("Fuzzy_Score", 0.0) + 
-                    x["kuliner"].get("Fuzzy_Score", 0.0))
+            score = 1.0
+            
+            w_cat = x["wisata"].get("Kategori_Asli", "")
+            h_cat = x["hotel"].get("Kategori_Asli", "")
+            k_cat = x["kuliner"].get("Kategori_Asli", "")
+            
+            if pref_wisata and isinstance(w_cat, str) and w_cat.lower() == pref_wisata.lower():
+                score *= 1.30
+            if pref_hotel and isinstance(h_cat, str) and h_cat.lower() == pref_hotel.lower():
+                score *= 1.30
+            if pref_kuliner and isinstance(k_cat, str) and k_cat.lower() == pref_kuliner.lower():
+                score *= 1.30
+                
+            return score
 
 
         if i == 0:
-            # Hemat: Harga total termurah, Jarak spasial terkecil
-            valid_combinations = sorted(valid_combinations, key=lambda x: (x.get("selisih", 0) < 0, x["total_cost"], x["total_dist"]))
+            # Hemat: paket termurah yang tetap MENGIKUTI skala budget.
+            # Target = porsi hemat dari total budget (ratio klaster terendah),
+            # bukan minimum absolut dataset — agar paket Hemat ikut naik saat
+            # budget dinaikkan, bukan mentok di lantai harga dataset.
+            hemat_target = total_budget * ratios_for_c[0]
+            valid_combinations = sorted(valid_combinations, key=lambda x: (x.get("selisih", 0) < 0, -get_comb_pref_score(x), abs(x["total_cost"] - hemat_target), x["total_dist"]))
         elif i == best_c - 1:
             # Premium/kelas tertinggi: Personalisasi dengan pref_bias
             # Jika Backpacker (pref_bias negatif), prioritaskan hotel termurah di klaster Premium
@@ -1043,6 +1059,7 @@ def generate_packages(total_budget, num_persons, duration, datasets,
                 valid_combinations,
                 key=lambda x: (
                     x.get("selisih", 0) < 0, 
+                    -get_comb_pref_score(x),
                     -get_val(x["wisata"], "Rating"), 
                     get_val(x["hotel"], "Estimasi_Harga") if pref_bias < -0.1 else -get_val(x["hotel"], "Estimasi_Harga"), 
                     x["total_dist"]
@@ -1052,7 +1069,7 @@ def generate_packages(total_budget, num_persons, duration, datasets,
             # Balanced: Hybrid rating + jarak
             valid_combinations = sorted(
                 valid_combinations,
-                key=lambda x: (x.get("selisih", 0) < 0, -get_val(x["wisata"], "Rating") * 10 - get_val(x["kuliner"], "Rating") * 2 + x["total_dist"] / 10.0)
+                key=lambda x: (x.get("selisih", 0) < 0, -get_comb_pref_score(x), -get_val(x["wisata"], "Rating") * 10 - get_val(x["kuliner"], "Rating") * 2 + x["total_dist"] / 10.0)
             )
 
 
@@ -1595,8 +1612,8 @@ def generate_packages(total_budget, num_persons, duration, datasets,
             # ── Sisa Budget (hanya untuk workflow dengan input budget) ──
             # Digunakan frontend untuk menampilkan tombol "Tambah Destinasi"
             if total_budget is not None and total_budget > 0:
-                pkg_formatted["budget_input"] = float(total_budget)
-                pkg_formatted["budget_remaining"] = round(float(total_budget) - pkg_formatted["total_cost"], 2)
+                pkg_formatted["budget_input"] = total_budget
+                pkg_formatted["budget_remaining"] = round(total_budget - pkg_formatted["total_cost"], 2)
             else:
                 pkg_formatted["budget_input"] = None
                 pkg_formatted["budget_remaining"] = None
@@ -1698,7 +1715,8 @@ def generate_packages(total_budget, num_persons, duration, datasets,
 def generate_flexible_exploration_packages(num_persons, duration, datasets,
                                            api_key=None, verbose=True,
                                            transport_mode=None,
-                                           pref_hemat=0.33, pref_balanced=0.33, pref_premium=0.34, user_id='guest'):
+                                           pref_hemat=0.33, pref_balanced=0.33, pref_premium=0.34, user_id='guest',
+                                           pref_wisata='', pref_hotel='', pref_kuliner=''):
     """
     Alur Skenario Alternatif 1: Flexible Exploration.
     Digunakan ketika pengguna belum menentukan budget.
@@ -1936,19 +1954,31 @@ def generate_flexible_exploration_packages(num_persons, duration, datasets,
             return default if (pd.isna(val) or val is None) else float(val)
 
         def get_comb_pref_score(x):
-            return (x["hotel"].get("Fuzzy_Score", 0.0) + 
-                    x["wisata"].get("Fuzzy_Score", 0.0) + 
-                    x["kuliner"].get("Fuzzy_Score", 0.0))
+            score = 1.0
+            
+            w_cat = x["wisata"].get("Kategori_Asli", "")
+            h_cat = x["hotel"].get("Kategori_Asli", "")
+            k_cat = x["kuliner"].get("Kategori_Asli", "")
+            
+            if pref_wisata and isinstance(w_cat, str) and w_cat.lower() == pref_wisata.lower():
+                score *= 1.30
+            if pref_hotel and isinstance(h_cat, str) and h_cat.lower() == pref_hotel.lower():
+                score *= 1.30
+            if pref_kuliner and isinstance(k_cat, str) and k_cat.lower() == pref_kuliner.lower():
+                score *= 1.30
+                
+            return score
 
         if i == 0:
             # Hemat: Harga total termurah, Jarak spasial terkecil
-            valid_combinations = sorted(valid_combinations, key=lambda x: (x.get("selisih", 0) < 0, x["total_cost"], x["total_dist"]))
+            valid_combinations = sorted(valid_combinations, key=lambda x: (x.get("selisih", 0) < 0, -get_comb_pref_score(x), x["total_cost"], x["total_dist"]))
         elif i == best_c - 1:
             # Premium/kelas tertinggi: Personalisasi dengan pref_bias
             valid_combinations = sorted(
                 valid_combinations,
                 key=lambda x: (
                     x.get("selisih", 0) < 0, 
+                    -get_comb_pref_score(x),
                     -get_val(x["wisata"], "Rating"), 
                     get_val(x["hotel"], "Estimasi_Harga") if pref_bias < -0.1 else -get_val(x["hotel"], "Estimasi_Harga"), 
                     x["total_dist"]
@@ -1956,10 +1986,9 @@ def generate_flexible_exploration_packages(num_persons, duration, datasets,
             )
         else:
             # Balanced: Hybrid rating + jarak.
-            # PERBAIKAN: Hapus get_comb_pref_score() dari kriteria Balanced (alasan sama).
             valid_combinations = sorted(
                 valid_combinations,
-                key=lambda x: (x.get("selisih", 0) < 0, -get_val(x["wisata"], "Rating") * 10 - get_val(x["kuliner"], "Rating") * 2 + x["total_dist"] / 10.0)
+                key=lambda x: (x.get("selisih", 0) < 0, -get_comb_pref_score(x), -get_val(x["wisata"], "Rating") * 10 - get_val(x["kuliner"], "Rating") * 2 + x["total_dist"] / 10.0)
             )
 
 
@@ -2428,7 +2457,8 @@ def generate_flexible_exploration_packages(num_persons, duration, datasets,
 def generate_destination_first_packages(locked_wisata_id, num_persons, duration, datasets,
                                         total_budget=None, api_key=None, verbose=True,
                                         transport_mode=None, hotel_mode='same',
-                                        pref_hemat=0.33, pref_balanced=0.33, pref_premium=0.34, user_id='guest'):
+                                        pref_hemat=0.33, pref_balanced=0.33, pref_premium=0.34, user_id='guest',
+                                        pref_wisata='', pref_hotel='', pref_kuliner=''):
     """
     Alur Skenario Alternatif 2: Destination-First.
     Digunakan ketika pengguna sudah mengunci 1 destinasi wisata pasti.
@@ -2498,6 +2528,7 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
     else:
         best_c = find_best_c_offline(dest_datasets_prices, verbose=False)
     cluster_labels = get_cluster_labels(best_c)
+    ratios_dest = get_ratio_scheme(best_c)
 
     if verbose:
         print(f"\n{'='*60}")
@@ -2776,30 +2807,44 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
             return default if (pd.isna(val) or val is None) else float(val)
 
         def get_comb_pref_score(x):
-            return (x["hotel"].get("Fuzzy_Score", 0.0) + 
-                    x["wisata"].get("Fuzzy_Score", 0.0) + 
-                    x["kuliner"].get("Fuzzy_Score", 0.0))
+            score = 1.0
+            
+            w_cat = x["wisata"].get("Kategori_Asli", "")
+            h_cat = x["hotel"].get("Kategori_Asli", "")
+            k_cat = x["kuliner"].get("Kategori_Asli", "")
+            
+            if pref_wisata and isinstance(w_cat, str) and w_cat.lower() == pref_wisata.lower():
+                score *= 1.30
+            if pref_hotel and isinstance(h_cat, str) and h_cat.lower() == pref_hotel.lower():
+                score *= 1.30
+            if pref_kuliner and isinstance(k_cat, str) and k_cat.lower() == pref_kuliner.lower():
+                score *= 1.30
+                
+            return score
 
         if i == 0:
-            # Hemat: Harga total termurah, Jarak spasial terkecil
-            valid_combinations = sorted(valid_combinations, key=lambda x: (x.get("selisih", 0) < 0, x["total_cost"], x["total_dist"]))
+            # Hemat: paket termurah yang MENGIKUTI skala budget bila budget diisi.
+            # Jika budget None (mode destinasi tanpa budget), tetap pilih termurah.
+            hemat_target = total_budget * ratios_dest[0] if total_budget is not None else None
+            hemat_key = (lambda x: x["total_cost"]) if hemat_target is None else (lambda x: abs(x["total_cost"] - hemat_target))
+            valid_combinations = sorted(valid_combinations, key=lambda x: (x.get("selisih", 0) < 0, -get_comb_pref_score(x), hemat_key(x), x["total_dist"]))
         elif i == best_c - 1:
             # Premium/kelas tertinggi: Personalisasi dengan pref_bias
             valid_combinations = sorted(
                 valid_combinations,
                 key=lambda x: (
-                    x.get("selisih", 0) < 0, 
-                    -get_val(x["wisata"], "Rating"), 
-                    get_val(x["hotel"], "Estimasi_Harga") if pref_bias < -0.1 else -get_val(x["hotel"], "Estimasi_Harga"), 
+                    x.get("selisih", 0) < 0,
+                    -get_comb_pref_score(x),
+                    -get_val(x["wisata"], "Rating"),
+                    get_val(x["hotel"], "Estimasi_Harga") if pref_bias < -0.1 else -get_val(x["hotel"], "Estimasi_Harga"),
                     x["total_dist"]
                 )
             )
         else:
             # Balanced: Hybrid rating + jarak.
-            # PERBAIKAN: Hapus get_comb_pref_score() dari kriteria Balanced (alasan sama).
             valid_combinations = sorted(
                 valid_combinations,
-                key=lambda x: (x.get("selisih", 0) < 0, -get_val(x["wisata"], "Rating") * 10 - get_val(x["kuliner"], "Rating") * 2 + x["total_dist"] / 10.0)
+                key=lambda x: (x.get("selisih", 0) < 0, -get_comb_pref_score(x), -get_val(x["wisata"], "Rating") * 10 - get_val(x["kuliner"], "Rating") * 2 + x["total_dist"] / 10.0)
             )
 
 
@@ -3345,8 +3390,8 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
             pkg_formatted["total_cost"] = cost_h + cost_w + cost_k + cost_t
 
             if total_budget is not None and total_budget > 0:
-                pkg_formatted["budget_input"] = float(total_budget)
-                pkg_formatted["budget_remaining"] = round(float(total_budget) - pkg_formatted["total_cost"], 2)
+                pkg_formatted["budget_input"] = total_budget
+                pkg_formatted["budget_remaining"] = round(total_budget - pkg_formatted["total_cost"], 2)
             else:
                 pkg_formatted["budget_input"] = None
                 pkg_formatted["budget_remaining"] = None
