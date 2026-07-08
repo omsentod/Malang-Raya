@@ -6966,63 +6966,130 @@ async function openAddDestinationModal(pkg, card, pkgUid) {
             return;
         }
 
-        // Render candidates list
-        bodyEl.innerHTML = data.candidates.map((c, ci) => `
-            <div class="add-dest-candidate" id="add-dest-cand-${ci}" data-idx="${ci}">
-                <div class="add-dest-cand-info">
-                    <div class="add-dest-cand-name">${c.nama}</div>
-                    <div class="add-dest-cand-meta">
-                        <span class="add-dest-tag">${c.kategori}</span>
-                        <span class="add-dest-dist"><span class="material-symbols-outlined" style="font-size:12px;">near_me</span>${c.distance_km} km</span>
-                        ${c.rating > 0 ? `<span class="add-dest-rating">⭐ ${c.rating.toFixed(1)}</span>` : ''}
-                        ${c.has_additional_cost ? `<span class="add-dest-tag" style="background:#fef3c7;color:#b45309;">+ Wahana</span>` : ''}
+        const renderCandidates = (candidates) => {
+            // Restore modal title and subtitle
+            const titleEl = modal.querySelector('.add-dest-modal-title');
+            if (titleEl) titleEl.innerHTML = `<span class="material-symbols-outlined" style="font-size:18px;color:var(--teal-500);">add_location_alt</span> Tambah Wisata Hari ${extraDests.length + 1}`;
+            const subEl = document.getElementById('add-dest-modal-sub');
+            if (subEl) subEl.textContent = `Sisa budget: ${fmtRpGlobal(effectiveBudgetRemaining)} — slot Hari ${extraDests.length + 1} dari ${MAX_EXTRA}`;
+
+            bodyEl.innerHTML = candidates.map((c, ci) => `
+                <div class="add-dest-candidate" id="add-dest-cand-${ci}" data-idx="${ci}">
+                    <div class="add-dest-cand-info">
+                        <div class="add-dest-cand-name">${c.nama}</div>
+                        <div class="add-dest-cand-meta">
+                            <span class="add-dest-tag">${c.kategori}</span>
+                            <span class="add-dest-dist"><span class="material-symbols-outlined" style="font-size:12px;">near_me</span>${c.distance_km} km</span>
+                            ${c.rating > 0 ? `<span class="add-dest-rating">⭐ ${c.rating.toFixed(1)}</span>` : ''}
+                            ${c.additional_facilities && c.additional_facilities.length > 0 ? `<span class="add-dest-tag" style="background:#fef3c7;color:#b45309;">+ Wahana</span>` : ''}
+                        </div>
+                        ${c.has_additional_cost && c.additional_cost_label ? `
+                        <div style="font-size:11px;color:var(--amber-600);margin-top:3px;">
+                            ⚡ ${c.additional_cost_label}: estimasi Rp ${(c.additional_cost_min || 0).toLocaleString('id-ID')}–${(c.additional_cost_max || 0).toLocaleString('id-ID')}/org
+                        </div>` : ''}
                     </div>
-                    ${c.has_additional_cost && c.additional_cost_label ? `
-                    <div style="font-size:11px;color:var(--amber-600);margin-top:3px;">
-                        ⚡ ${c.additional_cost_label}: estimasi Rp ${(c.additional_cost_min || 0).toLocaleString('id-ID')}–${(c.additional_cost_max || 0).toLocaleString('id-ID')}/org
-                    </div>` : ''}
+                    <div class="add-dest-cand-price">
+                        <div class="add-dest-cand-ticket">${fmtRpGlobal(c.harga_tiket)}/org</div>
+                        <div class="add-dest-cand-total">Total: ${fmtRpGlobal(c.total_ticket_cost)}</div>
+                        <button class="btn-pick-dest" data-ci="${ci}">Pilih</button>
+                    </div>
                 </div>
-                <div class="add-dest-cand-price">
-                    <div class="add-dest-cand-ticket">${fmtRpGlobal(c.harga_tiket)}/org</div>
-                    <div class="add-dest-cand-total">Total: ${fmtRpGlobal(c.total_ticket_cost)}</div>
-                    <button class="btn-pick-dest" data-ci="${ci}">Pilih</button>
-                </div>
-            </div>
-        `).join('');
+            `).join('');
 
-        // Pilih destinasi
-        bodyEl.querySelectorAll('.btn-pick-dest').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const ci = parseInt(btn.dataset.ci, 10);
-                const chosen = data.candidates[ci];
-                const dayNum = activeDayIdx + 1;
+            // Pilih destinasi
+            bodyEl.querySelectorAll('.btn-pick-dest').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const ci = parseInt(btn.dataset.ci, 10);
+                    const chosen = candidates[ci];
+                    const dayNum = activeDayIdx + 1;
 
-                if (!card._extraDestinations) card._extraDestinations = [];
-                card._extraDestinations.push({
-                    id: chosen.id,
-                    nama: chosen.nama,
-                    harga_tiket: chosen.harga_tiket,
-                    lat: chosen.lat,
-                    lon: chosen.lon,
-                    total_ticket_cost: chosen.total_ticket_cost,
-                    distance_km: chosen.distance_km,
-                    dayNum: dayNum,
-                    has_additional_cost: chosen.has_additional_cost || 0,
-                    additional_cost_label: chosen.additional_cost_label || '',
-                    additional_cost_min: chosen.additional_cost_min || 0,
-                    additional_cost_max: chosen.additional_cost_max || 0,
+                    const commitDestination = (selectedFacs) => {
+                        const facCost = (selectedFacs || []).reduce((s, f) => s + f.cost_per_person * pkg.num_persons, 0);
+
+                        if (!card._extraDestinations) card._extraDestinations = [];
+                        card._extraDestinations.push({
+                            id: chosen.id,
+                            nama: chosen.nama,
+                            harga_tiket: chosen.harga_tiket,
+                            lat: chosen.lat,
+                            lon: chosen.lon,
+                            total_ticket_cost: chosen.total_ticket_cost + facCost,
+                            distance_km: chosen.distance_km,
+                            dayNum: dayNum,
+                            has_additional_cost: chosen.has_additional_cost || 0,
+                            additional_cost_label: chosen.additional_cost_label || '',
+                            additional_cost_min: chosen.additional_cost_min || 0,
+                            additional_cost_max: chosen.additional_cost_max || 0,
+                            selected_facilities: selectedFacs || []
+                        });
+
+                        // Transport PP dari wisata utama ke extra wisata (x2 untuk pulang-pergi)
+                        const addTransport = Math.round(chosen.distance_km * 500 * 2);
+                        card._extraTransportCost = (card._extraTransportCost || 0) + addTransport;
+
+                        modal.style.display = 'none';
+
+                        // Refresh semua tampilan card secara real-time
+                        _refreshExtraDestUI(pkg, card, pkgUid, MAX_EXTRA);
+                    };
+
+                    if (chosen.additional_facilities && chosen.additional_facilities.length > 0) {
+                        // Tampilkan fasilitas opsional dalam modal
+                        const titleEl = modal.querySelector('.add-dest-modal-title');
+                        if (titleEl) titleEl.innerHTML = `<span class="material-symbols-outlined" style="font-size:18px;color:var(--amber-500);">bolt</span> Fasilitas Opsional — ${chosen.nama}`;
+                        
+                        const subEl = document.getElementById('add-dest-modal-sub');
+                        if (subEl) subEl.textContent = 'Pilih wahana tambahan (opsional) sebelum memasukkan destinasi ini ke itinerary.';
+                        
+                        bodyEl.innerHTML = `
+                            <div class="wahana-items-list" style="margin-top: 10px; padding: 0;">
+                                ${chosen.additional_facilities.map((fac, fi) => `
+                                <label class="wahana-item ${fac.is_mandatory ? 'mandatory-item' : ''}" for="modal-wahana-${ci}-${fi}" style="${fac.is_mandatory ? 'opacity: 0.7; cursor: not-allowed;' : ''}">
+                                    <input type="checkbox"
+                                           class="modal-wahana-checkbox"
+                                           id="modal-wahana-${ci}-${fi}"
+                                           data-cost="${fac.is_mandatory ? 0 : fac.cost_per_person}"
+                                           data-label="${fac.label}"
+                                           data-facility-id="${fac.id}"
+                                           ${fac.is_mandatory ? 'checked disabled' : ''}>
+                                    <div class="wahana-item-info">
+                                        <span class="wahana-item-name">${fac.label} ${fac.is_mandatory ? '<span style="font-size:10px; padding:2px 4px; background:#e2e8f0; color:#475569; border-radius:4px; margin-left:4px; font-weight:600;">WAJIB</span>' : ''}</span>
+                                    </div>
+                                    <span class="wahana-item-cost">+${fmtRpGlobal(fac.cost_per_person)}/org</span>
+                                </label>
+                                `).join('')}
+                            </div>
+                            <div style="margin-top: 15px; display: flex; justify-content: space-between; align-items: center;">
+                                <button id="btn-back-to-candidates" style="background:var(--slate-200); color:var(--slate-700); padding: 10px 16px; border:1px solid var(--slate-300); border-radius:8px; font-weight:600; cursor:pointer; font-size: 13px;">Kembali</button>
+                                <button id="btn-confirm-add-dest-${ci}" style="background:var(--teal-600); color:white; padding: 10px 16px; border:none; border-radius:8px; font-weight:600; cursor:pointer; font-size: 13px;">Tambahkan ke Itinerary</button>
+                            </div>
+                        `;
+
+                        document.getElementById('btn-back-to-candidates').addEventListener('click', () => {
+                            renderCandidates(candidates);
+                        });
+
+                        document.getElementById(`btn-confirm-add-dest-${ci}`).addEventListener('click', () => {
+                            const selectedFacs = [];
+                            bodyEl.querySelectorAll('.modal-wahana-checkbox').forEach(chk => {
+                                if (chk.checked) {
+                                    selectedFacs.push({
+                                        id: chk.dataset.facilityId,
+                                        label: chk.dataset.label,
+                                        cost_per_person: parseInt(chk.dataset.cost, 10)
+                                    });
+                                }
+                            });
+                            commitDestination(selectedFacs);
+                        });
+                    } else {
+                        commitDestination([]);
+                    }
                 });
-
-                // Transport PP dari wisata utama ke extra wisata (x2 untuk pulang-pergi)
-                const addTransport = Math.round(chosen.distance_km * 500 * 2);
-                card._extraTransportCost = (card._extraTransportCost || 0) + addTransport;
-
-                modal.style.display = 'none';
-
-                // Refresh semua tampilan card secara real-time
-                _refreshExtraDestUI(pkg, card, pkgUid, MAX_EXTRA);
             });
-        });
+        };
+
+        renderCandidates(data.candidates);
 
     } catch (err) {
         bodyEl.innerHTML = `<div class="add-dest-empty"><span class="material-symbols-outlined" style="font-size:36px;color:var(--slate-300);">wifi_off</span><p>Gagal memuat kandidat. Coba lagi.</p></div>`;
@@ -7046,7 +7113,13 @@ function _refreshExtraDestUI(pkg, card, pkgUid, MAX_EXTRA) {
                 <div style="flex:1;min-width:0;">
                     <div style="font-weight:700;font-size:12.5px;color:var(--slate-800);">Hari ${d.dayNum}: <span style="color:var(--teal-700);">${d.nama}</span></div>
                     <div style="font-size:11px;color:var(--slate-400);margin-top:1px;">${d.distance_km} km dari wisata utama &bull; Tiket: ${fmtRpGlobal(d.total_ticket_cost)}</div>
-                    ${d.has_additional_cost && d.additional_cost_label ? `<div style="font-size:11px;color:var(--amber-600);">⚡ ${d.additional_cost_label}: Rp ${(d.additional_cost_min || 0).toLocaleString('id-ID')}–${(d.additional_cost_max || 0).toLocaleString('id-ID')}/org</div>` : ''}
+                    ${d.has_additional_cost && d.additional_cost_label && (!d.selected_facilities || d.selected_facilities.length === 0) ? `<div style="font-size:11px;color:var(--amber-600);">⚡ ${d.additional_cost_label}: Rp ${(d.additional_cost_min || 0).toLocaleString('id-ID')}–${(d.additional_cost_max || 0).toLocaleString('id-ID')}/org</div>` : ''}
+                    ${d.selected_facilities && d.selected_facilities.length > 0 ? `
+                        <div style="margin-top: 5px; padding-left: 8px; border-left: 2px solid var(--teal-300);">
+                            <div style="font-size:10.5px; font-weight: 600; color:var(--teal-600); margin-bottom:2px;">Fasilitas Terpilih:</div>
+                            ${d.selected_facilities.map(sf => `<div style="font-size:11px; color:var(--slate-600); display: flex; justify-content: space-between;"><span>⚡ ${sf.label}</span> <span>+${fmtRpGlobal(sf.cost_per_person)}/org</span></div>`).join('')}
+                        </div>
+                    ` : ''}
                 </div>
                 <div style="display:flex;flex-direction:column;gap:3px;flex-shrink:0;">
                     <button class="btn-change-extra-dest" data-extra-idx="${i}" style="background:var(--slate-100);border:1px solid var(--slate-300);border-radius:6px;padding:3px 7px;font-size:11px;cursor:pointer;color:var(--slate-600);display:flex;align-items:center;gap:2px;white-space:nowrap;">

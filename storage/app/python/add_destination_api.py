@@ -103,6 +103,7 @@ def main():
     # Load dataset
     base_dir = os.path.dirname(os.path.abspath(__file__))
     from config import load_wisata_dataset
+    from recommender import _get_additional_facilities_for_wisata
     df = load_wisata_dataset()
 
     # Expand excluded_ids to include all members of the same destination family
@@ -163,6 +164,9 @@ def main():
             except Exception:
                 return default
 
+        # Ambil fasilitas opsional (anak) jika ini adalah destinasi induk
+        facs = _get_additional_facilities_for_wisata(row.to_dict(), df)
+
         results.append({
             "id":                    tid,
             "nama":                  str(row.get("Nama_Tempat", "")),
@@ -179,6 +183,7 @@ def main():
             "additional_cost_max":   0,
             # Total biaya tiket untuk seluruh peserta
             "total_ticket_cost":     int(harga) * args.persons,
+            "additional_facilities": facs
         })
 
     # Urutkan: terdekat & rating tertinggi
