@@ -22,145 +22,157 @@ import matplotlib.pyplot as plt
 
 def show_recommendation_scatter(clustered, options_list, workflow_name="Workflow"):
     """
-    Displays a matplotlib scatter plot showing cluster distribution and membership data,
-    highlighting the top recommendation's items.
+    Displays a matplotlib scatter plot showing the spatial distribution (Longitude vs Latitude)
+    of the items included in the recommendation options. Items are colored based on their
+    category and cluster label. Routes for the 15 options are drawn to show spatial proximity.
     """
     if not options_list or not clustered:
         return
         
     try:
         import numpy as np
+        import matplotlib.pyplot as plt
         
-        # Membuat 1 grafik saja (Klaster vs Membership)
         fig, ax = plt.subplots(figsize=(14, 8))
-        fig.subplots_adjust(right=0.65) # Beri ruang kosong 35% di sisi kanan untuk info dan legend
-        ax.set_title(f"Distribusi Klaster & Membership - {workflow_name}", fontsize=14, fontweight='bold')
-        ax.set_xlabel("Kategori Klaster (Hasil best_c)", fontsize=12)
-        ax.set_ylabel("Derajat Keanggotaan (Membership Degree)", fontsize=12)
+        fig.subplots_adjust(right=0.75) 
+        ax.set_title(f"Peta Sebaran Spasial Rekomendasi - {workflow_name}", fontsize=14, fontweight='bold')
+        ax.set_xlabel("Longitude", fontsize=12)
+        ax.set_ylabel("Latitude", fontsize=12)
         
-        # Tambahkan teks info jumlah, nilai centroid, dan jumlah anggotanya
-        centroid_info = []
-        for cat, data in clustered.items():
-            if 'cntr' in data and 'df' in data:
-                cntr_vals = data['cntr']
-                df_cat = data['df']
-                cntr_count = len(cntr_vals)
+        unique_nodes = {}
+        routes = [] 
+        
+        for opt in options_list:
+            packages = opt.get('packages', [])
+            if not packages: continue
+            
+            pkg = packages[0]
+            
+            def add_node(name, lat, lon, category):
+                if not name or name == 'N/A' or (lat==0 and lon==0):
+                    return None
                 
-                # Hitung jumlah item di tiap klaster
-                cluster_counts = df_cat['Cluster'].value_counts() if 'Cluster' in df_cat.columns else {}
+                cluster_label = "Unknown"
+                if category in clustered and 'df' in clustered[category]:
+                    df = clustered[category]['df']
+                    match = df[df['Nama_Tempat'] == name]
+                    if not match.empty:
+                        if 'Kategori' in df.columns:
+                            cluster_label = match.iloc[0]['Kategori']
+                        elif 'Cluster' in df.columns:
+                            c_id = int(match.iloc[0]['Cluster'])
+                            if 'cluster_labels' in opt:
+                                labels = opt['cluster_labels']
+                                if c_id < len(labels):
+                                    cluster_label = labels[c_id]
+                                else:
+                                    cluster_label = f"Cluster {c_id}"
+                            else:
+                                cluster_label = f"Cluster {c_id}"
+                                
+                node_id = f"{name}_{lat}_{lon}"
+                if node_id not in unique_nodes:
+                    unique_nodes[node_id] = {
+                        "name": name,
+                        "lat": lat,
+                        "lon": lon,
+                        "category": category,
+                        "cluster_label": cluster_label
+                    }
+                return node_id
                 
-                formatted_vals = []
-                for i, val in enumerate(cntr_vals):
-                    c_count = cluster_counts.get(i, 0)
-                    formatted_vals.append(f"Rp {val:,.0f} ({c_count} item)")
+            seq = []
+            if pkg.get('duration', 1) == 1:
+                kp_node = add_node(pkg.get('kuliner_pagi_nama'), pkg.get('kuliner_pagi_lat',0), pkg.get('kuliner_pagi_lon',0), 'kuliner')
+                if kp_node: seq.append(kp_node)
+                
+                w_node = add_node(pkg.get('wisata_nama'), pkg.get('wisata_lat',0), pkg.get('wisata_lon',0), 'wisata')
+                if w_node: seq.append(w_node)
+                
+                ks_node = add_node(pkg.get('kuliner_nama'), pkg.get('kuliner_lat',0), pkg.get('kuliner_lon',0), 'kuliner')
+                if ks_node: seq.append(ks_node)
+                
+                km_node = add_node(pkg.get('kuliner_malam_nama'), pkg.get('kuliner_malam_lat',0), pkg.get('kuliner_malam_lon',0), 'kuliner')
+                if km_node: seq.append(km_node)
+            else:
+                itinerary = pkg.get('itinerary', [])
+                for d_data in itinerary:
+                    h_node = add_node(d_data.get('hotel_nama_real') or d_data.get('hotel_nama'), d_data.get('hotel_lat',0), d_data.get('hotel_lon',0), 'hotel')
+                    if h_node: seq.append(h_node)
                     
-                vals_str = "\n      ".join(formatted_vals)
-                centroid_info.append(f"• {cat.capitalize()} ({cntr_count} Klaster):\n      {vals_str}")
+                    kp_node = add_node(d_data.get('kuliner_pagi_nama'), d_data.get('kuliner_pagi_lat',0), d_data.get('kuliner_pagi_lon',0), 'kuliner')
+                    if kp_node: seq.append(kp_node)
+                    
+                    w_node = add_node(d_data.get('wisata_nama'), d_data.get('wisata_lat',0), d_data.get('wisata_lon',0), 'wisata')
+                    if w_node: seq.append(w_node)
+                    
+                    ks_node = add_node(d_data.get('kuliner_nama'), d_data.get('kuliner_lat',0), d_data.get('kuliner_lon',0), 'kuliner')
+                    if ks_node: seq.append(ks_node)
+                    
+                    if h_node: seq.append(h_node)
+                    
+                    km_node = add_node(d_data.get('kuliner_malam_nama'), d_data.get('kuliner_malam_lat',0), d_data.get('kuliner_malam_lon',0), 'kuliner')
+                    if km_node: seq.append(km_node)
+                    
+            if seq:
+                routes.append(seq)
+                
+        # Color & Marker settings
+        base_colors = {
+            'hotel': {'hemat': '#6baed6', 'balanced': '#3182bd', 'premium': '#08519c', 'mewah': '#08306b', 'default': '#3182bd'},
+            'wisata': {'hemat': '#74c476', 'balanced': '#31a354', 'premium': '#006d2c', 'mewah': '#00441b', 'default': '#31a354'},
+            'kuliner': {'hemat': '#fb6a4a', 'balanced': '#de2d26', 'premium': '#a50f15', 'mewah': '#67000d', 'default': '#de2d26'}
+        }
         
-        if centroid_info:
-            info_text = "Detail Centroid & Jumlah Anggota:\n(Berdasarkan Estimasi Harga)\n\n" + "\n".join(centroid_info)
-            props = dict(boxstyle='round', facecolor='wheat', alpha=0.8)
-            # Posisikan teks di luar grafik bagian kanan
-            ax.text(1.05, 0.98, info_text, transform=ax.transAxes, fontsize=10,
-                    verticalalignment='top', bbox=props, zorder=10)
+        # Plot edges (routes)
+        for idx, route in enumerate(routes):
+            lons = [unique_nodes[n]['lon'] for n in route]
+            lats = [unique_nodes[n]['lat'] for n in route]
+            
+            if idx == 0:
+                ax.plot(lons, lats, color='gold', linewidth=3.5, alpha=0.9, zorder=3, label='Rute Opsi 1 (Terbaik)')
+            else:
+                lbl = 'Rute Opsi Alternatif' if idx == 1 else ""
+                ax.plot(lons, lats, color='gray', linewidth=1.0, alpha=0.3, zorder=1, label=lbl)
+                
+        # Plot nodes
+        plotted_labels = set()
+        for node_id, data in unique_nodes.items():
+            cat = data['category']
+            lbl = str(data['cluster_label']).lower()
+            
+            # Map shade
+            shade = 'default'
+            if 'hemat' in lbl: shade = 'hemat'
+            elif 'balanced' in lbl or 'menengah' in lbl: shade = 'balanced'
+            elif 'premium' in lbl: shade = 'premium'
+            elif 'mewah' in lbl: shade = 'mewah'
+            
+            c = base_colors.get(cat, {}).get(shade, 'gray')
+            if c == 'gray': c = base_colors.get(cat, {}).get('default', 'gray')
+            
+            marker = 'o'
+            if cat == 'hotel': marker = 's'
+            elif cat == 'wisata': marker = '^'
+            elif cat == 'kuliner': marker = 'D'
+                
+            legend_lbl = f"{cat.capitalize()} ({data['cluster_label']})"
+            
+            if legend_lbl not in plotted_labels:
+                plotted_labels.add(legend_lbl)
+                ax.scatter(data['lon'], data['lat'], s=150, c=c, edgecolors='white', marker=marker, 
+                           alpha=0.9, label=legend_lbl, zorder=5)
+            else:
+                ax.scatter(data['lon'], data['lat'], s=150, c=c, edgecolors='white', marker=marker, 
+                           alpha=0.9, zorder=5)
+                           
+        ax.legend(loc='upper left', bbox_to_anchor=(1.02, 1.0), title="Keterangan")
+        ax.grid(True, linestyle=':', alpha=0.4)
         
-        colors = {'hotel': '#1f77b4', 'wisata': '#2ca02c', 'kuliner': '#d62728'}
-        labels_added = set()
+        info_text = "Sebaran Spasial Item Rekomendasi\nNode merepresentasikan lokasi tempat\nGaris merepresentasikan rute perjalanan\n(Top 1 warna Emas)"
+        props = dict(boxstyle='round', facecolor='wheat', alpha=0.8)
+        ax.text(1.02, 0.02, info_text, transform=ax.transAxes, fontsize=10, verticalalignment='bottom', bbox=props, zorder=10)
         
-        # 1. Kumpulkan dan petakan semua nama kategori ke indeks numerik
-        cat_mapping = {}
-        for category, cat_data in clustered.items():
-            if 'df' in cat_data:
-                df = cat_data['df']
-                x_c = 'Kategori' if 'Kategori' in df.columns else ('Cluster' if 'Cluster' in df.columns else None)
-                if x_c:
-                    for val in df[x_c].unique():
-                        if val not in cat_mapping:
-                            cat_mapping[val] = len(cat_mapping)
-                            
-        # 2. Plot titik-titik dengan efek Jitter (sebaran horizontal) agar tidak numpuk jadi garis vertikal
-        for category, cat_data in clustered.items():
-            if 'df' in cat_data:
-                df = cat_data['df']
-                if 'Membership_Degree' in df.columns:
-                    valid_df = df.copy()
-                    if not valid_df.empty:
-                        sizes = valid_df['Membership_Degree'] * 90 + 20
-                        label = category.capitalize() if category not in labels_added else ""
-                        labels_added.add(category)
-                        
-                        x_col = 'Kategori' if 'Kategori' in valid_df.columns else ('Cluster' if 'Cluster' in valid_df.columns else None)
-                        if x_col:
-                            # Ambil nilai numerik dari kategori
-                            x_base = valid_df[x_col].map(cat_mapping).astype(float)
-                            # Tambahkan sedikit angka acak (jitter) agar menyebar ke samping
-                            jitter = np.random.uniform(-0.15, 0.15, size=len(x_base))
-                            x_jittered = x_base + jitter
-                            
-                            ax.scatter(
-                                x_jittered, valid_df['Membership_Degree'], 
-                                s=sizes, c=colors.get(category, 'gray'), 
-                                alpha=0.65, label=label, edgecolors='white', linewidth=0.3
-                            )
-                            
-        # 3. Atur label sumbu X kembali menjadi teks kategori
-        if cat_mapping:
-            ax.set_xticks(list(cat_mapping.values()))
-            ax.set_xticklabels(list(cat_mapping.keys()))
-        
-        top_pkg = options_list[0]
-        
-        # Data untuk Plot Klaster vs Membership rute terbaik
-        route_clusters = []
-        
-        # Fungsi bantu untuk mencari Membership Degree & Klaster dari data yang terpilih
-        def get_cluster_info(name, cat):
-            if cat in clustered and 'df' in clustered[cat]:
-                df = clustered[cat]['df']
-                match = df[df['Nama_Tempat'] == name]
-                if not match.empty:
-                    x_val = match.iloc[0]['Kategori'] if 'Kategori' in df.columns else match.iloc[0]['Cluster']
-                    return (x_val, match.iloc[0]['Membership_Degree'])
-            return ("Unknown", 1.0) # Fallback
-            
-        if top_pkg.get('hotel_nama_real'):
-            info = get_cluster_info(top_pkg['hotel_nama_real'], 'hotel')
-            route_clusters.append((info[0], info[1], "Hotel"))
-            
-        if top_pkg.get('kuliner_pagi_nama') and top_pkg.get('kuliner_pagi_nama') != 'N/A':
-            info = get_cluster_info(top_pkg.get('kuliner_pagi_nama', ''), 'kuliner')
-            route_clusters.append((info[0], info[1], "Makan Pagi"))
-            
-        if top_pkg.get('wisata_nama'):
-            info = get_cluster_info(top_pkg['wisata_nama'], 'wisata')
-            route_clusters.append((info[0], info[1], "Wisata"))
-            
-        if top_pkg.get('kuliner_nama'):
-            info = get_cluster_info(top_pkg['kuliner_nama'], 'kuliner')
-            route_clusters.append((info[0], info[1], "Makan Siang"))
-            
-        if top_pkg.get('kuliner_malam_nama') and top_pkg.get('kuliner_malam_nama') != 'N/A':
-            info = get_cluster_info(top_pkg.get('kuliner_malam_nama', ''), 'kuliner')
-            route_clusters.append((info[0], info[1], "Makan Malam"))
-
-        if route_clusters:
-            # --- Plot Klaster vs Keanggotaan Rute Terbaik ---
-            # Posisi persis di tengah kategori (tanpa jitter)
-            cluster_labels_list = [cat_mapping.get(p[0], 0) for p in route_clusters]
-            memberships = [p[1] for p in route_clusters]
-            
-            ax.scatter(cluster_labels_list, memberships, color='gold', s=300, edgecolors='black', zorder=5, label='Item Paket Terpilih')
-            
-            # Beri offset sedikit pada posisi X dari teks agar tidak menumpuk persis di tengah
-            for i, (c_label, membership, lbl) in enumerate(route_clusters):
-                x_pos = cat_mapping.get(c_label, 0)
-                ax.annotate(f"{lbl}", (x_pos, membership), xytext=(12, 0), textcoords='offset points', fontweight='bold', zorder=6,
-                            bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="black", alpha=0.8))
-
-        # Legend juga digeser ke luar agar tidak menutupi grafik sama sekali
-        ax.legend(loc='lower left', bbox_to_anchor=(1.05, 0.0))
-        ax.grid(True, linestyle=':', alpha=0.6)
-        # plt.tight_layout() dihapus agar tidak me-reset jarak subplots_adjust
         plt.show()
         
     except Exception as e:
@@ -209,9 +221,10 @@ def run_multi_attribute_fcm(df, budget_anchor=None, n_clusters=3, workflow='budg
     r_min, r_max = ratings.min(), ratings.max()
     c_min, c_max = categories.min(), categories.max()
     
-    p_scaled = (prices - p_min) / (p_max - p_min + 1e-10)
-    r_scaled = (ratings - r_min) / (r_max - r_min + 1e-10)
-    c_scaled = (categories - c_min) / (c_max - c_min + 1e-10)
+    W_p, W_r, W_c = 0.8, 0.1, 0.1
+    p_scaled = ((prices - p_min) / (p_max - p_min + 1e-10)) * W_p
+    r_scaled = ((ratings - r_min) / (r_max - r_min + 1e-10)) * W_r
+    c_scaled = ((categories - c_min) / (c_max - c_min + 1e-10)) * W_c
     
     X = np.column_stack([p_scaled, r_scaled, c_scaled])
     
@@ -224,9 +237,9 @@ def run_multi_attribute_fcm(df, budget_anchor=None, n_clusters=3, workflow='budg
         rating_anchors = np.percentile(ratings, np.linspace(25, 75, n_clusters))
         category_anchors = np.linspace(c_min, c_max, n_clusters)
         
-        p_anchors_scaled = (price_anchors - p_min) / (p_max - p_min + 1e-10)
-        r_anchors_scaled = (rating_anchors - r_min) / (r_max - r_min + 1e-10)
-        c_anchors_scaled = (category_anchors - c_min) / (c_max - c_min + 1e-10)
+        p_anchors_scaled = ((price_anchors - p_min) / (p_max - p_min + 1e-10)) * W_p
+        r_anchors_scaled = ((rating_anchors - r_min) / (r_max - r_min + 1e-10)) * W_r
+        c_anchors_scaled = ((category_anchors - c_min) / (c_max - c_min + 1e-10)) * W_c
         
         init_centroids = np.column_stack([p_anchors_scaled, r_anchors_scaled, c_anchors_scaled])
     else:
@@ -234,9 +247,9 @@ def run_multi_attribute_fcm(df, budget_anchor=None, n_clusters=3, workflow='budg
         r_anchors = np.percentile(ratings, np.linspace(100/(n_clusters+1), 100*n_clusters/(n_clusters+1), n_clusters))
         c_anchors = np.percentile(categories, np.linspace(100/(n_clusters+1), 100*n_clusters/(n_clusters+1), n_clusters))
         
-        p_anchors_scaled = (p_anchors - p_min) / (p_max - p_min + 1e-10)
-        r_anchors_scaled = (r_anchors - r_min) / (r_max - r_min + 1e-10)
-        c_anchors_scaled = (c_anchors - c_min) / (c_max - c_min + 1e-10)
+        p_anchors_scaled = ((p_anchors - p_min) / (p_max - p_min + 1e-10)) * W_p
+        r_anchors_scaled = ((r_anchors - r_min) / (r_max - r_min + 1e-10)) * W_r
+        c_anchors_scaled = ((c_anchors - c_min) / (c_max - c_min + 1e-10)) * W_c
         
         init_centroids = np.column_stack([p_anchors_scaled, r_anchors_scaled, c_anchors_scaled])
 
@@ -245,7 +258,7 @@ def run_multi_attribute_fcm(df, budget_anchor=None, n_clusters=3, workflow='budg
     
     # Dapatkan centroid asli untuk mengurutkan
     cntr_scaled = fcm_res["cntr"].reshape(n_clusters, 3)
-    cntr_orig_price = cntr_scaled[:, 0] * (p_max - p_min + 1e-10) + p_min
+    cntr_orig_price = (cntr_scaled[:, 0] / W_p) * (p_max - p_min + 1e-10) + p_min
     
     # Urutkan berdasarkan harga agar (0=Hemat, 1=Balanced, 2=Premium)
     sorted_idx = np.argsort(cntr_orig_price)
@@ -255,9 +268,9 @@ def run_multi_attribute_fcm(df, budget_anchor=None, n_clusters=3, workflow='budg
     sorted_labels = np.argmax(sorted_u, axis=0)
     
     cntr_orig_sorted = np.zeros_like(sorted_cntr)
-    cntr_orig_sorted[:, 0] = sorted_cntr[:, 0] * (p_max - p_min + 1e-10) + p_min
-    cntr_orig_sorted[:, 1] = sorted_cntr[:, 1] * (r_max - r_min + 1e-10) + r_min
-    cntr_orig_sorted[:, 2] = sorted_cntr[:, 2] * (c_max - c_min + 1e-10) + c_min
+    cntr_orig_sorted[:, 0] = (sorted_cntr[:, 0] / W_p) * (p_max - p_min + 1e-10) + p_min
+    cntr_orig_sorted[:, 1] = (sorted_cntr[:, 1] / W_r) * (r_max - r_min + 1e-10) + r_min
+    cntr_orig_sorted[:, 2] = (sorted_cntr[:, 2] / W_c) * (c_max - c_min + 1e-10) + c_min
     # Hitung Xie-Beni Index Multidimensi
     n_samples = len(X)
     sigma = 0.0
@@ -1022,8 +1035,8 @@ def generate_packages(total_budget, num_persons, duration, datasets,
                     items_in_region_cp["distance_to_target"] = (items_in_region_cp["Estimasi_Harga"] - target_price).abs()
                     # PERBAIKAN: Top-N Stochastic Pool Sampling
                     sorted_items = items_in_region_cp.sort_values(
-                        by=["Membership_Degree", "distance_to_target"],
-                        ascending=[False, True]
+                        by=["distance_to_target", "Membership_Degree"],
+                        ascending=[True, False]
                     )
                     pool = sorted_items.head(25) # Ambil top 25 sebagai pool
                     if not pool.empty:
@@ -1036,13 +1049,13 @@ def generate_packages(total_budget, num_persons, duration, datasets,
             else:
                 if items_in_c.empty:
                     df["distance_to_target"] = (df["Estimasi_Harga"] - target_price).abs()
-                    sorted_items = df.sort_values(by=["Membership_Degree", "distance_to_target"], ascending=[False, True])
+                    sorted_items = df.sort_values(by=["distance_to_target", "Membership_Degree"], ascending=[True, False])
                     pool = sorted_items.head(30)
                     local_seed = (base_seed + hash(key) + i) % (2**32 - 1)
                     best_items = pool.sample(n=min(15, len(pool)), random_state=local_seed) if not pool.empty else pool
                 else:
                     items_in_c["distance_to_target"] = (items_in_c["Estimasi_Harga"] - target_price).abs()
-                    sorted_items = items_in_c.sort_values(by=["Membership_Degree", "distance_to_target"], ascending=[False, True])
+                    sorted_items = items_in_c.sort_values(by=["distance_to_target", "Membership_Degree"], ascending=[True, False])
                     pool = sorted_items.head(30)
                     local_seed = (base_seed + hash(key) + i) % (2**32 - 1)
                     best_items = pool.sample(n=min(15, len(pool)), random_state=local_seed) if not pool.empty else pool
@@ -1559,12 +1572,14 @@ def generate_packages(total_budget, num_persons, duration, datasets,
 
             pkg_formatted: dict[str, Any] = {
                 "hotel_nama": h_item["Nama_Tempat"] if duration > 1 else "Tanpa Akomodasi (One Day Trip)",
+                "hotel_md": h_item.get("Membership_Degree", 1.0) if duration > 1 else 1.0,
                 "hotel_harga": h_item["Estimasi_Harga"] if duration > 1 else 0,
                 "hotel_nama_real": h_item["Nama_Tempat"],
                 "hotel_lat": h_item.get("Latitude", 0),
                 "hotel_lon": h_item.get("Longitude", 0),
                 "wisata_id": int(float(w_item.get("Id_Tempat"))) if pd.notna(w_item.get("Id_Tempat")) else None,
                 "wisata_nama": w_item["Nama_Tempat"],
+                "wisata_md": w_item.get("Membership_Degree", 1.0),
                 "wisata_harga": w_item["Estimasi_Harga"],
                 "wisata_lat": w_item.get("Latitude", 0),
                 "wisata_lon": w_item.get("Longitude", 0),
@@ -1574,14 +1589,17 @@ def generate_packages(total_budget, num_persons, duration, datasets,
                 "additional_cost_max": _w_wahana["additional_cost_max"],
                 "additional_cost_label": _w_wahana["additional_cost_label"],
                 "kuliner_pagi_nama": k_pagi_item["Nama_Tempat"] if k_pagi_item else "N/A",
+                "kuliner_pagi_md": k_pagi_item.get("Membership_Degree", 1.0) if k_pagi_item else 1.0,
                 "kuliner_pagi_harga": k_pagi_item["Estimasi_Harga"] if k_pagi_item else 0,
                 "kuliner_pagi_lat": k_pagi_item.get("Latitude", 0) if k_pagi_item else 0,
                 "kuliner_pagi_lon": k_pagi_item.get("Longitude", 0) if k_pagi_item else 0,
                 "kuliner_nama": k_item["Nama_Tempat"],
+                "kuliner_md": k_item.get("Membership_Degree", 1.0),
                 "kuliner_harga": k_item["Estimasi_Harga"],
                 "kuliner_lat": k_item.get("Latitude", 0),
                 "kuliner_lon": k_item.get("Longitude", 0),
                 "kuliner_malam_nama": k_malam_item["Nama_Tempat"] if k_malam_item else "N/A",
+                "kuliner_malam_md": k_malam_item.get("Membership_Degree", 1.0) if k_malam_item else 1.0,
                 "kuliner_malam_harga": k_malam_item["Estimasi_Harga"] if k_malam_item else 0,
                 "kuliner_malam_lat": k_malam_item.get("Latitude", 0) if k_malam_item else 0,
                 "kuliner_malam_lon": k_malam_item.get("Longitude", 0) if k_malam_item else 0,
@@ -1862,6 +1880,9 @@ def generate_packages(total_budget, num_persons, duration, datasets,
         "hotel": clustered.get("hotel", {}).get("df") if "hotel" in clustered else None,
         "wisata": clustered.get("wisata", {}).get("df") if "wisata" in clustered else None,
         "kuliner": clustered.get("kuliner", {}).get("df") if "kuliner" in clustered else None,
+        "hotel_cntr": clustered.get("hotel", {}).get("cntr") if "hotel" in clustered else None,
+        "wisata_cntr": clustered.get("wisata", {}).get("cntr") if "wisata" in clustered else None,
+        "kuliner_cntr": clustered.get("kuliner", {}).get("cntr") if "kuliner" in clustered else None,
     }
 
     show_recommendation_scatter(clustered, options_list, 'Budget-First Workflow')
@@ -1964,8 +1985,8 @@ def generate_flexible_exploration_packages(num_persons, duration, datasets,
                     items_in_region_cp["distance_to_target"] = (items_in_region_cp["Estimasi_Harga"] - target_price).abs()
                     # PERBAIKAN: Top-N Stochastic Pool Sampling
                     sorted_items = items_in_region_cp.sort_values(
-                        by=["Membership_Degree", "distance_to_target"],
-                        ascending=[False, True]
+                        by=["distance_to_target", "Membership_Degree"],
+                        ascending=[True, False]
                     )
                     pool = sorted_items.head(25)
                     if not pool.empty:
@@ -1978,13 +1999,13 @@ def generate_flexible_exploration_packages(num_persons, duration, datasets,
             else:
                 if items_in_c.empty:
                     df["distance_to_target"] = (df["Estimasi_Harga"] - target_price).abs()
-                    sorted_items = df.sort_values(by=["Membership_Degree", "distance_to_target"], ascending=[False, True])
+                    sorted_items = df.sort_values(by=["distance_to_target", "Membership_Degree"], ascending=[True, False])
                     pool = sorted_items.head(30)
                     local_seed = (base_seed + hash(key) + i) % (2**32 - 1)
                     best_items = pool.sample(n=min(15, len(pool)), random_state=local_seed) if not pool.empty else pool
                 else:
                     items_in_c["distance_to_target"] = (items_in_c["Estimasi_Harga"] - target_price).abs()
-                    sorted_items = items_in_c.sort_values(by=["Membership_Degree", "distance_to_target"], ascending=[False, True])
+                    sorted_items = items_in_c.sort_values(by=["distance_to_target", "Membership_Degree"], ascending=[True, False])
                     pool = sorted_items.head(30)
                     local_seed = (base_seed + hash(key) + i) % (2**32 - 1)
                     best_items = pool.sample(n=min(15, len(pool)), random_state=local_seed) if not pool.empty else pool
@@ -2390,6 +2411,7 @@ def generate_flexible_exploration_packages(num_persons, duration, datasets,
             
             pkg_formatted: dict[str, Any] = {
                 "hotel_nama": h_item.get("Nama_Tempat", "N/A") if duration > 1 else "Tanpa Akomodasi (1 Hari)",
+                "hotel_md": h_item.get("Membership_Degree", 1.0) if duration > 1 else 1.0,
                 "hotel_nama_real": h_item.get("Nama_Tempat", "") if duration > 1 else "",
                 "hotel_harga": h_item.get("Estimasi_Harga", 0) if duration > 1 else 0,
                 "hotel_rating": h_item.get("Rating", 0.0) if duration > 1 else 0.0,
@@ -2397,24 +2419,28 @@ def generate_flexible_exploration_packages(num_persons, duration, datasets,
                 "hotel_lon": h_item.get("Longitude", 0.0) if duration > 1 else 0.0,
                 "wisata_id": int(float(w_item.get("Id_Tempat"))) if pd.notna(w_item.get("Id_Tempat")) else None,
                 "wisata_nama": w_item.get("Nama_Tempat", "N/A"),
+                "wisata_md": w_item.get("Membership_Degree", 1.0),
                 "wisata_harga": w_item.get("Estimasi_Harga", 0),
                 "wisata_rating": w_item.get("Rating", 0.0),
                 "wisata_lat": w_item.get("Latitude", 0.0),
                 "wisata_lon": w_item.get("Longitude", 0.0),
                 
                 "kuliner_pagi_nama": k_pagi_item.get("Nama_Tempat", "N/A") if k_pagi_item else "N/A",
+                "kuliner_pagi_md": k_pagi_item.get("Membership_Degree", 1.0) if k_pagi_item else 1.0,
                 "kuliner_pagi_harga": k_pagi_item.get("Estimasi_Harga", 0) if k_pagi_item else 0,
                 "kuliner_pagi_rating": k_pagi_item.get("Rating", 0.0) if k_pagi_item else 0.0,
                 "kuliner_pagi_lat": k_pagi_item.get("Latitude", 0.0) if k_pagi_item else 0.0,
                 "kuliner_pagi_lon": k_pagi_item.get("Longitude", 0.0) if k_pagi_item else 0.0,
                 
                 "kuliner_nama": k_item.get("Nama_Tempat", "N/A"),
+                "kuliner_md": k_item.get("Membership_Degree", 1.0),
                 "kuliner_harga": k_item.get("Estimasi_Harga", 0),
                 "kuliner_rating": k_item.get("Rating", 0.0),
                 "kuliner_lat": k_item.get("Latitude", 0.0),
                 "kuliner_lon": k_item.get("Longitude", 0.0),
                 
                 "kuliner_malam_nama": k_malam_item.get("Nama_Tempat", "N/A") if k_malam_item else "N/A",
+                "kuliner_malam_md": k_malam_item.get("Membership_Degree", 1.0) if k_malam_item else 1.0,
                 "kuliner_malam_harga": k_malam_item.get("Estimasi_Harga", 0) if k_malam_item else 0,
                 "kuliner_malam_rating": k_malam_item.get("Rating", 0.0) if k_malam_item else 0.0,
                 "kuliner_malam_lat": k_malam_item.get("Latitude", 0.0) if k_malam_item else 0.0,
@@ -2621,6 +2647,9 @@ def generate_flexible_exploration_packages(num_persons, duration, datasets,
         "hotel": clustered.get("hotel", {}).get("df") if "hotel" in clustered else None,
         "wisata": clustered.get("wisata", {}).get("df") if "wisata" in clustered else None,
         "kuliner": clustered.get("kuliner", {}).get("df") if "kuliner" in clustered else None,
+        "hotel_cntr": clustered.get("hotel", {}).get("cntr") if "hotel" in clustered else None,
+        "wisata_cntr": clustered.get("wisata", {}).get("cntr") if "wisata" in clustered else None,
+        "kuliner_cntr": clustered.get("kuliner", {}).get("cntr") if "kuliner" in clustered else None,
     }
 
     show_recommendation_scatter(clustered, options_list, 'Flexible Workflow')
@@ -2819,8 +2848,8 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
                     items_in_region_cp["distance_to_target"] = (items_in_region_cp["Estimasi_Harga"] - target_price).abs()
                     # PERBAIKAN: Top-N Stochastic Pool Sampling
                     sorted_items = items_in_region_cp.sort_values(
-                        by=["Membership_Degree", "distance_to_target"], 
-                        ascending=[False, True]
+                        by=["distance_to_target", "Membership_Degree"], 
+                        ascending=[True, False]
                     )
                     pool = sorted_items.head(25)
                     if not pool.empty:
@@ -2833,13 +2862,13 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
             else:
                 if items_in_c.empty:
                     df["distance_to_target"] = (df["Estimasi_Harga"] - target_price).abs()
-                    sorted_items = df.sort_values(by=["Membership_Degree", "distance_to_target"], ascending=[False, True])
+                    sorted_items = df.sort_values(by=["distance_to_target", "Membership_Degree"], ascending=[True, False])
                     pool = sorted_items.head(30)
                     local_seed = (base_seed + hash(key) + i) % (2**32 - 1)
                     best_items = pool.sample(n=min(15, len(pool)), random_state=local_seed) if not pool.empty else pool
                 else:
                     items_in_c["distance_to_target"] = (items_in_c["Estimasi_Harga"] - target_price).abs()
-                    sorted_items = items_in_c.sort_values(by=["Membership_Degree", "distance_to_target"], ascending=[False, True])
+                    sorted_items = items_in_c.sort_values(by=["distance_to_target", "Membership_Degree"], ascending=[True, False])
                     pool = sorted_items.head(30)
                     local_seed = (base_seed + hash(key) + i) % (2**32 - 1)
                     best_items = pool.sample(n=min(15, len(pool)), random_state=local_seed) if not pool.empty else pool
@@ -3365,6 +3394,7 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
             
             pkg_formatted: dict[str, Any] = {
                 "hotel_nama": h_item.get("Nama_Tempat", "N/A") if duration > 1 else "Tanpa Akomodasi (1 Hari)",
+                "hotel_md": h_item.get("Membership_Degree", 1.0) if duration > 1 else 1.0,
                 "hotel_nama_real": h_item.get("Nama_Tempat", "") if duration > 1 else "",
                 "hotel_harga": h_item.get("Estimasi_Harga", 0) if duration > 1 else 0,
                 "hotel_rating": h_item.get("Rating", 0.0) if duration > 1 else 0.0,
@@ -3372,24 +3402,28 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
                 "hotel_lon": h_item.get("Longitude", 0.0) if duration > 1 else 0.0,
                 "wisata_id": int(float(w_item.get("Id_Tempat"))) if pd.notna(w_item.get("Id_Tempat")) else None,
                 "wisata_nama": w_item.get("Nama_Tempat", "N/A"),
+                "wisata_md": w_item.get("Membership_Degree", 1.0),
                 "wisata_harga": w_item.get("Estimasi_Harga", 0),
                 "wisata_rating": w_item.get("Rating", 0.0),
                 "wisata_lat": w_item.get("Latitude", 0.0),
                 "wisata_lon": w_item.get("Longitude", 0.0),
                 
                 "kuliner_pagi_nama": k_pagi_item.get("Nama_Tempat", "N/A") if k_pagi_item else "N/A",
+                "kuliner_pagi_md": k_pagi_item.get("Membership_Degree", 1.0) if k_pagi_item else 1.0,
                 "kuliner_pagi_harga": k_pagi_item.get("Estimasi_Harga", 0) if k_pagi_item else 0,
                 "kuliner_pagi_rating": k_pagi_item.get("Rating", 0.0) if k_pagi_item else 0.0,
                 "kuliner_pagi_lat": k_pagi_item.get("Latitude", 0.0) if k_pagi_item else 0.0,
                 "kuliner_pagi_lon": k_pagi_item.get("Longitude", 0.0) if k_pagi_item else 0.0,
                 
                 "kuliner_nama": k_item.get("Nama_Tempat", "N/A"),
+                "kuliner_md": k_item.get("Membership_Degree", 1.0),
                 "kuliner_harga": k_item.get("Estimasi_Harga", 0),
                 "kuliner_rating": k_item.get("Rating", 0.0),
                 "kuliner_lat": k_item.get("Latitude", 0.0),
                 "kuliner_lon": k_item.get("Longitude", 0.0),
                 
                 "kuliner_malam_nama": k_malam_item.get("Nama_Tempat", "N/A") if k_malam_item else "N/A",
+                "kuliner_malam_md": k_malam_item.get("Membership_Degree", 1.0) if k_malam_item else 1.0,
                 "kuliner_malam_harga": k_malam_item.get("Estimasi_Harga", 0) if k_malam_item else 0,
                 "kuliner_malam_rating": k_malam_item.get("Rating", 0.0) if k_malam_item else 0.0,
                 "kuliner_malam_lat": k_malam_item.get("Latitude", 0.0) if k_malam_item else 0.0,
@@ -3617,6 +3651,9 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
         "hotel": clustered.get("hotel", {}).get("df") if "hotel" in clustered else None,
         "wisata": df_wisata,
         "kuliner": clustered.get("kuliner", {}).get("df") if "kuliner" in clustered else None,
+        "hotel_cntr": clustered.get("hotel", {}).get("cntr") if "hotel" in clustered else None,
+        "wisata_cntr": clustered.get("wisata", {}).get("cntr") if "wisata" in clustered else None,
+        "kuliner_cntr": clustered.get("kuliner", {}).get("cntr") if "kuliner" in clustered else None,
     }
 
     show_recommendation_scatter(clustered, options_list, 'Destination-First Workflow')
@@ -3628,321 +3665,373 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
 # ============================================================
 def export_to_excel_recom(options_list, workflow, budget, persons, duration):
     """
-    Mengekspor hasil kombinasi rute rekomendasi (Hemat, Balanced, Premium)
-    yang dihasilkan ke dalam berkas Excel (.xlsx) di folder output/hasil-rekomendasi.
+    Mengekspor hasil kombinasi rute rekomendasi ke dalam berkas Excel (.xlsx).
+    Sheet 1: Menampilkan item secara detail (Opsi, Item, Harga, Membership Degree) beserta info centroid.
+    Sheet 2: Menampilkan breakdown itinerary dan total cost.
     """
     import datetime
     import os
+    import pandas as pd
     from config import OUTPUT_DIR
     
-    # 1. Definisikan folder output di dalam storage
+    # 1. Definisikan folder output
     out_folder = os.path.join(OUTPUT_DIR, "hasil-rekomendasi")
     os.makedirs(out_folder, exist_ok=True)
     
-    # 2. Bangun nama file unik dengan timestamp
+    # 2. Bangun nama file
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     budget_str = f"{int(budget)}" if budget else "tanpa_budget"
     filename = f"rekomendasi_{workflow}_{timestamp}_b{budget_str}_p{persons}_d{duration}.xlsx"
     filepath = os.path.join(out_folder, filename)
     
-    # 3. Flat data hasil kombinasi ke list rows untuk pandas
-    rows = []
+    # 3. Data Metadata / Input User & Centroid
+    def format_cntr(cntr):
+        if cntr is None or len(cntr) == 0: return "N/A"
+        try:
+            import numpy as np
+            flat_cntr = np.ravel(cntr)
+            
+            c = len(flat_cntr)
+            if c == 2:
+                labels = ["Hemat", "Premium"]
+            elif c == 3:
+                labels = ["Hemat", "Balanced", "Premium"]
+            elif c == 4:
+                labels = ["Hemat", "Balanced", "Premium", "Luxury"]
+            else:
+                labels = [f"Kelas {i+1}" for i in range(c)]
+                
+            parts = []
+            for i, val in enumerate(flat_cntr):
+                label = labels[i] if i < len(labels) else f"Kelas {i+1}"
+                parts.append(f"{label}: Rp {int(val):,.0f}")
+                
+            return " | ".join(parts)
+        except Exception:
+            return str(cntr)
+            
+    global LAST_CLUSTERED
+    hotel_cntr_str = format_cntr(LAST_CLUSTERED.get("hotel_cntr", [])) if LAST_CLUSTERED else "N/A"
+    wisata_cntr_str = format_cntr(LAST_CLUSTERED.get("wisata_cntr", [])) if LAST_CLUSTERED else "N/A"
+    kuliner_cntr_str = format_cntr(LAST_CLUSTERED.get("kuliner_cntr", [])) if LAST_CLUSTERED else "N/A"
+    
+    meta_rows = [
+        {"Informasi": "Input Workflow", "Nilai": workflow.upper()},
+        {"Informasi": "Input Budget", "Nilai": f"Rp {budget:,.0f}" if budget else "Tanpa Budget"},
+        {"Informasi": "Input Peserta", "Nilai": f"{persons} Orang"},
+        {"Informasi": "Input Durasi", "Nilai": f"{duration} Hari"},
+        {"Informasi": "Centroid Hotel", "Nilai": hotel_cntr_str},
+        {"Informasi": "Centroid Wisata", "Nilai": wisata_cntr_str},
+        {"Informasi": "Centroid Kuliner", "Nilai": kuliner_cntr_str},
+    ]
+    df_meta = pd.DataFrame(meta_rows)
+    
+    # 4. Sheet 1: Detail Item Per Package
+    item_rows = []
     for opt in options_list:
         opt_idx = opt["option_index"]
         for pkg in opt["packages"]:
-            row_dict = {
-                "Workflow": workflow.upper(),
-                "Opsi Alternatif": f"Opsi {opt_idx}",
-                "Kelas Paket": pkg.get("kategori", "N/A").upper(),
-                "Nama Hotel": pkg.get("hotel_nama", "N/A"),
-                "Tarif Hotel/Malam": pkg.get("hotel_harga", 0),
-                "Nama Wisata": pkg.get("wisata_nama", "N/A"),
-                "Harga Tiket Wisata": pkg.get("wisata_harga", 0),
-                "Nama Kuliner": pkg.get("kuliner_nama", "N/A"),
-                "Harga Porsi Kuliner": pkg.get("kuliner_harga", 0),
-                "Jumlah Peserta (Orang)": pkg.get("num_persons", persons),
-                "Durasi Perjalanan (Hari)": pkg.get("duration", duration),
-                "Jumlah Kamar Hotel": pkg.get("num_rooms", 0),
-                "Jumlah Malam Hotel": pkg.get("nights", 0),
-                "Biaya Akomodasi": pkg.get("cost_akomodasi", 0),
-                "Biaya Wisata": pkg.get("cost_wisata", 0),
-                "Biaya Kuliner": pkg.get("cost_kuliner", 0),
-                "Biaya Transportasi": pkg.get("cost_transport", 0),
-                "Jarak Rute Spasial (Km)": pkg.get("transport_detail", {}).get("total_distance_km", 0),
-                "Moda Transportasi": pkg.get("transport_detail", {}).get("legs", [{}])[0].get("vehicle", "N/A"),
-                "ESTIMASI TOTAL BIAYA": pkg.get("total_cost", 0),
-                "Sisa/Kelebihan Anggaran": (budget - pkg.get("total_cost", 0)) if budget else "N/A"
+            kelas = pkg.get("kategori", "N/A").upper()
+            base_row = {
+                "Opsi": f"Opsi {opt_idx}",
+                "Kelas Paket": kelas
             }
             
-            # Tambahkan harga per hari secara dinamis jika itinerary bervariasi
-            itin = pkg.get("itinerary", [])
-            if not itin:
-                day_total = pkg.get("cost_akomodasi", 0) + pkg.get("cost_wisata", 0) + pkg.get("cost_kuliner", 0) + pkg.get("cost_transport", 0)
-                row_dict["Harga Harian (Hari 1)"] = day_total
-            else:
-                pkg_legs = pkg.get("transport_detail", {}).get("legs", [])
-                for day in itin:
-                    d = day["day"]
-                    d_num_nights = pkg.get("nights", 0)
-                    has_hotel = day.get("hotel") and day.get("hotel") != 'Checkout'
-                    hotel_cost = float(day.get("hotel_harga", 0)) * pkg.get("num_rooms", 1) if has_hotel else 0.0
-                    wisata_cost = float(day.get("wisata_harga", 0)) * pkg.get("num_persons", persons)
-                    # Include makan pagi + siang + malam (malam only for non-checkout days)
-                    kp = float(day.get("kuliner_pagi_harga", 0))
-                    ks = float(day.get("kuliner_harga", 0))
-                    km = float(day.get("kuliner_malam_harga", 0)) if d <= d_num_nights else 0.0
-                    kuliner_cost = (kp + ks + km) * pkg.get("num_persons", persons)
-                    # Use actual per-day transport legs cost
-                    day_legs = [l for l in pkg_legs if f"Hari {d}" in l.get("from", "") or f"Hari {d}" in l.get("to", "")]
-                    transport_cost = sum(l.get("cost", 0) for l in day_legs)
-                    day_subtotal = hotel_cost + wisata_cost + kuliner_cost + transport_cost
-                    row_dict[f"Harga Harian (Hari {d})"] = day_subtotal
-                    
-            rows.append(row_dict)
+            # Hotel
+            row_h = base_row.copy()
+            row_h.update({
+                "Tipe Item": "Hotel",
+                "Nama Tempat": pkg.get("hotel_nama", "N/A"),
+                "Estimasi Harga": pkg.get("hotel_harga", 0),
+                "Membership Degree": pkg.get("hotel_md", 1.0)
+            })
+            item_rows.append(row_h)
             
-    # 4. Simpan ke Excel menggunakan pandas
-    if rows:
-        df = pd.DataFrame(rows)
-        
-        detail_rows = []
-        for opt in options_list:
-            opt_idx = opt["option_index"]
-            for pkg in opt["packages"]:
-                kelas = pkg.get("kategori", "N/A").upper()
-                opt_label = f"Opsi {opt_idx} - {kelas}"
+            # Wisata
+            row_w = base_row.copy()
+            row_w.update({
+                "Tipe Item": "Wisata",
+                "Nama Tempat": pkg.get("wisata_nama", "N/A"),
+                "Estimasi Harga": pkg.get("wisata_harga", 0),
+                "Membership Degree": pkg.get("wisata_md", 1.0)
+            })
+            item_rows.append(row_w)
+            
+            # Kuliner Pagi
+            row_kp = base_row.copy()
+            row_kp.update({
+                "Tipe Item": "Makan Pagi",
+                "Nama Tempat": pkg.get("kuliner_pagi_nama", "N/A"),
+                "Estimasi Harga": pkg.get("kuliner_pagi_harga", 0),
+                "Membership Degree": pkg.get("kuliner_pagi_md", 1.0)
+            })
+            item_rows.append(row_kp)
+            
+            # Kuliner Siang
+            row_ks = base_row.copy()
+            row_ks.update({
+                "Tipe Item": "Makan Siang",
+                "Nama Tempat": pkg.get("kuliner_nama", "N/A"),
+                "Estimasi Harga": pkg.get("kuliner_harga", 0),
+                "Membership Degree": pkg.get("kuliner_md", 1.0)
+            })
+            item_rows.append(row_ks)
+            
+            # Kuliner Malam
+            if duration > 1:
+                row_km = base_row.copy()
+                row_km.update({
+                    "Tipe Item": "Makan Malam",
+                    "Nama Tempat": pkg.get("kuliner_malam_nama", "N/A"),
+                    "Estimasi Harga": pkg.get("kuliner_malam_harga", 0),
+                    "Membership Degree": pkg.get("kuliner_malam_md", 1.0)
+                })
+                item_rows.append(row_km)
                 
-                num_persons = pkg.get("num_persons", persons)
-                num_rooms = pkg.get("num_rooms", 0)
-                nights = pkg.get("nights", 0)
-                duration = pkg.get("duration", duration)
+            # Add an empty row for visual separation between packages
+            item_rows.append({"Opsi": "", "Kelas Paket": "", "Tipe Item": "", "Nama Tempat": "", "Estimasi Harga": "", "Membership Degree": ""})
+
+    df_items = pd.DataFrame(item_rows)
+    
+    # 5. Sheet 2: Detail Itinerary (as before)
+    detail_rows = []
+    for opt in options_list:
+        opt_idx = opt["option_index"]
+        for pkg in opt["packages"]:
+            kelas = pkg.get("kategori", "N/A").upper()
+            opt_label = f"Opsi {opt_idx} - {kelas}"
+            
+            num_persons = pkg.get("num_persons", persons)
+            num_rooms = pkg.get("num_rooms", 0)
+            nights = pkg.get("nights", 0)
+            duration = pkg.get("duration", duration)
+            
+            itin = pkg.get("itinerary", [])
+            legs = pkg.get("transport_detail", {}).get("legs", [])
+            
+            detail_rows.append({
+                "Opsi & Kelas": opt_label,
+                "Hari": "SEMUA HARI",
+                "Item / Aktivitas": f"=== DETAIL ITINERARY {opt_label} ===",
+                "Detail / Nama Tempat": "-",
+                "Biaya (Rp)": 0,
+                "Keterangan": f"Durasi {duration} Hari, {num_persons} Orang"
+            })
+            
+            for d_num in range(1, duration + 1):
+                day_label = f"Hari {d_num}"
                 
-                # Day-by-day Itinerary
-                itin = pkg.get("itinerary", [])
-                legs = pkg.get("transport_detail", {}).get("legs", [])
+                day_dict = {}
+                if d_num - 1 < len(itin):
+                    day_dict = itin[d_num - 1]
                 
                 detail_rows.append({
                     "Opsi & Kelas": opt_label,
-                    "Hari": "SEMUA HARI",
-                    "Item / Aktivitas": f"=== DETAIL ITINERARY {opt_label} ===",
-                    "Detail / Nama Tempat": "-",
+                    "Hari": day_label,
+                    "Item / Aktivitas": f"REKOMENDASI HARI {d_num}",
+                    "Detail / Nama Tempat": "",
                     "Biaya (Rp)": 0,
-                    "Keterangan": f"Durasi {duration} Hari, {num_persons} Orang"
-                })
-                
-                for d_num in range(1, duration + 1):
-                    day_label = f"Hari {d_num}"
-                    
-                    day_dict = {}
-                    if d_num - 1 < len(itin):
-                        day_dict = itin[d_num - 1]
-                    
-                    detail_rows.append({
-                        "Opsi & Kelas": opt_label,
-                        "Hari": day_label,
-                        "Item / Aktivitas": f"REKOMENDASI HARI {d_num}",
-                        "Detail / Nama Tempat": "",
-                        "Biaya (Rp)": 0,
-                        "Keterangan": ""
-                    })
-                    
-                    h_name = day_dict.get("hotel", "Checkout")
-                    h_harga = day_dict.get("hotel_harga", 0)
-                    detail_rows.append({
-                        "Opsi & Kelas": opt_label,
-                        "Hari": day_label,
-                        "Item / Aktivitas": "Hotel",
-                        "Detail / Nama Tempat": h_name,
-                        "Biaya (Rp)": h_harga,
-                        "Keterangan": "/malam (Status: Checkout)" if h_name == "Checkout" else f"/malam (Status: Menginap)"
-                    })
-                    
-                    w_name = day_dict.get("wisata", "N/A")
-                    w_harga = day_dict.get("wisata_harga", 0)
-                    detail_rows.append({
-                        "Opsi & Kelas": opt_label,
-                        "Hari": day_label,
-                        "Item / Aktivitas": "Wisata",
-                        "Detail / Nama Tempat": w_name,
-                        "Biaya (Rp)": w_harga,
-                        "Keterangan": "/orang"
-                    })
-                    
-                    kp_name = day_dict.get("kuliner_pagi", "N/A")
-                    kp_harga = day_dict.get("kuliner_pagi_harga", 0)
-                    detail_rows.append({
-                        "Opsi & Kelas": opt_label,
-                        "Hari": day_label,
-                        "Item / Aktivitas": "Makan Pagi",
-                        "Detail / Nama Tempat": kp_name,
-                        "Biaya (Rp)": kp_harga,
-                        "Keterangan": "/orang"
-                    })
-                    
-                    ks_name = day_dict.get("kuliner", "N/A")
-                    ks_harga = day_dict.get("kuliner_harga", 0)
-                    detail_rows.append({
-                        "Opsi & Kelas": opt_label,
-                        "Hari": day_label,
-                        "Item / Aktivitas": "Makan Siang",
-                        "Detail / Nama Tempat": ks_name,
-                        "Biaya (Rp)": ks_harga,
-                        "Keterangan": "/orang"
-                    })
-                    
-                    if d_num < duration:
-                        km_name = day_dict.get("kuliner_malam", "N/A")
-                        km_harga = day_dict.get("kuliner_malam_harga", 0)
-                        detail_rows.append({
-                            "Opsi & Kelas": opt_label,
-                            "Hari": day_label,
-                            "Item / Aktivitas": "Makan Malam",
-                            "Detail / Nama Tempat": km_name,
-                            "Biaya (Rp)": km_harga,
-                            "Keterangan": "/orang"
-                        })
-                    
-                    h_cost_day = h_harga * num_rooms if h_name != "Checkout" else 0
-                    detail_rows.append({
-                        "Opsi & Kelas": opt_label,
-                        "Hari": day_label,
-                        "Item / Aktivitas": f"• Kamar Hotel ({nights if h_name != 'Checkout' else 0} Malam)" if h_name == "Checkout" else f"• Kamar Hotel (1 Malam)",
-                        "Detail / Nama Tempat": "",
-                        "Biaya (Rp)": h_cost_day,
-                        "Keterangan": ""
-                    })
-                    
-                    w_cost_day = w_harga * num_persons
-                    detail_rows.append({
-                        "Opsi & Kelas": opt_label,
-                        "Hari": day_label,
-                        "Item / Aktivitas": f"• Tiket Wisata ({num_persons} Orang) (Hari {d_num})",
-                        "Detail / Nama Tempat": "",
-                        "Biaya (Rp)": w_cost_day,
-                        "Keterangan": ""
-                    })
-                    
-                    meals_count = 3 if d_num < duration else 2
-                    k_cost_day = (kp_harga + ks_harga + (day_dict.get("kuliner_malam_harga", 0) if d_num < duration else 0)) * num_persons
-                    detail_rows.append({
-                        "Opsi & Kelas": opt_label,
-                        "Hari": day_label,
-                        "Item / Aktivitas": f"• Kuliner ({num_persons} Orang × {meals_count}x Makan)",
-                        "Detail / Nama Tempat": "",
-                        "Biaya (Rp)": k_cost_day,
-                        "Keterangan": ""
-                    })
-                    
-                    day_legs = []
-                    for leg in legs:
-                        l_from = leg.get("from", "")
-                        l_to = leg.get("to", "")
-                        if f"Hari {d_num}" in l_from or f"Hari {d_num}" in l_to:
-                            day_legs.append(leg)
-                    
-                    for leg in day_legs:
-                        l_from = leg.get("from", "")
-                        l_to = leg.get("to", "")
-                        dist = leg.get("distance_km", 0)
-                        cost = leg.get("cost", 0)
-                        veh = leg.get("vehicle", "Motor")
-                        detail_rows.append({
-                            "Opsi & Kelas": opt_label,
-                            "Hari": day_label,
-                            "Item / Aktivitas": f"{l_from}→{l_to} ({dist} km)",
-                            "Detail / Nama Tempat": "",
-                            "Biaya (Rp)": cost,
-                            "Keterangan": veh
-                        })
-                    
-                    t_cost_day = sum(leg.get("cost", 0) for leg in day_legs)
-                    detail_rows.append({
-                        "Opsi & Kelas": opt_label,
-                        "Hari": day_label,
-                        "Item / Aktivitas": f"• Transportasi ({'Motor' if num_persons <= 1 else 'Mobil'})",
-                        "Detail / Nama Tempat": "",
-                        "Biaya (Rp)": t_cost_day,
-                        "Keterangan": ""
-                    })
-                    
-                    day_subtotal = h_cost_day + w_cost_day + k_cost_day + t_cost_day
-                    detail_rows.append({
-                        "Opsi & Kelas": opt_label,
-                        "Hari": day_label,
-                        "Item / Aktivitas": f"Subtotal Hari {d_num}:",
-                        "Detail / Nama Tempat": "",
-                        "Biaya (Rp)": day_subtotal,
-                        "Keterangan": ""
-                    })
-                
-                detail_rows.append({
-                    "Opsi & Kelas": opt_label,
-                    "Hari": "RINGKASAN",
-                    "Item / Aktivitas": "🏨 Akomodasi (1 malam × 1 kamar)" if nights == 1 and num_rooms == 1 else f"🏨 Akomodasi ({nights} malam × {num_rooms} kamar)",
-                    "Detail / Nama Tempat": "",
-                    "Biaya (Rp)": pkg.get("cost_akomodasi", 0),
-                    "Keterangan": pkg.get("hotel_nama", "")
-                })
-                
-                detail_rows.append({
-                    "Opsi & Kelas": opt_label,
-                    "Hari": "RINGKASAN",
-                    "Item / Aktivitas": f"🎯 Tiket Wisata ({num_persons} orang)",
-                    "Detail / Nama Tempat": "",
-                    "Biaya (Rp)": pkg.get("cost_wisata", 0),
-                    "Keterangan": pkg.get("wisata_nama", "")
-                })
-                
-                total_meals = (duration - 1) * 3 + 2 if duration > 1 else 2
-                detail_rows.append({
-                    "Opsi & Kelas": opt_label,
-                    "Hari": "RINGKASAN",
-                    "Item / Aktivitas": f"🍜 Kuliner ({num_persons} orang × {total_meals} makan)",
-                    "Detail / Nama Tempat": "",
-                    "Biaya (Rp)": pkg.get("cost_kuliner", 0),
                     "Keterangan": ""
                 })
                 
-                veh_desc = pkg.get("transport_detail", {}).get("vehicle", "Motor")
+                h_name = day_dict.get("hotel", "Checkout")
+                h_harga = day_dict.get("hotel_harga", 0)
                 detail_rows.append({
                     "Opsi & Kelas": opt_label,
-                    "Hari": "RINGKASAN",
-                    "Item / Aktivitas": f"🚗 Transportasi ({veh_desc})",
-                    "Detail / Nama Tempat": "",
-                    "Biaya (Rp)": pkg.get("cost_transport", 0),
-                    "Keterangan": f"Total Jarak: {pkg.get('transport_detail', {}).get('total_distance_km', 0)} km"
+                    "Hari": day_label,
+                    "Item / Aktivitas": "Hotel",
+                    "Detail / Nama Tempat": h_name,
+                    "Biaya (Rp)": h_harga,
+                    "Keterangan": "/malam (Status: Checkout)" if h_name == "Checkout" else f"/malam (Status: Menginap)"
                 })
                 
+                w_name = day_dict.get("wisata", "N/A")
+                w_harga = day_dict.get("wisata_harga", 0)
                 detail_rows.append({
                     "Opsi & Kelas": opt_label,
-                    "Hari": "RINGKASAN",
-                    "Item / Aktivitas": "TOTAL BIAYA PAKET",
-                    "Detail / Nama Tempat": "",
-                    "Biaya (Rp)": pkg.get("total_cost", 0),
-                    "Keterangan": "Estimasi Total"
+                    "Hari": day_label,
+                    "Item / Aktivitas": "Wisata",
+                    "Detail / Nama Tempat": w_name,
+                    "Biaya (Rp)": w_harga,
+                    "Keterangan": "/orang"
                 })
                 
+                kp_name = day_dict.get("kuliner_pagi", "N/A")
+                kp_harga = day_dict.get("kuliner_pagi_harga", 0)
                 detail_rows.append({
-                    "Opsi & Kelas": "", "Hari": "", "Item / Aktivitas": "", "Detail / Nama Tempat": "", "Biaya (Rp)": "", "Keterangan": ""
+                    "Opsi & Kelas": opt_label,
+                    "Hari": day_label,
+                    "Item / Aktivitas": "Makan Pagi",
+                    "Detail / Nama Tempat": kp_name,
+                    "Biaya (Rp)": kp_harga,
+                    "Keterangan": "/orang"
                 })
                 
-        df_detail = pd.DataFrame(detail_rows)
-        
-        with pd.ExcelWriter(filepath, engine='openpyxl') as writer:
-            df.to_excel(writer, sheet_name="Rekomendasi Paket", index=False)
-            df_detail.to_excel(writer, sheet_name="Detail Itinerary & Biaya", index=False)
+                ks_name = day_dict.get("kuliner", "N/A")
+                ks_harga = day_dict.get("kuliner_harga", 0)
+                detail_rows.append({
+                    "Opsi & Kelas": opt_label,
+                    "Hari": day_label,
+                    "Item / Aktivitas": "Makan Siang",
+                    "Detail / Nama Tempat": ks_name,
+                    "Biaya (Rp)": ks_harga,
+                    "Keterangan": "/orang"
+                })
+                
+                if d_num < duration:
+                    km_name = day_dict.get("kuliner_malam", "N/A")
+                    km_harga = day_dict.get("kuliner_malam_harga", 0)
+                    detail_rows.append({
+                        "Opsi & Kelas": opt_label,
+                        "Hari": day_label,
+                        "Item / Aktivitas": "Makan Malam",
+                        "Detail / Nama Tempat": km_name,
+                        "Biaya (Rp)": km_harga,
+                        "Keterangan": "/orang"
+                    })
+                
+                h_cost_day = h_harga * num_rooms if h_name != "Checkout" else 0
+                detail_rows.append({
+                    "Opsi & Kelas": opt_label,
+                    "Hari": day_label,
+                    "Item / Aktivitas": f"• Kamar Hotel ({nights if h_name != 'Checkout' else 0} Malam)" if h_name == "Checkout" else f"• Kamar Hotel (1 Malam)",
+                    "Detail / Nama Tempat": "",
+                    "Biaya (Rp)": h_cost_day,
+                    "Keterangan": ""
+                })
+                
+                w_cost_day = w_harga * num_persons
+                detail_rows.append({
+                    "Opsi & Kelas": opt_label,
+                    "Hari": day_label,
+                    "Item / Aktivitas": f"• Tiket Wisata ({num_persons} Orang) (Hari {d_num})",
+                    "Detail / Nama Tempat": "",
+                    "Biaya (Rp)": w_cost_day,
+                    "Keterangan": ""
+                })
+                
+                meals_count = 3 if d_num < duration else 2
+                k_cost_day = (kp_harga + ks_harga + (day_dict.get("kuliner_malam_harga", 0) if d_num < duration else 0)) * num_persons
+                detail_rows.append({
+                    "Opsi & Kelas": opt_label,
+                    "Hari": day_label,
+                    "Item / Aktivitas": f"• Kuliner ({num_persons} Orang × {meals_count}x Makan)",
+                    "Detail / Nama Tempat": "",
+                    "Biaya (Rp)": k_cost_day,
+                    "Keterangan": ""
+                })
+                
+                day_legs = []
+                for leg in legs:
+                    l_from = leg.get("from", "")
+                    l_to = leg.get("to", "")
+                    if f"Hari {d_num}" in l_from or f"Hari {d_num}" in l_to:
+                        day_legs.append(leg)
+                
+                for leg in day_legs:
+                    l_from = leg.get("from", "")
+                    l_to = leg.get("to", "")
+                    dist = leg.get("distance_km", 0)
+                    cost = leg.get("cost", 0)
+                    veh = leg.get("vehicle", "Motor")
+                    detail_rows.append({
+                        "Opsi & Kelas": opt_label,
+                        "Hari": day_label,
+                        "Item / Aktivitas": f"{l_from}→{l_to} ({dist} km)",
+                        "Detail / Nama Tempat": "",
+                        "Biaya (Rp)": cost,
+                        "Keterangan": veh
+                    })
+                
+                t_cost_day = sum(leg.get("cost", 0) for leg in day_legs)
+                detail_rows.append({
+                    "Opsi & Kelas": opt_label,
+                    "Hari": day_label,
+                    "Item / Aktivitas": f"• Transportasi ({'Motor' if num_persons <= 1 else 'Mobil'})",
+                    "Detail / Nama Tempat": "",
+                    "Biaya (Rp)": t_cost_day,
+                    "Keterangan": ""
+                })
+                
+                day_subtotal = h_cost_day + w_cost_day + k_cost_day + t_cost_day
+                detail_rows.append({
+                    "Opsi & Kelas": opt_label,
+                    "Hari": day_label,
+                    "Item / Aktivitas": f"Subtotal Hari {d_num}:",
+                    "Detail / Nama Tempat": "",
+                    "Biaya (Rp)": day_subtotal,
+                    "Keterangan": ""
+                })
             
-            global LAST_CLUSTERED
-            if LAST_CLUSTERED is not None:
-                df_hotel = LAST_CLUSTERED.get("hotel")
-                if df_hotel is not None and not df_hotel.empty:
-                    df_hotel.to_excel(writer, sheet_name="Klaster Hotel (Kustom)", index=False)
+            detail_rows.append({
+                "Opsi & Kelas": opt_label,
+                "Hari": "RINGKASAN",
+                "Item / Aktivitas": "🏨 Akomodasi (1 malam × 1 kamar)" if nights == 1 and num_rooms == 1 else f"🏨 Akomodasi ({nights} malam × {num_rooms} kamar)",
+                "Detail / Nama Tempat": "",
+                "Biaya (Rp)": pkg.get("cost_akomodasi", 0),
+                "Keterangan": pkg.get("hotel_nama", "")
+            })
+            
+            detail_rows.append({
+                "Opsi & Kelas": opt_label,
+                "Hari": "RINGKASAN",
+                "Item / Aktivitas": f"🎯 Tiket Wisata ({num_persons} orang)",
+                "Detail / Nama Tempat": "",
+                "Biaya (Rp)": pkg.get("cost_wisata", 0),
+                "Keterangan": pkg.get("wisata_nama", "")
+            })
+            
+            total_meals = (duration - 1) * 3 + 2 if duration > 1 else 2
+            detail_rows.append({
+                "Opsi & Kelas": opt_label,
+                "Hari": "RINGKASAN",
+                "Item / Aktivitas": f"🍜 Kuliner ({num_persons} orang × {total_meals} makan)",
+                "Detail / Nama Tempat": "",
+                "Biaya (Rp)": pkg.get("cost_kuliner", 0),
+                "Keterangan": ""
+            })
+            
+            veh_desc = pkg.get("transport_detail", {}).get("vehicle", "Motor")
+            detail_rows.append({
+                "Opsi & Kelas": opt_label,
+                "Hari": "RINGKASAN",
+                "Item / Aktivitas": f"🚗 Transportasi ({veh_desc})",
+                "Detail / Nama Tempat": "",
+                "Biaya (Rp)": pkg.get("cost_transport", 0),
+                "Keterangan": f"Total Jarak: {pkg.get('transport_detail', {}).get('total_distance_km', 0)} km"
+            })
+            
+            detail_rows.append({
+                "Opsi & Kelas": opt_label,
+                "Hari": "RINGKASAN",
+                "Item / Aktivitas": "TOTAL BIAYA PAKET",
+                "Detail / Nama Tempat": "",
+                "Biaya (Rp)": pkg.get("total_cost", 0),
+                "Keterangan": "Estimasi Total"
+            })
+            
+            detail_rows.append({
+                "Opsi & Kelas": "", "Hari": "", "Item / Aktivitas": "", "Detail / Nama Tempat": "", "Biaya (Rp)": "", "Keterangan": ""
+            })
+            
+    df_detail = pd.DataFrame(detail_rows)
+    
+    with pd.ExcelWriter(filepath, engine='openpyxl') as writer:
+        df_meta.to_excel(writer, sheet_name="Rekomendasi Paket", index=False, startrow=0)
+        df_items.to_excel(writer, sheet_name="Rekomendasi Paket", index=False, startrow=len(df_meta) + 2)
+        df_detail.to_excel(writer, sheet_name="Detail Itinerary & Biaya", index=False)
+        
+        if LAST_CLUSTERED is not None:
+            df_hotel = LAST_CLUSTERED.get("hotel")
+            if df_hotel is not None and not df_hotel.empty:
+                df_hotel.to_excel(writer, sheet_name="Klaster Hotel (Kustom)", index=False)
+            
+            df_wisata = LAST_CLUSTERED.get("wisata")
+            if df_wisata is not None and not df_wisata.empty:
+                df_wisata.to_excel(writer, sheet_name="Klaster Wisata (Kustom)", index=False)
+            
+            df_kuliner = LAST_CLUSTERED.get("kuliner")
+            if df_kuliner is not None and not df_kuliner.empty:
+                df_kuliner.to_excel(writer, sheet_name="Klaster Kuliner (Kustom)", index=False)
                 
-                df_wisata = LAST_CLUSTERED.get("wisata")
-                if df_wisata is not None and not df_wisata.empty:
-                    df_wisata.to_excel(writer, sheet_name="Klaster Wisata (Kustom)", index=False)
-                
-                df_kuliner = LAST_CLUSTERED.get("kuliner")
-                if df_kuliner is not None and not df_kuliner.empty:
-                    df_kuliner.to_excel(writer, sheet_name="Klaster Kuliner (Kustom)", index=False)
-                    
-        print(f"   [Excel Exported with Cluster Sheets] -> {filepath}")
+    print(f"   [Excel Exported with Cluster Sheets] -> {filepath}")
