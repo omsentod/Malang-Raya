@@ -93,7 +93,11 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
             'avatar' => 'explorer', // Default preset avatar
             'bio' => 'Wisatawan penjelajah Malang Raya!', // Default bio
-            'role' => $isFirstUser ? 'admin' : 'user'
+            'role' => $isFirstUser ? 'admin' : 'user',
+            'pref_wisata' => $request->filled('pref_wisata') ? [$request->pref_wisata] : null,
+            'pref_hotel' => $request->filled('pref_hotel') ? [$request->pref_hotel] : null,
+            'pref_kuliner' => $request->filled('pref_kuliner') ? [$request->pref_kuliner] : null,
+            'pref_strength' => 0.6 // Default strength if they choose a preference
         ]);
 
         Auth::login($user, true);
@@ -108,7 +112,11 @@ class AuthController extends Controller
                 'email' => $user->email,
                 'avatar' => $user->avatar,
                 'bio' => $user->bio,
-                'role' => $user->role ?? 'user'
+                'role' => $user->role ?? 'user',
+                'pref_wisata' => $user->pref_wisata ?? [],
+                'pref_hotel' => $user->pref_hotel ?? [],
+                'pref_kuliner' => $user->pref_kuliner ?? [],
+                'pref_strength' => $user->pref_strength ?? 0.0
             ]
         ]);
     }

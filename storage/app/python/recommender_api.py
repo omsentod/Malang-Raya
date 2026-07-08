@@ -41,9 +41,9 @@ from recommender import (
 )
 
 def load_datasets():
-    from config import DATASET_WISATA, DATASET_HOTEL, DATASET_MAKAN
+    from config import load_wisata_dataset, DATASET_HOTEL, DATASET_MAKAN
     return {
-        "wisata": pd.read_excel(DATASET_WISATA),
+        "wisata": load_wisata_dataset(),
         "hotel": pd.read_excel(DATASET_HOTEL),
         "kuliner": pd.read_excel(DATASET_MAKAN)
     }

@@ -750,6 +750,98 @@ def _extract_wahana_info(_wisata_item: dict) -> dict:
     }
 
 
+def _get_all_additional_facilities_for_itinerary(itinerary: list, df_wisata: pd.DataFrame) -> list:
+    """
+    Dapatkan fasilitas/wahana opsional untuk SEMUA wisata yang dikunjungi dalam itinerary multi-hari.
+    """
+    facs = []
+    seen_tids = set()
+    
+    # Kumpulkan wisata unik berserta hari pertamanya dikunjungi
+    wisata_map = {}
+    for day in itinerary:
+        w_name = day.get("wisata")
+        hari = day.get("day")
+        if w_name and w_name != "N/A" and w_name not in wisata_map:
+            wisata_map[w_name] = hari
+
+    for w_name, hari in wisata_map.items():
+        w_rows = df_wisata[df_wisata["Nama_Tempat"] == w_name]
+        if not w_rows.empty:
+            w_item = w_rows.iloc[0].to_dict()
+            tid_child = int(float(w_item.get("Id_Tempat", 0))) if pd.notna(w_item.get("Id_Tempat")) else None
+            family_id = w_item.get("destination_family_id")
+            parent_id = int(float(family_id)) if pd.notna(family_id) and str(family_id).strip() else None
+
+            for f in _get_additional_facilities_for_wisata(w_item, df_wisata):
+                tid = f.get("Id_Tempat")
+                if tid not in seen_tids:
+                    f_copy = f.copy()
+                    f_copy["parent_wisata_nama"] = w_name
+                    f_copy["hari_ke"] = hari
+                    # Jika fasilitas ini adalah parent dari wisata saat ini, tandai wajib!
+                    if parent_id is not None and parent_id != tid_child and tid == parent_id:
+                        f_copy["is_mandatory"] = True
+                    else:
+                        f_copy["is_mandatory"] = False
+                    facs.append(f_copy)
+                    seen_tids.add(tid)
+    return facs
+
+
+def _get_pure_wisata_price(wisata_identifier, df_wisata: pd.DataFrame) -> float:
+    """
+    Dapatkan harga tiket asli/murni milik wisata anak (tanpa tiket masuk parent).
+    Bisa menerima dict (wisata_item) dengan Id_Tempat atau Nama_Tempat.
+    """
+    if not wisata_identifier:
+        return 0.0
+    
+    # Cari baris di df_wisata
+    import numpy as np
+    w_row = pd.Series()
+    if isinstance(wisata_identifier, dict):
+        tid = wisata_identifier.get("wisata_id") or wisata_identifier.get("Id_Tempat")
+        w_name = wisata_identifier.get("wisata") or wisata_identifier.get("Nama_Tempat")
+        if tid is not None:
+            rows = df_wisata[df_wisata["Id_Tempat"] == int(float(tid))]
+            if not rows.empty:
+                w_row = rows.iloc[0]
+        if (w_row.empty or len(w_row) == 0) and w_name:
+            rows = df_wisata[df_wisata["Nama_Tempat"] == w_name]
+            if not rows.empty:
+                w_row = rows.iloc[0]
+    else:
+        try:
+            tid = int(float(wisata_identifier))
+            rows = df_wisata[df_wisata["Id_Tempat"] == tid]
+            if not rows.empty:
+                w_row = rows.iloc[0]
+        except Exception:
+            rows = df_wisata[df_wisata["Nama_Tempat"] == str(wisata_identifier)]
+            if not rows.empty:
+                w_row = rows.iloc[0]
+
+    if w_row.empty or len(w_row) == 0:
+        if isinstance(wisata_identifier, dict):
+            return float(wisata_identifier.get("Estimasi_Harga", wisata_identifier.get("wisata_harga", 0)))
+        return 0.0
+
+    price = float(w_row.get("Estimasi_Harga", 0))
+    family_id = w_row.get("destination_family_id")
+    if pd.notna(family_id) and str(family_id).strip():
+        try:
+            parent_id = int(float(family_id))
+            if parent_id != int(float(w_row.get("Id_Tempat", 0))):
+                parent_row = df_wisata[df_wisata["Id_Tempat"] == parent_id]
+                if not parent_row.empty:
+                    parent_price = float(parent_row.iloc[0].get("Estimasi_Harga", 0))
+                    return max(0.0, price - parent_price)
+        except Exception:
+            pass
+    return price
+
+
 def _get_additional_facilities_for_wisata(wisata_item: dict, df_wisata: pd.DataFrame) -> list:
     """
     Dapatkan daftar fasilitas/wahana opsional untuk destinasi wisata.
@@ -796,13 +888,15 @@ def _get_additional_facilities_for_wisata(wisata_item: dict, df_wisata: pd.DataF
             
     # Buat entri fasilitas opsional untuk setiap anggota kompleks
     for idx, m in enumerate(complex_members):
-        price = int(float(m.get("Estimasi_Harga", 0)))
+        price = int(_get_pure_wisata_price(m, df_wisata))
+        m_id = int(float(m.get("Id_Tempat", 0)))
         facilities.append({
-            "id": f"wahana_{idx}",
+            "id": f"wahana_{m_id}",
             "label": m.get("Nama_Tempat", "Fasilitas Tambahan"),
             "cost_per_person": price,
             "cost_min": price,
-            "cost_max": price
+            "cost_max": price,
+            "Id_Tempat": m_id
         })
         
     return facilities
@@ -1782,8 +1876,14 @@ def generate_packages(total_budget, num_persons, duration, datasets,
             pkg_formatted["cost_kuliner"] = cost_k
             pkg_formatted["total_cost"] = cost_h + cost_w + cost_k + cost_t
 
+            # Post-process to adjust wisata_harga to pure price in itinerary and package
+            pkg_formatted["wisata_harga"] = _get_pure_wisata_price(w_item, datasets["wisata"])
+            for day in itinerary_list:
+                day_dict = cast(dict, day)
+                day_dict["wisata_harga"] = _get_pure_wisata_price(day_dict, datasets["wisata"])
+
             # ── Fasilitas Wahana Opsional (array, untuk toggling individual di UI) ──
-            pkg_formatted["additional_facilities"] = _get_additional_facilities_for_wisata(w_item, datasets["wisata"])
+            pkg_formatted["additional_facilities"] = _get_all_additional_facilities_for_itinerary(pkg_formatted.get("itinerary", []), datasets["wisata"])
 
             # ── Sisa Budget (hanya untuk workflow dengan input budget) ──
             # Digunakan frontend untuk menampilkan tombol "Tambah Destinasi"
@@ -1814,6 +1914,11 @@ def generate_packages(total_budget, num_persons, duration, datasets,
                     "kuliner": {i: candidates["kuliner"][i] for i in range(best_c)}
                 }
             })
+
+    # --- Re-sort Opsi berdasarkan jumlah paket over budget ---
+    options_list = sorted(options_list, key=lambda opt: sum(1 for p in opt["packages"] if p.get("budget_remaining") is not None and p["budget_remaining"] < 0))
+    for idx, opt in enumerate(options_list):
+        opt["option_index"] = idx + 1
 
     # --- Tampilkan Hasil Opsi 1 Di Log Console ---
     if verbose and options_list:
@@ -2462,7 +2567,7 @@ def generate_flexible_exploration_packages(num_persons, duration, datasets,
                 "transport_detail": transport_detail
             }
             
-            pkg_formatted["additional_facilities"] = _get_additional_facilities_for_wisata(w_item, datasets["wisata"])
+            # pkg_formatted["additional_facilities"] akan di-set di bawah setelah itinerary terbentuk
             
             # --- RENCANA PERJALANAN HARIAN DINAMIS (DAY-BY-DAY ITINERARY VARIATION) ---
             if duration > 1:
@@ -2615,6 +2720,13 @@ def generate_flexible_exploration_packages(num_persons, duration, datasets,
             pkg_formatted["cost_kuliner"] = cost_k
             pkg_formatted["total_cost"] = cost_h + cost_w + cost_k + cost_t
 
+            # Post-process to adjust wisata_harga to pure price in itinerary and package
+            pkg_formatted["wisata_harga"] = _get_pure_wisata_price(w_item, datasets["wisata"])
+            for day in itinerary_list:
+                day_dict = cast(dict, day)
+                day_dict["wisata_harga"] = _get_pure_wisata_price(day_dict, datasets["wisata"])
+
+            pkg_formatted["additional_facilities"] = _get_all_additional_facilities_for_itinerary(pkg_formatted.get("itinerary", []), datasets["wisata"])
             packages_for_option.append(pkg_formatted)
 
         # Enforce uniqueness of option combinations
@@ -2634,6 +2746,11 @@ def generate_flexible_exploration_packages(num_persons, duration, datasets,
                     "kuliner": {i: candidates["kuliner"][i] for i in range(best_c)}
                 }
             })
+
+    # --- Re-sort Opsi berdasarkan jumlah paket over budget ---
+    options_list = sorted(options_list, key=lambda opt: sum(1 for p in opt["packages"] if p.get("budget_remaining") is not None and p["budget_remaining"] < 0))
+    for idx, opt in enumerate(options_list):
+        opt["option_index"] = idx + 1
 
     if verbose and options_list:
         rep_packages = cast(list, options_list[0]["packages"])
@@ -3445,7 +3562,7 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
                 "transport_detail": transport_detail
             }
             
-            pkg_formatted["additional_facilities"] = _get_additional_facilities_for_wisata(w_item, datasets["wisata"])
+            # pkg_formatted["additional_facilities"] akan di-set di bawah setelah itinerary terbentuk
             
             # --- RENCANA PERJALANAN HARIAN DINAMIS (DAY-BY-DAY ITINERARY VARIATION) ---
             if duration > 1:
@@ -3609,6 +3726,12 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
             pkg_formatted["cost_kuliner"] = cost_k
             pkg_formatted["total_cost"] = cost_h + cost_w + cost_k + cost_t
 
+            # Post-process to adjust wisata_harga to pure price in itinerary and package
+            pkg_formatted["wisata_harga"] = _get_pure_wisata_price(w_item, datasets["wisata"])
+            for day in itinerary_list:
+                day_dict = cast(dict, day)
+                day_dict["wisata_harga"] = _get_pure_wisata_price(day_dict, datasets["wisata"])
+
             if total_budget is not None and total_budget > 0:
                 pkg_formatted["budget_input"] = total_budget
                 pkg_formatted["budget_remaining"] = round(total_budget - pkg_formatted["total_cost"], 2)
@@ -3616,6 +3739,7 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
                 pkg_formatted["budget_input"] = None
                 pkg_formatted["budget_remaining"] = None
 
+            pkg_formatted["additional_facilities"] = _get_all_additional_facilities_for_itinerary(pkg_formatted.get("itinerary", []), datasets["wisata"])
             packages_for_option.append(pkg_formatted)
 
         # Enforce uniqueness of option combinations
@@ -3635,6 +3759,11 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
                     "kuliner": {i: candidates["kuliner"][i] for i in range(best_c)}
                 }
             })
+
+    # --- Re-sort Opsi berdasarkan jumlah paket over budget ---
+    options_list = sorted(options_list, key=lambda opt: sum(1 for p in opt["packages"] if p.get("budget_remaining") is not None and p["budget_remaining"] < 0))
+    for idx, opt in enumerate(options_list):
+        opt["option_index"] = idx + 1
 
     if verbose and options_list:
         rep_packages = cast(list, options_list[0]["packages"])

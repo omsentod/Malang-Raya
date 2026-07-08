@@ -12,6 +12,8 @@ from dotenv import load_dotenv
 # Muat variabel dari file .env
 load_dotenv()
 
+import pandas as pd
+
 # ============================================================
 # PATH DATASET
 # ============================================================
@@ -23,6 +25,27 @@ DATASET_HOTEL = os.path.join(DATASET_DIR, "hotel_clean.xlsx")
 DATASET_MAKAN = os.path.join(DATASET_DIR, "tempat_makan_clean.xlsx")
 
 OUTPUT_DIR = os.path.join(BASE_DIR, "output")
+
+def load_wisata_dataset():
+    """
+    Muat dataset wisata dan otomatis tambahkan HTM Induk (Parent)
+    ke dalam Estimasi_Harga milik Anak (Child) jika ada.
+    """
+    df = pd.read_excel(DATASET_WISATA)
+    for idx, row in df.iterrows():
+        fid = row.get("destination_family_id")
+        if pd.notna(fid) and str(fid).strip():
+            try:
+                parent_id = int(float(fid))
+                # Pastikan child bukan parent itu sendiri
+                if parent_id != int(float(row.get("Id_Tempat", 0))):
+                    parent_row = df[df["Id_Tempat"] == parent_id]
+                    if not parent_row.empty:
+                        p_cost = parent_row.iloc[0].get("Estimasi_Harga", 0)
+                        df.at[idx, "Estimasi_Harga"] += p_cost
+            except Exception:
+                pass
+    return df
 
 # ============================================================
 # GOOGLE MAPS API

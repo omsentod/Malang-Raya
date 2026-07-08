@@ -102,8 +102,8 @@ def main():
 
     # Load dataset
     base_dir = os.path.dirname(os.path.abspath(__file__))
-    dataset_path = os.path.join(base_dir, "datasets", "wisata_clean.xlsx")
-    df = pd.read_excel(dataset_path)
+    from config import load_wisata_dataset
+    df = load_wisata_dataset()
 
     # Expand excluded_ids to include all members of the same destination family
     # Ini memastikan wisata yang sudah jadi "Fasilitas Opsional" tidak muncul lagi
@@ -130,6 +130,14 @@ def main():
         # Filter: tiket masuk tidak boleh melebihi budget per orang yang tersedia
         if harga > max_ticket_per_person:
             continue
+
+        # Filter: Jangan jadikan "Anak" (child) sebagai kandidat destinasi utama.
+        # Destinasi Anak hanya boleh diakses melalui fasilitas opsional Induknya.
+        fam_id = row.get("destination_family_id")
+        if fam_id is not None and not pd.isna(fam_id):
+            parent_id = int(float(fam_id))
+            if tid != parent_id:
+                continue
 
         try:
             dist = haversine(args.lat, args.lon, float(row["Latitude"]), float(row["Longitude"]))

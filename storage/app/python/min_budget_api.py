@@ -10,7 +10,8 @@ def calculate_min_budget(persons, duration, hotel_mode="same", transport_mode=No
     # Load dataset
     from config import DATASET_HOTEL, DATASET_WISATA, DATASET_MAKAN
     df_hotel = pd.read_excel(DATASET_HOTEL)
-    df_wisata = pd.read_excel(DATASET_WISATA)
+    from config import load_wisata_dataset
+    df_wisata = load_wisata_dataset()
     df_kuliner = pd.read_excel(DATASET_MAKAN)
 
     datasets = {"hotel": df_hotel, "wisata": df_wisata, "kuliner": df_kuliner}

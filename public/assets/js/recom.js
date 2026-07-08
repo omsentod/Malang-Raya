@@ -2707,18 +2707,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                     <div class="wahana-items-list">
                         ${pkg.additional_facilities.map((fac, fi) => `
-                        <label class="wahana-item" for="wahana-${pkgUid}-${fi}">
+                        <label class="wahana-item ${fac.is_mandatory ? 'mandatory-item' : ''}" for="wahana-${pkgUid}-${fi}" style="${fac.is_mandatory ? 'opacity: 0.7; cursor: not-allowed;' : ''}">
                             <input type="checkbox"
                                    class="wahana-checkbox"
                                    id="wahana-${pkgUid}-${fi}"
                                    data-pkg-uid="${pkgUid}"
-                                   data-cost="${fac.cost_per_person}"
+                                   data-cost="${fac.is_mandatory ? 0 : fac.cost_per_person}"
                                    data-cost-min="${fac.cost_min}"
                                    data-cost-max="${fac.cost_max}"
                                    data-label="${fac.label}"
-                                   data-facility-id="${fac.id}">
+                                   data-facility-id="${fac.id}"
+                                   ${fac.is_mandatory ? 'checked disabled' : ''}>
                             <div class="wahana-item-info">
-                                <span class="wahana-item-name">${fac.label}</span>
+                                <span class="wahana-item-name">${fac.label} ${fac.is_mandatory ? '<span style="font-size:10px; padding:2px 4px; background:#e2e8f0; color:#475569; border-radius:4px; margin-left:4px; font-weight:600;">WAJIB</span>' : ''}</span>
+                                ${fac.parent_wisata_nama ? `<span class="wahana-item-parent" style="font-size: 11px; color: var(--slate-500); display: block; margin-top: 2px;">📍 ${fac.parent_wisata_nama} (Hari ${fac.hari_ke})</span>` : ''}
                                 <span class="wahana-item-range">estimasi Rp ${fac.cost_min.toLocaleString('id-ID')}–${fac.cost_max.toLocaleString('id-ID')}/org</span>
                             </div>
                             <span class="wahana-item-cost">+${fmtRp(fac.cost_per_person)}/org</span>
