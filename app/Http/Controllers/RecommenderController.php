@@ -226,6 +226,7 @@ public function minBudget(Request $request)
         'duration'   => 'required|integer|min:1|max:30',
         'hotel_mode' => 'nullable|in:same,split',
         'transport'  => 'nullable|string',
+        'dest_id'    => 'nullable|string',
     ]);
 
     $args = [
@@ -239,6 +240,11 @@ public function minBudget(Request $request)
     if (!empty($validated['transport'])) {
         $args[] = '--transport';
         $args[] = $validated['transport'];
+    }
+
+    if (!empty($validated['dest_id'])) {
+        $args[] = '--dest_id';
+        $args[] = $validated['dest_id'];
     }
 
     $process = new Process($args);

@@ -6,7 +6,7 @@ import pandas as pd
 from fcm_clustering import run_percentile_fcm, find_best_c_offline
 from recommender import find_k_pagi, find_k_malam, haversine_road_distance
 
-def calculate_min_budget(persons, duration, hotel_mode="same", transport_mode=None):
+def calculate_min_budget(persons, duration, hotel_mode="same", transport_mode=None, dest_id=None):
     # Load dataset
     from config import DATASET_HOTEL, DATASET_WISATA, DATASET_MAKAN
     df_hotel = pd.read_excel(DATASET_HOTEL)
@@ -33,7 +33,17 @@ def calculate_min_budget(persons, duration, hotel_mode="same", transport_mode=No
 
     # Ambil klaster Hemat (0) saja
     hotels = clustered["hotel"][clustered["hotel"]["Cluster"] == 0].nsmallest(5, "Estimasi_Harga")
-    wisatas = clustered["wisata"][clustered["wisata"]["Cluster"] == 0].nsmallest(5, "Estimasi_Harga")
+    
+    if dest_id is not None:
+        # Jika dest_id diberikan, pastikan wisata utama (Day 1) menggunakan destinasi tersebut
+        dest_id_str = str(dest_id)
+        wisatas = df_wisata[df_wisata["Place_Id"].astype(str) == dest_id_str].copy()
+        # Jika dest_id tidak valid, fallback ke default hemat
+        if wisatas.empty:
+            wisatas = clustered["wisata"][clustered["wisata"]["Cluster"] == 0].nsmallest(5, "Estimasi_Harga")
+    else:
+        wisatas = clustered["wisata"][clustered["wisata"]["Cluster"] == 0].nsmallest(5, "Estimasi_Harga")
+        
     kuliners = clustered["kuliner"][clustered["kuliner"]["Cluster"] == 0].nsmallest(5, "Estimasi_Harga")
     k_list_hemat = clustered["kuliner"][clustered["kuliner"]["Cluster"] == 0].to_dict("records")
 
@@ -196,7 +206,8 @@ if __name__ == "__main__":
     parser.add_argument("--duration", type=int, required=True)
     parser.add_argument("--hotel_mode", type=str, default="same")
     parser.add_argument("--transport", type=str, default=None)
+    parser.add_argument("--dest_id", type=str, default=None)
     args = parser.parse_args()
 
-    result = calculate_min_budget(args.persons, args.duration, args.hotel_mode, args.transport)
+    result = calculate_min_budget(args.persons, args.duration, args.hotel_mode, args.transport, args.dest_id)
     print(json.dumps(result, ensure_ascii=False))

@@ -22,159 +22,286 @@ import matplotlib.pyplot as plt
 
 def show_recommendation_scatter(clustered, options_list, workflow_name="Workflow"):
     """
-    Displays a matplotlib scatter plot showing the spatial distribution (Longitude vs Latitude)
-    of the items included in the recommendation options. Items are colored based on their
-    category and cluster label. Routes for the 15 options are drawn to show spatial proximity.
+    Displays a matplotlib scatter plot showing the spatial distribution (Longitude vs Latitude).
+    Plots all items from the dataset that belong to the clusters actively used in the recommendations.
+    Routes are removed, and 6 base colors (Hemat, Premium) are used.
     """
     if not options_list or not clustered:
         return
         
     try:
+        import sys
         import numpy as np
         import matplotlib.pyplot as plt
         
-        fig, ax = plt.subplots(figsize=(14, 8))
-        fig.subplots_adjust(right=0.75) 
-        ax.set_title(f"Peta Sebaran Spasial Rekomendasi - {workflow_name}", fontsize=14, fontweight='bold')
-        ax.set_xlabel("Longitude", fontsize=12)
-        ax.set_ylabel("Latitude", fontsize=12)
+        # Determine active clusters and selected places per category based on recommendation results
+        active_clusters = {'hotel': set(), 'wisata': set(), 'kuliner': set()}
+        selected_places = {'hotel': set(), 'wisata': set(), 'kuliner': set()}
         
-        unique_nodes = {}
-        routes = [] 
-        
-        for opt in options_list:
-            packages = opt.get('packages', [])
-            if not packages: continue
-            
-            pkg = packages[0]
-            
-            def add_node(name, lat, lon, category):
-                if not name or name == 'N/A' or (lat==0 and lon==0):
-                    return None
-                
-                cluster_label = "Unknown"
-                if category in clustered and 'df' in clustered[category]:
-                    df = clustered[category]['df']
-                    match = df[df['Nama_Tempat'] == name]
-                    if not match.empty:
-                        if 'Kategori' in df.columns:
-                            cluster_label = match.iloc[0]['Kategori']
-                        elif 'Cluster' in df.columns:
-                            c_id = int(match.iloc[0]['Cluster'])
-                            if 'cluster_labels' in opt:
-                                labels = opt['cluster_labels']
-                                if c_id < len(labels):
-                                    cluster_label = labels[c_id]
-                                else:
-                                    cluster_label = f"Cluster {c_id}"
-                            else:
-                                cluster_label = f"Cluster {c_id}"
-                                
-                node_id = f"{name}_{lat}_{lon}"
-                if node_id not in unique_nodes:
-                    unique_nodes[node_id] = {
-                        "name": name,
-                        "lat": lat,
-                        "lon": lon,
-                        "category": category,
-                        "cluster_label": cluster_label
-                    }
-                return node_id
-                
-            seq = []
-            if pkg.get('duration', 1) == 1:
-                kp_node = add_node(pkg.get('kuliner_pagi_nama'), pkg.get('kuliner_pagi_lat',0), pkg.get('kuliner_pagi_lon',0), 'kuliner')
-                if kp_node: seq.append(kp_node)
-                
-                w_node = add_node(pkg.get('wisata_nama'), pkg.get('wisata_lat',0), pkg.get('wisata_lon',0), 'wisata')
-                if w_node: seq.append(w_node)
-                
-                ks_node = add_node(pkg.get('kuliner_nama'), pkg.get('kuliner_lat',0), pkg.get('kuliner_lon',0), 'kuliner')
-                if ks_node: seq.append(ks_node)
-                
-                km_node = add_node(pkg.get('kuliner_malam_nama'), pkg.get('kuliner_malam_lat',0), pkg.get('kuliner_malam_lon',0), 'kuliner')
-                if km_node: seq.append(km_node)
-            else:
-                itinerary = pkg.get('itinerary', [])
-                for d_data in itinerary:
-                    h_node = add_node(d_data.get('hotel_nama_real') or d_data.get('hotel_nama'), d_data.get('hotel_lat',0), d_data.get('hotel_lon',0), 'hotel')
-                    if h_node: seq.append(h_node)
-                    
-                    kp_node = add_node(d_data.get('kuliner_pagi_nama'), d_data.get('kuliner_pagi_lat',0), d_data.get('kuliner_pagi_lon',0), 'kuliner')
-                    if kp_node: seq.append(kp_node)
-                    
-                    w_node = add_node(d_data.get('wisata_nama'), d_data.get('wisata_lat',0), d_data.get('wisata_lon',0), 'wisata')
-                    if w_node: seq.append(w_node)
-                    
-                    ks_node = add_node(d_data.get('kuliner_nama'), d_data.get('kuliner_lat',0), d_data.get('kuliner_lon',0), 'kuliner')
-                    if ks_node: seq.append(ks_node)
-                    
-                    if h_node: seq.append(h_node)
-                    
-                    km_node = add_node(d_data.get('kuliner_malam_nama'), d_data.get('kuliner_malam_lat',0), d_data.get('kuliner_malam_lon',0), 'kuliner')
-                    if km_node: seq.append(km_node)
-                    
-            if seq:
-                routes.append(seq)
-                
-        # Color & Marker settings
+        # 6 Base Colors (Hotel/Wisata/Kuliner) x (Hemat/Premium) + Balanced fallback
         base_colors = {
             'hotel': {'hemat': '#6baed6', 'balanced': '#3182bd', 'premium': '#08519c', 'mewah': '#08306b', 'default': '#3182bd'},
             'wisata': {'hemat': '#74c476', 'balanced': '#31a354', 'premium': '#006d2c', 'mewah': '#00441b', 'default': '#31a354'},
             'kuliner': {'hemat': '#fb6a4a', 'balanced': '#de2d26', 'premium': '#a50f15', 'mewah': '#67000d', 'default': '#de2d26'}
         }
         
-        # Plot edges (routes)
-        for idx, route in enumerate(routes):
-            lons = [unique_nodes[n]['lon'] for n in route]
-            lats = [unique_nodes[n]['lat'] for n in route]
-            
-            if idx == 0:
-                ax.plot(lons, lats, color='gold', linewidth=3.5, alpha=0.9, zorder=3, label='Rute Opsi 1 (Terbaik)')
-            else:
-                lbl = 'Rute Opsi Alternatif' if idx == 1 else ""
-                ax.plot(lons, lats, color='gray', linewidth=1.0, alpha=0.3, zorder=1, label=lbl)
+        def get_cluster_label(cat, name):
+            if cat in clustered and 'df' in clustered[cat]:
+                df = clustered[cat]['df']
+                match = df[df['Nama_Tempat'] == name]
+                if not match.empty:
+                    if 'Kategori' in df.columns:
+                        return match.iloc[0]['Kategori']
+                    elif 'Cluster' in df.columns:
+                        c_id = int(match.iloc[0]['Cluster'])
+                        # Try to get labels from options_list[0] if available
+                        if options_list and 'cluster_labels' in options_list[0]:
+                            labels = options_list[0]['cluster_labels']
+                            if c_id < len(labels):
+                                return labels[c_id]
+                        return f"Cluster {c_id}"
+            return None
+
+        # Scan all options to see which clusters are "masuk" (included) and collect selected names
+        for opt in options_list:
+            for pkg in opt.get('packages', []):
+                # We check the names of the places and add their clusters to active_clusters
+                places = [
+                    ('wisata', pkg.get('wisata_nama')),
+                    ('kuliner', pkg.get('kuliner_pagi_nama')),
+                    ('kuliner', pkg.get('kuliner_nama')),
+                    ('kuliner', pkg.get('kuliner_malam_nama')),
+                    ('hotel', pkg.get('hotel_nama_real') or pkg.get('hotel_nama'))
+                ]
+                for itin in pkg.get('itinerary', []):
+                    places.extend([
+                        ('wisata', itin.get('wisata_nama')),
+                        ('kuliner', itin.get('kuliner_pagi_nama')),
+                        ('kuliner', itin.get('kuliner_nama')),
+                        ('kuliner', itin.get('kuliner_malam_nama')),
+                        ('hotel', itin.get('hotel_nama_real') or itin.get('hotel_nama'))
+                    ])
                 
-        # Plot nodes
-        plotted_labels = set()
-        for node_id, data in unique_nodes.items():
-            cat = data['category']
-            lbl = str(data['cluster_label']).lower()
-            
-            # Map shade
-            shade = 'default'
-            if 'hemat' in lbl: shade = 'hemat'
-            elif 'balanced' in lbl or 'menengah' in lbl: shade = 'balanced'
-            elif 'premium' in lbl: shade = 'premium'
-            elif 'mewah' in lbl: shade = 'mewah'
-            
-            c = base_colors.get(cat, {}).get(shade, 'gray')
-            if c == 'gray': c = base_colors.get(cat, {}).get('default', 'gray')
-            
-            marker = 'o'
-            if cat == 'hotel': marker = 's'
-            elif cat == 'wisata': marker = '^'
-            elif cat == 'kuliner': marker = 'D'
-                
-            legend_lbl = f"{cat.capitalize()} ({data['cluster_label']})"
-            
-            if legend_lbl not in plotted_labels:
-                plotted_labels.add(legend_lbl)
-                ax.scatter(data['lon'], data['lat'], s=150, c=c, edgecolors='white', marker=marker, 
-                           alpha=0.9, label=legend_lbl, zorder=5)
-            else:
-                ax.scatter(data['lon'], data['lat'], s=150, c=c, edgecolors='white', marker=marker, 
-                           alpha=0.9, zorder=5)
-                           
-        ax.legend(loc='upper left', bbox_to_anchor=(1.02, 1.0), title="Keterangan")
-        ax.grid(True, linestyle=':', alpha=0.4)
+                for cat, name in places:
+                    if not name or name == 'N/A': continue
+                    if ' & ' in name:
+                        for sub_name in name.split(' & '):
+                            sub_name_clean = sub_name.strip()
+                            selected_places[cat].add(sub_name_clean)
+                            lbl = get_cluster_label(cat, sub_name_clean)
+                            if lbl: active_clusters[cat].add(lbl)
+                    else:
+                        selected_places[cat].add(name)
+                        lbl = get_cluster_label(cat, name)
+                        if lbl: active_clusters[cat].add(lbl)
         
-        info_text = "Sebaran Spasial Item Rekomendasi\nNode merepresentasikan lokasi tempat\nGaris merepresentasikan rute perjalanan\n(Top 1 warna Emas)"
+        is_api = '--format' in sys.argv and 'json' in sys.argv
+
+        # ==========================================
+        # 1. WINDOW 1: HIGHLIGHT & BLUR VERSION
+        # ==========================================
+        fig1, ax1 = plt.subplots(figsize=(14, 8))
+        fig1.subplots_adjust(right=0.75) 
+        ax1.set_title(f"Peta Sebaran Spasial (Highlight & Faded Candidates) - {workflow_name}", fontsize=14, fontweight='bold')
+        ax1.set_xlabel("Longitude", fontsize=12)
+        ax1.set_ylabel("Latitude", fontsize=12)
+        
+        # Pass 1: Unselected background items (low opacity)
+        for cat, cat_data in clustered.items():
+            if 'df' not in cat_data: continue
+            df = cat_data['df']
+            marker = 's' if cat == 'hotel' else ('^' if cat == 'wisata' else 'D')
+            
+            for _, row in df.iterrows():
+                name = row.get('Nama_Tempat')
+                lat = row.get('Latitude', 0)
+                lon = row.get('Longitude', 0)
+                if not name or pd.isna(lat) or pd.isna(lon) or (lat==0 and lon==0): continue
+                
+                lbl = get_cluster_label(cat, name)
+                if not lbl or lbl not in active_clusters[cat]: 
+                    continue
+                
+                # Check if it is selected
+                if name in selected_places[cat]:
+                    continue  # Skip for Pass 1, we will plot it in Pass 2
+                
+                lbl_lower = str(lbl).lower()
+                shade = 'default'
+                if 'hemat' in lbl_lower: shade = 'hemat'
+                elif 'balanced' in lbl_lower or 'menengah' in lbl_lower: shade = 'balanced'
+                elif 'premium' in lbl_lower: shade = 'premium'
+                elif 'mewah' in lbl_lower: shade = 'mewah'
+                
+                c = base_colors.get(cat, {}).get(shade, 'gray')
+                if c == 'gray': c = base_colors.get(cat, {}).get('default', 'gray')
+                
+                ax1.scatter(lon, lat, s=50, c=c, edgecolors='white', linewidths=0.3, marker=marker, 
+                            alpha=0.15, zorder=3)
+        
+        # Pass 2: Selected items (solid opacity, on top, with black border)
+        plotted_labels1 = set()
+        for cat, cat_data in clustered.items():
+            if 'df' not in cat_data: continue
+            df = cat_data['df']
+            marker = 's' if cat == 'hotel' else ('^' if cat == 'wisata' else 'D')
+            
+            for _, row in df.iterrows():
+                name = row.get('Nama_Tempat')
+                lat = row.get('Latitude', 0)
+                lon = row.get('Longitude', 0)
+                if not name or pd.isna(lat) or pd.isna(lon) or (lat==0 and lon==0): continue
+                
+                # Must be a selected place
+                if name not in selected_places[cat]:
+                    continue
+                
+                lbl = get_cluster_label(cat, name)
+                if not lbl: continue
+                
+                lbl_lower = str(lbl).lower()
+                shade = 'default'
+                if 'hemat' in lbl_lower: shade = 'hemat'
+                elif 'balanced' in lbl_lower or 'menengah' in lbl_lower: shade = 'balanced'
+                elif 'premium' in lbl_lower: shade = 'premium'
+                elif 'mewah' in lbl_lower: shade = 'mewah'
+                
+                c = base_colors.get(cat, {}).get(shade, 'gray')
+                if c == 'gray': c = base_colors.get(cat, {}).get('default', 'gray')
+                
+                legend_lbl = f"{cat.capitalize()} ({lbl})"
+                
+                if legend_lbl not in plotted_labels1:
+                    plotted_labels1.add(legend_lbl)
+                    ax1.scatter(lon, lat, s=160, c=c, edgecolors='black', linewidths=1.5, marker=marker, 
+                                alpha=1.0, label=legend_lbl, zorder=10)
+                else:
+                    ax1.scatter(lon, lat, s=160, c=c, edgecolors='black', linewidths=1.5, marker=marker, 
+                                alpha=1.0, zorder=10)
+                               
+        ax1.legend(loc='upper left', bbox_to_anchor=(1.02, 1.0), title="Keterangan")
+        ax1.grid(True, linestyle=':', alpha=0.4)
+        
+        info_text1 = (
+            "Sebaran Spasial Item Rekomendasi\n"
+            "• Titik Tebal (Black Border) = Terpilih\n"
+            "• Titik Pudar (Alpha 15%) = Kandidat\n\n"
+            "Bentuk:\n"
+            "■ Kotak = Hotel\n"
+            "▲ Segitiga = Wisata\n"
+            "◆ Belah Ketupat = Kuliner"
+        )
         props = dict(boxstyle='round', facecolor='wheat', alpha=0.8)
-        ax.text(1.02, 0.02, info_text, transform=ax.transAxes, fontsize=10, verticalalignment='bottom', bbox=props, zorder=10)
+        ax1.text(1.02, 0.02, info_text1, transform=ax1.transAxes, fontsize=10, verticalalignment='bottom', bbox=props, zorder=10)
         
-        plt.show()
+        # Show Fig 1 (Blocks until Window 1 is closed)
+        if is_api:
+            plt.close(fig1)
+        else:
+            plt.show()
+            
+        # ==========================================
+        # 2. WINDOW 2: ALL DESTINATIONS (NO BLUR, HIGHLIGHTED)
+        # ==========================================
+        fig2, ax2 = plt.subplots(figsize=(14, 8))
+        fig2.subplots_adjust(right=0.75) 
+        ax2.set_title(f"Peta Sebaran Spasial (Semua Destinasi Tanpa Blur) - {workflow_name}", fontsize=14, fontweight='bold')
+        ax2.set_xlabel("Longitude", fontsize=12)
+        ax2.set_ylabel("Latitude", fontsize=12)
         
+        # Pass 1: Unselected items (normal opacity, e.g., alpha=0.75, s=90, no black border)
+        for cat, cat_data in clustered.items():
+            if 'df' not in cat_data: continue
+            df = cat_data['df']
+            marker = 's' if cat == 'hotel' else ('^' if cat == 'wisata' else 'D')
+            
+            for _, row in df.iterrows():
+                name = row.get('Nama_Tempat')
+                lat = row.get('Latitude', 0)
+                lon = row.get('Longitude', 0)
+                if not name or pd.isna(lat) or pd.isna(lon) or (lat==0 and lon==0): continue
+                
+                lbl = get_cluster_label(cat, name)
+                if not lbl or lbl not in active_clusters[cat]: 
+                    continue
+                
+                # Check if it is selected
+                if name in selected_places[cat]:
+                    continue  # Selected plotted on top in Pass 2
+                
+                lbl_lower = str(lbl).lower()
+                shade = 'default'
+                if 'hemat' in lbl_lower: shade = 'hemat'
+                elif 'balanced' in lbl_lower or 'menengah' in lbl_lower: shade = 'balanced'
+                elif 'premium' in lbl_lower: shade = 'premium'
+                elif 'mewah' in lbl_lower: shade = 'mewah'
+                
+                c = base_colors.get(cat, {}).get(shade, 'gray')
+                if c == 'gray': c = base_colors.get(cat, {}).get('default', 'gray')
+                
+                ax2.scatter(lon, lat, s=90, c=c, edgecolors='white', linewidths=0.5, marker=marker, 
+                            alpha=0.75, zorder=3)
+                            
+        # Pass 2: Selected items (solid opacity, black border, zorder=10)
+        plotted_labels2 = set()
+        for cat, cat_data in clustered.items():
+            if 'df' not in cat_data: continue
+            df = cat_data['df']
+            marker = 's' if cat == 'hotel' else ('^' if cat == 'wisata' else 'D')
+            
+            for _, row in df.iterrows():
+                name = row.get('Nama_Tempat')
+                lat = row.get('Latitude', 0)
+                lon = row.get('Longitude', 0)
+                if not name or pd.isna(lat) or pd.isna(lon) or (lat==0 and lon==0): continue
+                
+                # Must be a selected place
+                if name not in selected_places[cat]:
+                    continue
+                
+                lbl = get_cluster_label(cat, name)
+                if not lbl: continue
+                
+                lbl_lower = str(lbl).lower()
+                shade = 'default'
+                if 'hemat' in lbl_lower: shade = 'hemat'
+                elif 'balanced' in lbl_lower or 'menengah' in lbl_lower: shade = 'balanced'
+                elif 'premium' in lbl_lower: shade = 'premium'
+                elif 'mewah' in lbl_lower: shade = 'mewah'
+                
+                c = base_colors.get(cat, {}).get(shade, 'gray')
+                if c == 'gray': c = base_colors.get(cat, {}).get('default', 'gray')
+                
+                legend_lbl = f"{cat.capitalize()} ({lbl})"
+                
+                if legend_lbl not in plotted_labels2:
+                    plotted_labels2.add(legend_lbl)
+                    ax2.scatter(lon, lat, s=160, c=c, edgecolors='black', linewidths=1.5, marker=marker, 
+                                alpha=1.0, label=legend_lbl, zorder=10)
+                else:
+                    ax2.scatter(lon, lat, s=160, c=c, edgecolors='black', linewidths=1.5, marker=marker, 
+                                alpha=1.0, zorder=10)
+                                
+        ax2.legend(loc='upper left', bbox_to_anchor=(1.02, 1.0), title="Keterangan")
+        ax2.grid(True, linestyle=':', alpha=0.4)
+        
+        info_text2 = (
+            "Sebaran Spasial Seluruh Item\n"
+            "• Titik Tebal (Black Border) = Terpilih\n"
+            "• Titik Solid Biasa = Kandidat Lain\n\n"
+            "Bentuk:\n"
+            "■ Kotak = Hotel\n"
+            "▲ Segitiga = Wisata\n"
+            "◆ Belah Ketupat = Kuliner"
+        )
+        ax2.text(1.02, 0.02, info_text2, transform=ax2.transAxes, fontsize=10, verticalalignment='bottom', bbox=props, zorder=10)
+        
+        # Show Fig 2 (Blocks until Window 2 is closed)
+        if is_api:
+            plt.close(fig2)
+        else:
+            plt.show()
+            
     except Exception as e:
         print(f"Plotting error: {e}")
 
@@ -824,7 +951,12 @@ def _get_pure_wisata_price(wisata_identifier, df_wisata: pd.DataFrame) -> float:
 
     if w_row.empty or len(w_row) == 0:
         if isinstance(wisata_identifier, dict):
-            return float(wisata_identifier.get("Estimasi_Harga", wisata_identifier.get("wisata_harga", 0)))
+            val = wisata_identifier.get("Estimasi_Harga")
+            if val is None:
+                val = wisata_identifier.get("wisata_harga")
+            if val is None:
+                val = 0.0
+            return float(val)
         return 0.0
 
     price = float(w_row.get("Estimasi_Harga", 0))
@@ -3941,7 +4073,7 @@ def export_to_excel_recom(options_list, workflow, budget, persons, duration):
             detail_rows.append({
                 "Opsi & Kelas": opt_label,
                 "Hari": "SEMUA HARI",
-                "Item / Aktivitas": f"=== DETAIL ITINERARY {opt_label} ===",
+                "Item / Aktivitas": f"--- DETAIL ITINERARY {opt_label} ---",
                 "Detail / Nama Tempat": "-",
                 "Biaya (Rp)": 0,
                 "Keterangan": f"Durasi {duration} Hari, {num_persons} Orang"
@@ -4151,16 +4283,59 @@ def export_to_excel_recom(options_list, workflow, budget, persons, duration):
         df_detail.to_excel(writer, sheet_name="Detail Itinerary & Biaya", index=False)
         
         if LAST_CLUSTERED is not None:
-            df_hotel = LAST_CLUSTERED.get("hotel")
-            if df_hotel is not None and not df_hotel.empty:
-                df_hotel.to_excel(writer, sheet_name="Klaster Hotel (Kustom)", index=False)
+            import numpy as np
+            export_dfs = {}
+            for name in ["hotel", "wisata", "kuliner"]:
+                df_cls = LAST_CLUSTERED.get(name)
+                if df_cls is not None and not df_cls.empty:
+                    df_cls = df_cls.copy()
+                    
+                    # 1. Add normalization columns
+                    prices_raw = pd.to_numeric(df_cls["Estimasi_Harga"], errors="coerce")
+                    prices = cast(Any, prices_raw).fillna(0)
+                    df_cls["Normalisasi_Harga"] = (prices - prices.min()) / (prices.max() - prices.min() + 1e-10)
+                    
+                    if "Rating" in df_cls.columns:
+                        ratings_raw = pd.to_numeric(df_cls["Rating"], errors="coerce")
+                        ratings = cast(Any, ratings_raw).fillna(4.0)
+                    else:
+                        ratings = pd.Series(4.0, index=df_cls.index)
+                    df_cls["Normalisasi_Rating"] = (ratings - ratings.min()) / (ratings.max() - ratings.min() + 1e-10)
+                    
+                    if "Nilai_Numerik" in df_cls.columns:
+                        categories_raw = pd.to_numeric(df_cls["Nilai_Numerik"], errors="coerce")
+                        categories = cast(Any, categories_raw).fillna(0)
+                    else:
+                        categories = pd.Series(0.0, index=df_cls.index)
+                    df_cls["Normalisasi_Nilai_Numerik"] = (categories - categories.min()) / (categories.max() - categories.min() + 1e-10)
+                    
+                    # 2. Reorder and rename columns (move 'Kategori' clustering output to far right as 'klaster', put 'Kategori_Asli' back in original 'Kategori' position)
+                    cols = df_cls.columns.tolist()
+                    if 'Kategori' in cols and 'Kategori_Asli' in cols:
+                        k_idx = cols.index('Kategori')
+                        cols.remove('Kategori_Asli')
+                        cols[k_idx] = 'Kategori_Asli'
+                        cols.append('Kategori')
+                        df_cls = df_cls[cols]
+                        df_cls = df_cls.rename(columns={'Kategori': 'klaster', 'Kategori_Asli': 'Kategori'})
+                    elif 'Kategori' in cols:
+                        cols.remove('Kategori')
+                        cols.append('Kategori')
+                        df_cls = df_cls[cols]
+                        df_cls = df_cls.rename(columns={'Kategori': 'klaster'})
+                        
+                    export_dfs[name] = df_cls
             
-            df_wisata = LAST_CLUSTERED.get("wisata")
-            if df_wisata is not None and not df_wisata.empty:
-                df_wisata.to_excel(writer, sheet_name="Klaster Wisata (Kustom)", index=False)
+            df_hotel_export = export_dfs.get("hotel")
+            if df_hotel_export is not None and not df_hotel_export.empty:
+                df_hotel_export.to_excel(writer, sheet_name="Klaster Hotel (Kustom)", index=False)
             
-            df_kuliner = LAST_CLUSTERED.get("kuliner")
-            if df_kuliner is not None and not df_kuliner.empty:
-                df_kuliner.to_excel(writer, sheet_name="Klaster Kuliner (Kustom)", index=False)
+            df_wisata_export = export_dfs.get("wisata")
+            if df_wisata_export is not None and not df_wisata_export.empty:
+                df_wisata_export.to_excel(writer, sheet_name="Klaster Wisata (Kustom)", index=False)
+            
+            df_kuliner_export = export_dfs.get("kuliner")
+            if df_kuliner_export is not None and not df_kuliner_export.empty:
+                df_kuliner_export.to_excel(writer, sheet_name="Klaster Kuliner (Kustom)", index=False)
                 
     print(f"   [Excel Exported with Cluster Sheets] -> {filepath}")

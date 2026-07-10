@@ -94,12 +94,6 @@ def main():
             if sid.isdigit():
                 excluded_ids.add(int(sid))
 
-    # Budget per orang yang tersedia untuk tiket masuk wisata tambahan
-    # Kita sisakan 15% dari budget_remaining untuk transport tambahan
-    transport_buffer = args.budget_remaining * 0.15
-    budget_for_ticket = args.budget_remaining - transport_buffer
-    max_ticket_per_person = budget_for_ticket / max(args.persons, 1)
-
     # Load dataset
     base_dir = os.path.dirname(os.path.abspath(__file__))
     from config import load_wisata_dataset
@@ -128,9 +122,6 @@ def main():
             continue
 
         harga = float(row.get("Estimasi_Harga", 0) or 0)
-        # Filter: tiket masuk tidak boleh melebihi budget per orang yang tersedia
-        if harga > max_ticket_per_person:
-            continue
 
         # Filter: Jangan jadikan "Anak" (child) sebagai kandidat destinasi utama.
         # Destinasi Anak hanya boleh diakses melalui fasilitas opsional Induknya.
@@ -146,6 +137,15 @@ def main():
             continue
 
         if dist > args.max_dist_km:
+            continue
+
+        # Hitung biaya riil (tiket untuk seluruh orang + biaya transportasi PP)
+        transport_cost = round(dist * 500 * 2)
+        ticket_cost = int(harga * args.persons)
+        total_cost_with_transport = ticket_cost + transport_cost
+
+        # Filter: Pastikan total biaya (tiket + transport) tidak melebihi sisa budget
+        if total_cost_with_transport > args.budget_remaining:
             continue
 
         def safe_str(val):
@@ -167,6 +167,13 @@ def main():
         # Ambil fasilitas opsional (anak) jika ini adalah destinasi induk
         facs = _get_additional_facilities_for_wisata(row.to_dict(), df)
 
+        # Hitung Weighted Score untuk mementokkan budget
+        # Bobot: 60% budget_ratio, 30% kedekatan, 10% rating
+        budget_ratio = total_cost_with_transport / args.budget_remaining if args.budget_remaining > 0 else 0
+        proximity_score = 1.0 - (dist / args.max_dist_km) if args.max_dist_km > 0 else 0
+        rating_score = (float(row.get("Rating", 0) or 0)) / 5.0
+        score = (0.6 * budget_ratio) + (0.3 * proximity_score) + (0.1 * rating_score)
+
         results.append({
             "id":                    tid,
             "nama":                  str(row.get("Nama_Tempat", "")),
@@ -182,12 +189,14 @@ def main():
             "additional_cost_min":   0,
             "additional_cost_max":   0,
             # Total biaya tiket untuk seluruh peserta
-            "total_ticket_cost":     int(harga) * args.persons,
-            "additional_facilities": facs
+            "total_ticket_cost":     ticket_cost,
+            "total_cost_with_transport": total_cost_with_transport,
+            "additional_facilities": facs,
+            "score":                 score
         })
 
-    # Urutkan: terdekat & rating tertinggi
-    results.sort(key=lambda x: (round(x["distance_km"], 0), -x["rating"]))
+    # Urutkan berdasarkan Weighted Score DESC (tertinggi di atas)
+    results.sort(key=lambda x: -x["score"])
     results = results[: args.max_results]
 
     print(json.dumps(sanitize_nan({
@@ -195,7 +204,7 @@ def main():
         "anchor_lat": args.lat,
         "anchor_lon": args.lon,
         "budget_remaining": args.budget_remaining,
-        "budget_for_ticket": round(budget_for_ticket, 0),
+        "budget_for_ticket": args.budget_remaining,
         "persons":    args.persons,
         "candidates": results,
     }), allow_nan=False))

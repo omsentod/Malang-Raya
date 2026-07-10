@@ -6,6 +6,7 @@ tarif transportasi, dan skema rasio inisialisasi centroid.
 """
 
 import os
+from typing import Any, cast
 # pyrefly: ignore [missing-import]
 from dotenv import load_dotenv
 
@@ -34,15 +35,16 @@ def load_wisata_dataset():
     df = pd.read_excel(DATASET_WISATA)
     for idx, row in df.iterrows():
         fid = row.get("destination_family_id")
-        if pd.notna(fid) and str(fid).strip():
+        if pd.notna(fid) is True and str(fid).strip():
             try:
-                parent_id = int(float(fid))
+                parent_id = int(float(cast(Any, fid)))
                 # Pastikan child bukan parent itu sendiri
-                if parent_id != int(float(row.get("Id_Tempat", 0))):
+                id_tempat = row.get("Id_Tempat", 0)
+                if parent_id != int(float(cast(Any, id_tempat))):
                     parent_row = df[df["Id_Tempat"] == parent_id]
                     if not parent_row.empty:
                         p_cost = parent_row.iloc[0].get("Estimasi_Harga", 0)
-                        df.at[idx, "Estimasi_Harga"] += p_cost
+                        df.at[cast(Any, idx), "Estimasi_Harga"] += p_cost
             except Exception:
                 pass
     return df

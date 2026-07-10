@@ -1,8 +1,8 @@
 {
   "venvPath": "storage/app/python",
-  "venv": "venv",
+  "venv": ".venv",
   "extraPaths": [
     "storage/app/python",
-    "storage/app/python/venv/lib/python3.9/site-packages"
+    "storage/app/python/.venv/lib/python3.9/site-packages"
   ]
 }

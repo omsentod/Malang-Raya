@@ -227,7 +227,11 @@ class AuthController extends Controller
                 'email' => $user->email,
                 'avatar' => $user->avatar,
                 'bio' => $user->bio,
-                'role' => $user->role ?? 'user'
+                'role' => $user->role ?? 'user',
+                'pref_wisata' => $user->pref_wisata ?? [],
+                'pref_hotel' => $user->pref_hotel ?? [],
+                'pref_kuliner' => $user->pref_kuliner ?? [],
+                'pref_strength' => $user->pref_strength ?? 0.0
             ]
         ]);
     }

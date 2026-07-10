@@ -202,10 +202,10 @@
                                 Moda Transportasi
                             </label>
                             <select class="form-input form-input-select no-prefix" id="b-transport">
-                                <option value="">Otomatis (Rekomendasi Sesuai Peserta)</option>
-                                <option value="motor">Motor (GoRide — Maks. 1 orang)</option>
-                                <option value="mobil">Mobil Standard (GoCar — Maks. 4 orang)</option>
-                                <option value="mobil_xl">Mobil XL (GoCar XL — Maks. 6 orang)</option>
+                                <option value="">🤖 Otomatis (Rekomendasi Sesuai Peserta)</option>
+                                <option value="motor">🏍️ Motor (GoRide — Maks. 1 orang)</option>
+                                <option value="mobil">🚗 Mobil Standard (GoCar — Maks. 4 orang)</option>
+                                <option value="mobil_xl">🚙 Mobil XL (GoCar XL — Maks. 6 orang)</option>
                             </select>
                             <span class="form-hint">Pilih kustomisasi moda transportasi atau biarkan otomatis dioptimalkan FCM</span>
                             <div id="b-capacity-warning" class="budget-warning-box" style="display:none;"></div>
@@ -373,10 +373,10 @@
                                 Moda Transportasi
                             </label>
                             <select class="form-input form-input-select no-prefix" id="d-transport">
-                                <option value="">Otomatis (Rekomendasi Sesuai Peserta)</option>
-                                <option value="motor">Motor (GoRide — Maks. 1 orang)</option>
-                                <option value="mobil">Mobil Standard (GoCar — Maks. 4 orang)</option>
-                                <option value="mobil_xl">Mobil XL (GoCar XL — Maks. 6 orang)</option>
+                                <option value="">🤖 Otomatis (Rekomendasi Sesuai Peserta)</option>
+                                <option value="motor">🏍️ Motor (GoRide — Maks. 1 orang)</option>
+                                <option value="mobil">🚗 Mobil Standard (GoCar — Maks. 4 orang)</option>
+                                <option value="mobil_xl">🚙 Mobil XL (GoCar XL — Maks. 6 orang)</option>
                             </select>
                             <span class="form-hint">Pilih kustomisasi moda transportasi atau biarkan otomatis dioptimalkan FCM</span>
                             <div id="d-capacity-warning" class="budget-warning-box" style="display:none;"></div>
@@ -397,24 +397,38 @@
                         <div class="form-group">
                             <label class="form-label">
                                 <span class="material-symbols-outlined">payments</span>
-                                Budget Total <span style="color:var(--slate-400);font-weight:500">(Opsional)</span>
+                                Target Budget <span style="color:var(--slate-400);font-weight:500">(Opsional)</span>
                             </label>
-                            <div class="ota-slider-container">
-                                <div class="ota-slider-header" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px;">
-                                    <span class="ota-slider-val" id="d-budget-val">Tanpa Batasan Anggaran </span>
-                                    <div class="manual-input-wrapper">
-                                        <span class="manual-currency">Rp</span>
-                                        <input type="number" id="d-budget-manual" class="budget-manual-input" placeholder="Input manual" />
-                                    </div>
-                                </div>
-                                <input type="range" class="ota-slider-input" id="d-budget" min="100000" max="10000000" step="50000" value="0" />
-                                <div class="ota-slider-labels">
-                                    <span id="d-budget-min-label">Tanpa Budget / Min: Rp 100.000</span>
-                                    <span id="d-budget-max-label">Max: Rp 10.000.000</span>
+                            
+                            <div class="mode-toggle-container" style="margin-bottom: 12px; display: flex; width: 100%;">
+                                <div class="hotel-mode-toggle" style="flex: 1; display: flex; width: 100%;">
+                                    <button type="button" class="hotel-mode-btn active" id="d-budget-mode-free" style="flex: 1; justify-content: center; padding: 10px 0;">
+                                        <span class="material-symbols-outlined" style="font-size: 15px;">explore</span> Bebas (Tanpa Anggaran)
+                                    </button>
+                                    <button type="button" class="hotel-mode-btn" id="d-budget-mode-limit" style="flex: 1; justify-content: center; padding: 10px 0;">
+                                        <span class="material-symbols-outlined" style="font-size: 15px;">tune</span> Atur Batas Anggaran
+                                    </button>
                                 </div>
                             </div>
-                            <span class="form-hint">Geser untuk memvalidasi budget (Kondisi B), atau geser mentok kiri untuk eksplorasi bebas (Kondisi A)</span>
-                            <div id="d-warning-box" class="budget-warning-box" style="display:none;"></div>
+
+                            <div id="d-budget-slider-container" style="display: none; animation: fadeIn 0.2s ease;">
+                                <div class="ota-slider-container">
+                                    <div class="ota-slider-header" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px;">
+                                        <span class="ota-slider-val" id="d-budget-val" style="color:var(--teal-600); font-weight:750;">Rp 0</span>
+                                        <div class="manual-input-wrapper">
+                                            <span class="manual-currency">Rp</span>
+                                            <input type="number" id="d-budget-manual" class="budget-manual-input" placeholder="Input manual" />
+                                        </div>
+                                    </div>
+                                    <input type="range" class="ota-slider-input" id="d-budget" min="100000" max="10000000" step="50000" value="0" />
+                                    <div class="ota-slider-labels">
+                                        <span id="d-budget-min-label">Min: Rp 100.000</span>
+                                        <span id="d-budget-max-label">Max: Rp 10.000.000</span>
+                                    </div>
+                                </div>
+                                <span class="form-hint" style="margin-top:4px; display:block;">Geser untuk menetapkan limit biaya. Batas minimum otomatis dihitung presisi berdasarkan rute dasar destinasi pilihan Anda.</span>
+                            </div>
+                            <div id="d-warning-box" class="budget-warning-box" style="display:none; margin-top:8px;"></div>
                         </div>
                         <button type="submit" class="submit-btn" id="d-submit" style="background:linear-gradient(135deg,#f59e0b,#d97706);box-shadow:0 4px 16px rgba(245,158,11,.3)">
                             <span class="material-symbols-outlined">search</span>
@@ -516,6 +530,80 @@
             </div>
         </div>
     </footer>
+
+    <!-- PREMIUM DETAIL MODAL -->
+    <div class="ota-modal-overlay" id="ota-detail-modal">
+        <div class="ota-modal-content">
+            <div class="ota-modal-gallery">
+                <button class="ota-modal-close-btn" onclick="closeOtaDetail()" aria-label="Close">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+                
+                <button class="ota-modal-gallery-nav prev" id="modal-gallery-prev" aria-label="Previous image">
+                    <span class="material-symbols-outlined">chevron_left</span>
+                </button>
+                
+                <div class="ota-modal-gallery-track" id="modal-gallery-track">
+                    <!-- Injected dynamically -->
+                </div>
+                
+                <button class="ota-modal-gallery-nav next" id="modal-gallery-next" aria-label="Next image">
+                    <span class="material-symbols-outlined">chevron_right</span>
+                </button>
+                
+                <div class="ota-modal-gallery-indicators" id="modal-gallery-indicators">
+                    <!-- Injected dynamically -->
+                </div>
+            </div>
+            
+            <div class="ota-modal-body">
+                <div class="ota-modal-header-row">
+                    <div>
+                        <h3 class="ota-modal-title" id="modal-place-title">Nama Tempat</h3>
+                        <div class="ota-modal-badges">
+                            <span class="ota-modal-badge" id="modal-place-cat">Wisata</span>
+                            <span class="ota-modal-badge hotel-badge" id="modal-place-subcat">Nature</span>
+                        </div>
+                    </div>
+                    <div class="ota-modal-rating-badge">
+                        <span class="material-symbols-outlined">star</span>
+                        <span id="modal-place-rating">4.8</span>
+                    </div>
+                </div>
+                
+                <div class="ota-modal-info-grid">
+                    <div class="ota-modal-info-item">
+                        <span class="ota-modal-info-label" id="modal-price-label">Tiket Masuk</span>
+                        <span class="ota-modal-info-val" id="modal-place-price">Rp 15.000</span>
+                    </div>
+                    <div class="ota-modal-info-item">
+                        <span class="ota-modal-info-label">Jumlah Ulasan</span>
+                        <span class="ota-modal-info-val" id="modal-place-reviews">1.250 ulasan</span>
+                    </div>
+                </div>
+                
+                <div class="ota-modal-desc-box">
+                    <p id="modal-place-desc">
+                        Nikmati pesona alam Malang Raya yang memikat dengan fasilitas premium. Tempat ini dikurasi secara cerdas menggunakan Fuzzy C-Means Clustering untuk menjamin kepuasan kunjungan Anda.
+                    </p>
+                </div>
+                
+                <div class="ota-modal-actions">
+                    <a href="#" target="_blank" class="ota-modal-btn-primary" id="modal-gmaps-link">
+                        <span class="material-symbols-outlined">map</span>
+                        Buka Rute di Google Maps
+                    </a>
+                    <a href="#" class="ota-modal-btn-primary" id="modal-package-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); display: none; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);">
+                        <span class="material-symbols-outlined">auto_awesome</span>
+                        Buat Paket Wisata
+                    </a>
+                    <button class="ota-modal-btn-secondary" id="modal-save-btn" onclick="savePlaceToggle()" aria-label="Save place">
+                        <span class="material-symbols-outlined" id="modal-save-icon">bookmark</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- ROUTE DETAIL MODAL -->
     <div class="modal-overlay" id="route-modal">

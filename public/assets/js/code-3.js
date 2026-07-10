@@ -1000,9 +1000,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (emailInput) emailInput.value = window.currentUser.email;
             if (bioInput) bioInput.value = window.currentUser.bio || '';
             
-            const prefWisata = document.getElementById('edit-profile-wisata');
-            const prefHotel = document.getElementById('edit-profile-hotel');
-            const prefKuliner = document.getElementById('edit-profile-kuliner');
+            const prefWisata = document.getElementById('edit-pref-wisata');
+            const prefHotel = document.getElementById('edit-pref-hotel');
+            const prefKuliner = document.getElementById('edit-pref-kuliner');
             
             if (prefWisata && window.currentUser.pref_wisata && window.currentUser.pref_wisata.length > 0) {
                 prefWisata.value = window.currentUser.pref_wisata[0];

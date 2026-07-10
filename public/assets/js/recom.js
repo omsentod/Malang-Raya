@@ -211,65 +211,6 @@ document.addEventListener('DOMContentLoaded', () => {
         function getOptionGraphic(val, text) {
             const textLower = text.toLowerCase();
             const valLower = String(val).toLowerCase();
-
-            // Otomatis / AI
-            if (valLower === '' && textLower.includes('otomatis')) {
-                return `
-<svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;">
-  <rect width="24" height="24" rx="6" fill="url(#ai-grad)" />
-  <path d="M12 6L13.5 9.5L17 11L13.5 12.5L12 16L10.5 12.5L7 11L10.5 9.5L12 6Z" fill="white"/>
-  <path d="M6 16L6.75 17.75L8.5 18.5L6.75 19.25L6 21L5.25 19.25L3.5 18.5L5.25 17.75L6 16Z" fill="white" opacity="0.8"/>
-  <path d="M18 4L18.5 5.5L20 6L18.5 6.5L18 8L17.5 6.5L16 6L17.5 5.5L18 4Z" fill="white" opacity="0.8"/>
-  <defs>
-    <linearGradient id="ai-grad" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#06b6d4"/>
-      <stop offset="1" stop-color="#0d9488"/>
-    </linearGradient>
-  </defs>
-</svg>`;
-            }
-            // Motor
-            if (valLower === 'motor' || textLower.includes('motor')) {
-                return `
-<svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;">
-  <rect width="24" height="24" rx="6" fill="url(#motor-grad)" />
-  <path d="M19 12H17.56L15.34 8.67C15.01 8.18 14.45 7.88 13.86 7.88H10.5V6.5C10.5 5.95 10.05 5.5 9.5 5.5C8.95 5.5 8.5 5.95 8.5 6.5V7.88H5C3.9 7.88 3 8.78 3 9.88V12C3 13.1 3.9 14 5 14H6.18C6.6 15.17 7.7 16 9 16C10.3 16 11.4 15.17 11.82 14H15.18C15.6 15.17 16.7 16 18 16C19.3 16 20.4 15.17 20.82 14H21C21.55 14 22 13.55 22 13C22 12.45 21.55 12 21 12H19ZM9 14.5C8.17 14.5 7.5 13.83 7.5 13C7.5 12.17 8.17 11.5 9 11.5C9.83 11.5 10.5 12.17 10.5 13C10.5 13.83 9.83 14.5 9 14.5ZM18 14.5C17.17 14.5 16.5 13.83 16.5 13C16.5 12.17 17.17 11.5 18 11.5C18.83 11.5 19.5 12.17 19.5 13C19.5 13.83 18.83 14.5 18 14.5Z" fill="white"/>
-  <defs>
-    <linearGradient id="motor-grad" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#10b981"/>
-      <stop offset="1" stop-color="#047857"/>
-    </linearGradient>
-  </defs>
-</svg>`;
-            }
-            // Mobil Standard
-            if (valLower === 'mobil' || (textLower.includes('gocar') && !textLower.includes('xl')) || textLower.includes('standard')) {
-                return `
-<svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;">
-  <rect width="24" height="24" rx="6" fill="url(#car-grad)" />
-  <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5H6.5C5.84 5 5.29 5.42 5.08 6.01L3 12V19C3 19.55 3.45 20 4 20H5C5.55 20 6 19.55 6 19V18H18V19C18 19.55 18.45 20 19 20H20C20.55 20 21 19.55 21 19V12L18.92 6.01ZM6.5 16C5.67 16 5 15.33 5 14.5C5 13.67 5.67 13 6.5 13C7.33 13 8 13.67 8 14.5C8 15.33 7.33 16 6.5 16ZM17.5 16C16.67 16 16 15.33 16 14.5C16 13.67 16.67 13 17.5 13C18.33 13 19 13.67 19 14.5C19 15.33 18.33 16 17.5 16ZM5 11L6.5 6.5H17.5L19 11H5Z" fill="white"/>
-  <defs>
-    <linearGradient id="car-grad" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#f59e0b"/>
-      <stop offset="1" stop-color="#d97706"/>
-    </linearGradient>
-  </defs>
-</svg>`;
-            }
-            // Mobil XL
-            if (valLower === 'mobil_xl' || textLower.includes('xl') || textLower.includes('gocar xl')) {
-                return `
-<svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;">
-  <rect width="24" height="24" rx="6" fill="url(#car-xl-grad)" />
-  <path d="M17 5H7C5.9 5 5 5.9 5 7V17C5 17.55 5.45 18 6 18H7C7.55 18 8 17.55 8 17V16H16V17C16 17.55 16.45 18 17 18H18C18.55 18 19 17.55 19 17V7C19 5.9 18.1 5 17 5ZM8.5 14C7.67 14 7 13.33 7 12.5C7 11.67 7.67 11 8.5 11C9.33 11 10 11.67 10 12.5C10 13.33 9.33 14 8.5 14ZM15.5 14C14.67 14 14 13.33 14 12.5C14 11.67 14.67 11 15.5 11C16.33 11 17 11.67 17 12.5C17 13.33 16.33 14 15.5 14ZM6.5 9H17.5V6.5H6.5V9Z" fill="white"/>
-  <defs>
-    <linearGradient id="car-xl-grad" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#8b5cf6"/>
-      <stop offset="1" stop-color="#6d28d9"/>
-    </linearGradient>
-  </defs>
-</svg>`;
-            }
             // Same Hotel
             if (valLower === 'same' || textLower.includes('sama') || textLower.includes('stay') || textLower.includes('same')) {
                 return `
@@ -438,6 +379,7 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(res => res.json())
         .then(data => {
             searchIndex = data;
+            window.searchIndex = data;
             initDestinationFirstSearch();
         })
         .catch(err => console.error("Error loading search index:", err));
@@ -664,6 +606,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         onBudgetChange();
+        fetchApiMinMaxUpdate();
     }
 
     function renderSearchSelectSuggestions(triggerEl) {
@@ -1725,6 +1668,25 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     }
+    // Destination First Budget Toggle Logic
+    const dModeFree = document.getElementById('d-budget-mode-free');
+    const dModeLimit = document.getElementById('d-budget-mode-limit');
+    const dBudgetContainer = document.getElementById('d-budget-slider-container');
+    
+    if (dModeFree && dModeLimit && dBudgetContainer) {
+        dModeFree.addEventListener('click', () => {
+            dModeFree.classList.add('active');
+            dModeLimit.classList.remove('active');
+            dBudgetContainer.style.display = 'none';
+            onBudgetChange();
+        });
+        dModeLimit.addEventListener('click', () => {
+            dModeLimit.classList.add('active');
+            dModeFree.classList.remove('active');
+            dBudgetContainer.style.display = 'block';
+            onBudgetChange();
+        });
+    }
 
     // Attach slider input event listeners
     document.getElementById('b-budget')?.addEventListener('input', e => {
@@ -1875,6 +1837,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function getRawBudget(elId) {
+        if (elId === 'd-budget') {
+            const modeFree = document.getElementById('d-budget-mode-free');
+            if (modeFree && modeFree.classList.contains('active')) {
+                return 0; // "Bebas" toggle means no budget limit
+            }
+        }
+
         const manual = document.getElementById(elId + '-manual');
         if (manual) {
             const rawText = manual.value.trim();
@@ -1982,13 +1951,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    async function fetchBudgetRange(persons, duration, hotelMode = 'same', transport = '') {
+    async function fetchBudgetRange(persons, duration, hotelMode = 'same', transport = '', destId = '') {
         try {
             const fd = new FormData();
             fd.append('persons', persons);
             fd.append('duration', duration);
             fd.append('hotel_mode', hotelMode);
             fd.append('transport', transport);
+            if (destId) fd.append('dest_id', destId);
             const res = await fetch('/api/min-budget', {
                 method: 'POST',
                 body: fd,
@@ -2029,11 +1999,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const dDuration = +document.getElementById('d-duration')?.value || 1;
             const dHotelModeVal = document.getElementById('d-hotel-mode')?.value || 'same';
             const dTransportVal = document.getElementById('d-transport')?.value || '';
+            const dDestIdVal = document.getElementById('d-dest-id')?.value || '';
 
             // Fetch keduanya paralel
             const [bRange, dRange] = await Promise.all([
                 fetchBudgetRange(bPersons, bDuration, bHotelModeVal, bTransportVal),
-                fetchBudgetRange(dPersons, dDuration, dHotelModeVal, dTransportVal)
+                fetchBudgetRange(dPersons, dDuration, dHotelModeVal, dTransportVal, dDestIdVal)
             ]);
 
             if (seq !== budgetFetchSeq) return;
@@ -2506,13 +2477,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const hotelItemHTML = !isOneDay ? `
                 <div class="pkg-item">
-                    <div class="pkg-item-icon hotel-img-container" style="position:relative; overflow:hidden;">
+                    <div class="pkg-item-icon hotel-img-container" style="position:relative; overflow:hidden; cursor:pointer;" onclick="openOtaDetailByName('${pkg.hotel_nama.replace(/'/g, "\\'")}')">
                         <img src="/assets/GAMBAR/hotel/${hFolder}/${hFolder}-1.jpg" alt="${pkg.hotel_nama}" class="pkg-thumb-img" onerror="handleImgErrorRecom(this, 'hotel')" />
                         <div class="pkg-thumb-shimmer" style="display:none;"></div>
                     </div>
                     <div class="pkg-item-info">
                         <div class="pkg-item-cat">Hotel / Akomodasi</div>
-                        <div class="pkg-item-name">${pkg.hotel_nama}</div>
+                        <div class="pkg-item-name" style="cursor:pointer;" onclick="openOtaDetailByName('${pkg.hotel_nama.replace(/'/g, "\\'")}')">${pkg.hotel_nama}</div>
                         <div class="pkg-item-price">${fmtRp(pkg.hotel_harga)} <span style="font-size:11px;font-weight:500;color:var(--slate-400)">/malam</span></div>
                     </div>
                 </div>
@@ -2554,7 +2525,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 6px;">
                                     <div style="display: flex; align-items: flex-start; gap: 6px; flex: 1; min-width: 0;">
                                         <span class="material-symbols-outlined" style="font-size: 14px; color: var(--teal-500); margin-top: 1px;">hotel</span>
-                                        <span style="flex: 1; min-width: 0; word-break: break-word; line-height: 1.3;">Hotel: <span style="color: var(--slate-800); font-weight: 700;">${hasHotel ? day.hotel : 'Checkout'}</span></span>
+                                        <span style="flex: 1; min-width: 0; word-break: break-word; line-height: 1.3;">Hotel: <span style="color: var(--slate-800); font-weight: 700; cursor:pointer;" onclick="openOtaDetailByName('${(day.hotel || '').replace(/'/g, "\\'")}')">${hasHotel ? day.hotel : 'Checkout'}</span></span>
                                     </div>
                                     <span style="color: var(--slate-500); font-size: 11px; flex-shrink: 0; text-align: right;">
                                         ${hasHotel ? `${fmtRp(day.hotel_harga)} /malam ${isPindah ? '<span class="pkg-badge hemat" style="font-size: 9px; padding: 1px 4px; font-weight: 700; margin-left: 4px;">Pindah</span>' : '<span class="pkg-badge balanced" style="font-size: 9px; padding: 1px 4px; font-weight: 700; margin-left: 4px;">Sama</span>'}` : 'Rp 0'}
@@ -2563,21 +2534,21 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 6px;">
                                     <div style="display: flex; align-items: flex-start; gap: 6px; flex: 1; min-width: 0;">
                                         <span class="material-symbols-outlined" style="font-size: 14px; color: var(--teal-500); margin-top: 1px;">landscape</span>
-                                        <span style="flex: 1; min-width: 0; word-break: break-word; line-height: 1.3;">Wisata: <span style="color: var(--slate-800); font-weight: 700;">${day.wisata}</span></span>
+                                        <span style="flex: 1; min-width: 0; word-break: break-word; line-height: 1.3;">Wisata: <span style="color: var(--slate-800); font-weight: 700; cursor:pointer;" onclick="openOtaDetailByName('${day.wisata.replace(/'/g, "\\'")}')">${day.wisata}</span></span>
                                     </div>
                                     <span style="color: var(--slate-500); font-size: 11px; flex-shrink: 0; text-align: right;">${fmtRp(day.wisata_harga || 0)} /orang</span>
                                 </div>
                                 <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 6px;">
                                     <div style="display: flex; align-items: flex-start; gap: 6px; flex: 1; min-width: 0;">
                                         <span class="material-symbols-outlined" style="font-size: 14px; color: var(--teal-500); margin-top: 1px;">wb_twilight</span>
-                                        <span style="flex: 1; min-width: 0; word-break: break-word; line-height: 1.3;">Makan Pagi: <span style="color: var(--slate-800); font-weight: 700;">${day.kuliner_pagi || 'N/A'}</span></span>
+                                        <span style="flex: 1; min-width: 0; word-break: break-word; line-height: 1.3;">Makan Pagi: <span style="color: var(--slate-800); font-weight: 700; cursor:pointer;" onclick="openOtaDetailByName('${(day.kuliner_pagi || '').replace(/'/g, "\\'")}')">${day.kuliner_pagi || 'N/A'}</span></span>
                                     </div>
                                     <span style="color: var(--slate-500); font-size: 11px; flex-shrink: 0; text-align: right;">${fmtRp(day.kuliner_pagi_harga || 0)} /org</span>
                                 </div>
                                 <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 6px;">
                                     <div style="display: flex; align-items: flex-start; gap: 6px; flex: 1; min-width: 0;">
                                         <span class="material-symbols-outlined" style="font-size: 14px; color: var(--teal-500); margin-top: 1px;">sunny</span>
-                                        <span style="flex: 1; min-width: 0; word-break: break-word; line-height: 1.3;">Makan Siang: <span style="color: var(--slate-800); font-weight: 700;">${day.kuliner}</span></span>
+                                        <span style="flex: 1; min-width: 0; word-break: break-word; line-height: 1.3;">Makan Siang: <span style="color: var(--slate-800); font-weight: 700; cursor:pointer;" onclick="openOtaDetailByName('${day.kuliner.replace(/'/g, "\\'")}')">${day.kuliner}</span></span>
                                     </div>
                                     <span style="color: var(--slate-500); font-size: 11px; flex-shrink: 0; text-align: right;">${fmtRp(day.kuliner_harga || 0)} /org</span>
                                 </div>
@@ -2585,7 +2556,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 6px;">
                                     <div style="display: flex; align-items: flex-start; gap: 6px; flex: 1; min-width: 0;">
                                         <span class="material-symbols-outlined" style="font-size: 14px; color: var(--teal-500); margin-top: 1px;">dark_mode</span>
-                                        <span style="flex: 1; min-width: 0; word-break: break-word; line-height: 1.3;">Makan Malam: <span style="color: var(--slate-800); font-weight: 700;">${day.kuliner_malam || 'N/A'}</span></span>
+                                        <span style="flex: 1; min-width: 0; word-break: break-word; line-height: 1.3;">Makan Malam: <span style="color: var(--slate-800); font-weight: 700; cursor:pointer;" onclick="openOtaDetailByName('${(day.kuliner_malam || '').replace(/'/g, "\\'")}')">${day.kuliner_malam || 'N/A'}</span></span>
                                     </div>
                                     <span style="color: var(--slate-500); font-size: 11px; flex-shrink: 0; text-align: right;">${fmtRp(day.kuliner_malam_harga || 0)} /org</span>
                                 </div>
@@ -2633,46 +2604,46 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="pkg-body">
                 ${hotelItemHTML}
                 <div class="pkg-item">
-                    <div class="pkg-item-icon kuliner-img-container" style="position:relative; overflow:hidden;">
+                    <div class="pkg-item-icon kuliner-img-container" style="position:relative; overflow:hidden; cursor:pointer;" onclick="openOtaDetailByName('${(pkg.kuliner_pagi_nama || '').replace(/'/g, "\\'")}')">
                         <img src="/assets/GAMBAR/makan/${kpFolder}/${kpFolder}-1.jpg" alt="${pkg.kuliner_pagi_nama}" class="pkg-thumb-img" onerror="handleImgErrorRecom(this, 'restaurant')" />
                         <div class="pkg-thumb-shimmer" style="display:none;"></div>
                     </div>
                     <div class="pkg-item-info">
                         <div class="pkg-item-cat">Makan Pagi (Kuliner)</div>
-                        <div class="pkg-item-name">${pkg.kuliner_pagi_nama || 'N/A'}</div>
+                        <div class="pkg-item-name" style="cursor:pointer;" onclick="openOtaDetailByName('${(pkg.kuliner_pagi_nama || '').replace(/'/g, "\\'")}')">${pkg.kuliner_pagi_nama || 'N/A'}</div>
                         <div class="pkg-item-price">${fmtRp(pkg.kuliner_pagi_harga)} <span style="font-size:11px;font-weight:500;color:var(--slate-400)">/porsi</span></div>
                     </div>
                 </div>
                 <div class="pkg-item">
-                    <div class="pkg-item-icon wisata-img-container" style="position:relative; overflow:hidden;">
+                    <div class="pkg-item-icon wisata-img-container" style="position:relative; overflow:hidden; cursor:pointer;" onclick="openOtaDetailByName('${displayWisata.replace(/'/g, "\\'")}')">
                         <img src="/assets/GAMBAR/wisata/${wFolder}/${wFolder}-1.jpg" alt="${pkg.wisata_nama}" class="pkg-thumb-img" onerror="handleImgErrorRecom(this, 'landscape')" />
                         <div class="pkg-thumb-shimmer" style="display:none;"></div>
                     </div>
                     <div class="pkg-item-info">
                         <div class="pkg-item-cat">Destinasi Wisata</div>
-                        <div class="pkg-item-name">${displayWisata}</div>
+                        <div class="pkg-item-name" style="cursor:pointer;" onclick="openOtaDetailByName('${displayWisata.replace(/'/g, "\\'")}')">${displayWisata}</div>
                         <div class="pkg-item-price">${fmtRp(pkg.wisata_harga)} <span style="font-size:11px;font-weight:500;color:var(--slate-400)">/tiket</span></div>
                     </div>
                 </div>
                 <div class="pkg-item">
-                    <div class="pkg-item-icon kuliner-img-container" style="position:relative; overflow:hidden;">
+                    <div class="pkg-item-icon kuliner-img-container" style="position:relative; overflow:hidden; cursor:pointer;" onclick="openOtaDetailByName('${displayKuliner.replace(/'/g, "\\'")}')">
                         <img src="/assets/GAMBAR/makan/${kFolder}/${kFolder}-1.jpg" alt="${pkg.kuliner_nama}" class="pkg-thumb-img" onerror="handleImgErrorRecom(this, 'restaurant')" />
                         <div class="pkg-thumb-shimmer" style="display:none;"></div>
                     </div>
                     <div class="pkg-item-info">
                         <div class="pkg-item-cat">Makan Siang (Kuliner)</div>
-                        <div class="pkg-item-name">${displayKuliner}</div>
+                        <div class="pkg-item-name" style="cursor:pointer;" onclick="openOtaDetailByName('${displayKuliner.replace(/'/g, "\\'")}')">${displayKuliner}</div>
                         <div class="pkg-item-price">${fmtRp(pkg.kuliner_harga)} <span style="font-size:11px;font-weight:500;color:var(--slate-400)">/porsi</span></div>
                     </div>
                 </div>
                 <div class="pkg-item">
-                    <div class="pkg-item-icon kuliner-img-container" style="position:relative; overflow:hidden;">
+                    <div class="pkg-item-icon kuliner-img-container" style="position:relative; overflow:hidden; cursor:pointer;" onclick="openOtaDetailByName('${(pkg.kuliner_malam_nama || '').replace(/'/g, "\\'")}')">
                         <img src="/assets/GAMBAR/makan/${getFolder(pkg.kuliner_malam_nama)}/${getFolder(pkg.kuliner_malam_nama)}-1.jpg" alt="${pkg.kuliner_malam_nama}" class="pkg-thumb-img" onerror="handleImgErrorRecom(this, 'restaurant')" />
                         <div class="pkg-thumb-shimmer" style="display:none;"></div>
                     </div>
                     <div class="pkg-item-info">
                         <div class="pkg-item-cat">Makan Malam (Kuliner)</div>
-                        <div class="pkg-item-name">${pkg.kuliner_malam_nama}</div>
+                        <div class="pkg-item-name" style="cursor:pointer;" onclick="openOtaDetailByName('${(pkg.kuliner_malam_nama || '').replace(/'/g, "\\'")}')">${pkg.kuliner_malam_nama}</div>
                         <div class="pkg-item-price">${fmtRp(pkg.kuliner_malam_harga)} <span style="font-size:11px;font-weight:500;color:var(--slate-400)">/porsi</span></div>
                     </div>
                 </div>
@@ -2706,7 +2677,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span class="wahana-panel-badge">Pilih sesuka hati</span>
                     </div>
                     <div class="wahana-items-list">
-                        ${pkg.additional_facilities.map((fac, fi) => `
+                        ${pkg.additional_facilities.map((fac, fi) => {
+                            const facImgHTML = getPlaceImageHTML(fac.label, `event.preventDefault(); event.stopPropagation(); openOtaDetailByName('${fac.label.replace(/'/g, "\\'")}')`);
+                            return `
                         <label class="wahana-item ${fac.is_mandatory ? 'mandatory-item' : ''}" for="wahana-${pkgUid}-${fi}" style="${fac.is_mandatory ? 'opacity: 0.7; cursor: not-allowed;' : ''}">
                             <input type="checkbox"
                                    class="wahana-checkbox"
@@ -2717,15 +2690,19 @@ document.addEventListener('DOMContentLoaded', () => {
                                    data-cost-max="${fac.cost_max}"
                                    data-label="${fac.label}"
                                    data-facility-id="${fac.id}"
+                                   data-hari-ke="${fac.hari_ke}"
+                                   data-parent-wisata-nama="${fac.parent_wisata_nama}"
                                    ${fac.is_mandatory ? 'checked disabled' : ''}>
+                            ${facImgHTML}
                             <div class="wahana-item-info">
-                                <span class="wahana-item-name">${fac.label} ${fac.is_mandatory ? '<span style="font-size:10px; padding:2px 4px; background:#e2e8f0; color:#475569; border-radius:4px; margin-left:4px; font-weight:600;">WAJIB</span>' : ''}</span>
+                                <span class="wahana-item-name" style="cursor:pointer;" onclick="event.preventDefault(); event.stopPropagation(); openOtaDetailByName('${fac.label.replace(/'/g, "\\'")}')">${fac.label} ${fac.is_mandatory ? '<span style="font-size:10px; padding:2px 4px; background:#e2e8f0; color:#475569; border-radius:4px; margin-left:4px; font-weight:600;">WAJIB</span>' : ''}</span>
                                 ${fac.parent_wisata_nama ? `<span class="wahana-item-parent" style="font-size: 11px; color: var(--slate-500); display: block; margin-top: 2px;">📍 ${fac.parent_wisata_nama} (Hari ${fac.hari_ke})</span>` : ''}
                                 <span class="wahana-item-range">estimasi Rp ${fac.cost_min.toLocaleString('id-ID')}–${fac.cost_max.toLocaleString('id-ID')}/org</span>
                             </div>
                             <span class="wahana-item-cost">+${fmtRp(fac.cost_per_person)}/org</span>
                         </label>
-                        `).join('')}
+                            `;
+                        }).join('')}
                     </div>
                     <div class="wahana-subtotal" id="wahana-subtotal-${pkgUid}">
                         <span>Dipilih: <strong id="wahana-chosen-${pkgUid}">Rp 0</strong></span>
@@ -2786,7 +2763,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 card.querySelectorAll(`.wahana-checkbox[data-pkg-uid="${uid}"]:checked`).forEach(chk => {
                     const cPerPerson = parseInt(chk.dataset.cost, 10) || 0;
                     wahanaCostTotal += cPerPerson * pkg.num_persons;
-                    selectedFacilities.push({ id: chk.dataset.facilityId, label: chk.dataset.label, cost_per_person: cPerPerson });
+                    selectedFacilities.push({
+                        id: chk.dataset.facilityId,
+                        label: chk.dataset.label,
+                        cost_per_person: cPerPerson,
+                        hari_ke: parseInt(chk.dataset.hariKe, 10) || 1,
+                        parent_wisata_nama: chk.dataset.parentWisataNama || ''
+                    });
                 });
 
                 // Store on card for Simpan Rencana
@@ -3031,7 +3014,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (pic.cat === 'wisata') errorIcon = 'landscape';
 
             return `
-                <div class="detail-gallery-item" title="${pic.name}">
+                <div class="detail-gallery-item" title="${pic.name}" style="cursor:pointer;" onclick="openOtaDetailByName('${pic.name.replace(/'/g, "\\'")}')">
                     <img src="${pic.picPath}" alt="${escapeHtmlAttr(pic.name)}" onerror="handleImgErrorRecom(this, '${errorIcon}')" />
                     <div class="detail-gallery-caption">
                         <span class="detail-gallery-label">${pic.label}</span>
@@ -3065,14 +3048,43 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Build daily timeline cards
         const timelineHTML = (pkg.itinerary || []).map(day => {
+            // Filter optional facilities selected for this day
+            const dayWahana = selectedWahana.filter(w => w.hari_ke === day.day);
+            let dayWahanaHTML = '';
+            if (dayWahana.length > 0) {
+                dayWahanaHTML = dayWahana.map(w => {
+                    const wImgHTML = getPlaceImageHTML(w.label, `openOtaDetailByName('${w.label.replace(/'/g, "\\'")}')`);
+                    return `
+                        <div style="display:flex; align-items:center; gap:8px; margin-top: 4px; margin-left: 24px; border-left: 2px solid var(--amber-300); padding-left: 8px;">
+                            ${wImgHTML}
+                            <span style="font-size: 11.5px; color: var(--slate-600);">⚡ Fasilitas Opsional: <strong style="color:var(--slate-800); cursor:pointer;" onclick="openOtaDetailByName('${w.label.replace(/'/g, "\\'")}')">${w.label}</strong></span>
+                        </div>
+                    `;
+                }).join('');
+            }
+
             const ed = extraDests[day.day - 1];
             let dayExtraHTML = '';
             if (ed) {
+                const edImgHTML = getPlaceImageHTML(ed.nama, `openOtaDetailByName('${ed.nama.replace(/'/g, "\\'")}')`);
+                let childHTML = '';
+                if (ed.selected_facilities && ed.selected_facilities.length > 0) {
+                    childHTML = ed.selected_facilities.map(sf => {
+                        const sfImgHTML = getPlaceImageHTML(sf.label, `openOtaDetailByName('${sf.label.replace(/'/g, "\\'")}')`);
+                        return `
+                            <div style="display:flex; align-items:center; gap:8px; margin-left: 24px; margin-top: 4px; border-left: 2px solid var(--teal-300); padding-left: 8px;">
+                                ${sfImgHTML}
+                                <span style="font-size: 11.5px; color: var(--slate-600);">⚡ Fasilitas Opsional: <strong style="color:var(--slate-800); cursor:pointer;" onclick="openOtaDetailByName('${sf.label.replace(/'/g, "\\'")}')">${sf.label}</strong></span>
+                            </div>
+                        `;
+                    }).join('');
+                }
                 dayExtraHTML = `
-                    <div style="display:flex; align-items:center; gap:8px; border-left: 2px solid var(--teal-500); padding-left: 8px; margin-top: 4px; margin-bottom: 4px;">
-                        <span class="material-symbols-outlined" style="font-size:16px; color:var(--teal-500);">add_location_alt</span>
-                        <span>Wisata Tambahan: <strong style="color:var(--slate-800);">${ed.nama}</strong></span>
+                    <div style="display:flex; align-items:center; gap:8px; border-left: 2px solid var(--teal-500); padding-left: 8px; margin-top: 6px; margin-bottom: 6px;">
+                        ${edImgHTML}
+                        <span style="font-size: 12.5px; color: var(--slate-600);">Wisata Tambahan: <strong style="color:var(--slate-800); cursor:pointer;" onclick="openOtaDetailByName('${ed.nama.replace(/'/g, "\\'")}')">${ed.nama}</strong></span>
                     </div>
+                    ${childHTML}
                 `;
             }
             return `
@@ -3084,27 +3096,28 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div style="display:flex; flex-direction:column; gap:6px; font-size:12.5px; font-weight:600; color:var(--slate-600);">
                         <div style="display:flex; align-items:center; gap:8px;">
                             <span class="material-symbols-outlined" style="font-size:16px; color:var(--teal-500);">landscape</span>
-                            <span>Wisata: <strong style="color:var(--slate-800);">${day.wisata}</strong></span>
+                            <span>Wisata: <strong style="color:var(--slate-800); cursor:pointer;" onclick="openOtaDetailByName('${day.wisata.replace(/'/g, "\\'")}')">${day.wisata}</strong></span>
                         </div>
+                        ${dayWahanaHTML}
                         ${dayExtraHTML}
                         <div style="display:flex; align-items:center; gap:8px;">
                             <span class="material-symbols-outlined" style="font-size:16px; color:var(--teal-500);">wb_twilight</span>
-                            <span>Makan Pagi: <strong style="color:var(--slate-800);">${day.kuliner_pagi || 'N/A'}</strong></span>
+                            <span>Makan Pagi: <strong style="color:var(--slate-800); cursor:pointer;" onclick="openOtaDetailByName('${(day.kuliner_pagi || '').replace(/'/g, "\\'")}')">${day.kuliner_pagi || 'N/A'}</strong></span>
                         </div>
                         <div style="display:flex; align-items:center; gap:8px;">
                             <span class="material-symbols-outlined" style="font-size:16px; color:var(--teal-500);">sunny</span>
-                            <span>Makan Siang: <strong style="color:var(--slate-800);">${day.kuliner}</strong></span>
+                            <span>Makan Siang: <strong style="color:var(--slate-800); cursor:pointer;" onclick="openOtaDetailByName('${day.kuliner.replace(/'/g, "\\'")}')">${day.kuliner}</strong></span>
                         </div>
                         ${(day.kuliner_malam && day.kuliner_malam !== 'N/A') ? `
                         <div style="display:flex; align-items:center; gap:8px;">
                             <span class="material-symbols-outlined" style="font-size:16px; color:var(--teal-500);">dark_mode</span>
-                            <span>Makan Malam: <strong style="color:var(--slate-800);">${day.kuliner_malam}</strong></span>
+                            <span>Makan Malam: <strong style="color:var(--slate-800); cursor:pointer;" onclick="openOtaDetailByName('${(day.kuliner_malam || '').replace(/'/g, "\\'")}')">${day.kuliner_malam}</strong></span>
                         </div>
                         ` : ''}
                         ${(day.hotel && day.hotel !== 'Checkout') ? `
                         <div style="display:flex; align-items:center; gap:8px; border-top:1px dashed var(--slate-100); margin-top:4px; padding-top:4px;">
                             <span class="material-symbols-outlined" style="font-size:16px; color:var(--teal-500);">hotel</span>
-                            <span>Hotel: <strong style="color:var(--slate-800);">${day.hotel}</strong></span>
+                            <span>Hotel: <strong style="color:var(--slate-800); cursor:pointer;" onclick="openOtaDetailByName('${(day.hotel || '').replace(/'/g, "\\'")}')">${day.hotel}</strong></span>
                         </div>
                         ` : ''}
                     </div>
@@ -3125,36 +3138,76 @@ document.addEventListener('DOMContentLoaded', () => {
         const totalDistance = originalDist + extraDist;
 
         if (selectedWahana.length > 0) {
-            extraBreakdownHTML += selectedWahana.map(fac => `
-                <div class="detail-calc-row">
-                    <div class="detail-calc-label-col">
-                        <strong class="detail-calc-main-label">⚡ ${fac.label} (Fasilitas Opsional)</strong>
-                        <span class="detail-calc-sub-label">
-                            Dicentang oleh pengguna × ${pkg.num_persons} orang
-                        </span>
-                    </div>
-                    <div class="detail-calc-val-col">
-                        <strong class="detail-calc-main-val">${fmtRp(fac.cost_per_person * pkg.num_persons)}</strong>
-                        <span class="detail-calc-sub-val">@ ${fmtRp(fac.cost_per_person)}/org</span>
+            extraBreakdownHTML += selectedWahana.map(fac => {
+                const facImgHTML = getPlaceImageHTML(fac.label, `openOtaDetailByName('${fac.label.replace(/'/g, "\\'")}')`);
+                return `
+                <div class="detail-calc-row" style="display:flex; gap:12px; align-items:center;">
+                    ${facImgHTML}
+                    <div style="flex:1; display:flex; justify-content:space-between; align-items:flex-start;">
+                        <div class="detail-calc-label-col">
+                            <strong class="detail-calc-main-label" style="cursor:pointer;" onclick="openOtaDetailByName('${fac.label.replace(/'/g, "\\'")}')">⚡ ${fac.label} (Fasilitas Opsional)</strong>
+                            <span class="detail-calc-sub-label">
+                                Dicentang oleh pengguna × ${pkg.num_persons} orang
+                            </span>
+                        </div>
+                        <div class="detail-calc-val-col">
+                            <strong class="detail-calc-main-val">${fmtRp(fac.cost_per_person * pkg.num_persons)}</strong>
+                            <span class="detail-calc-sub-val">@ ${fmtRp(fac.cost_per_person)}/org</span>
+                        </div>
                     </div>
                 </div>
-            `).join('');
+                `;
+            }).join('');
         }
         if (extraDests.length > 0) {
-            extraBreakdownHTML += extraDests.map((ed, edi) => `
-                <div class="detail-calc-row">
-                    <div class="detail-calc-label-col">
-                        <strong class="detail-calc-main-label">📍 Wisata Tambahan: ${ed.nama}</strong>
-                        <span class="detail-calc-sub-label">
-                            Ditambahkan via "Maksimalkan Budget" × ${pkg.num_persons} orang
-                        </span>
-                    </div>
-                    <div class="detail-calc-val-col">
-                        <strong class="detail-calc-main-val">${fmtRp(ed.total_ticket_cost)}</strong>
-                        <span class="detail-calc-sub-val">@ ${fmtRp(ed.harga_tiket)}/org</span>
+            extraBreakdownHTML += extraDests.map((ed, edi) => {
+                const parentImgHTML = getPlaceImageHTML(ed.nama, `openOtaDetailByName('${ed.nama.replace(/'/g, "\\'")}')`);
+                const pureTicketCost = ed.harga_tiket * pkg.num_persons;
+                
+                let html = `
+                <div class="detail-calc-row" style="display:flex; gap:12px; align-items:center;">
+                    ${parentImgHTML}
+                    <div style="flex:1; display:flex; justify-content:space-between; align-items:flex-start;">
+                        <div class="detail-calc-label-col">
+                            <strong class="detail-calc-main-label" style="cursor:pointer;" onclick="openOtaDetailByName('${ed.nama.replace(/'/g, "\\'")}')">📍 Wisata Tambahan: ${ed.nama}</strong>
+                            <span class="detail-calc-sub-label">
+                                Ditambahkan via "Maksimalkan Budget" (Hari ${ed.dayNum || 1}) × ${pkg.num_persons} orang
+                            </span>
+                        </div>
+                        <div class="detail-calc-val-col">
+                            <strong class="detail-calc-main-val">${fmtRp(pureTicketCost)}</strong>
+                            <span class="detail-calc-sub-val">@ ${fmtRp(ed.harga_tiket)}/org</span>
+                        </div>
                     </div>
                 </div>
-            `).join('');
+                `;
+                
+                // Now, render each child facility under it if selected
+                if (ed.selected_facilities && ed.selected_facilities.length > 0) {
+                    html += ed.selected_facilities.map(sf => {
+                        const childImgHTML = getPlaceImageHTML(sf.label, `openOtaDetailByName('${sf.label.replace(/'/g, "\\'")}')`);
+                        return `
+                        <div class="detail-calc-row" style="display:flex; gap:12px; align-items:center; margin-left: 20px; border-left: 2px solid var(--teal-100); padding-left: 10px;">
+                            ${childImgHTML}
+                            <div style="flex:1; display:flex; justify-content:space-between; align-items:flex-start;">
+                                <div class="detail-calc-label-col">
+                                    <strong class="detail-calc-main-label" style="font-size:12.5px; cursor:pointer;" onclick="openOtaDetailByName('${sf.label.replace(/'/g, "\\'")}')">⚡ ${sf.label} (Fasilitas Opsional)</strong>
+                                    <span class="detail-calc-sub-label" style="font-size:11px;">
+                                        Fasilitas dari ${ed.nama} × ${pkg.num_persons} orang
+                                    </span>
+                                </div>
+                                <div class="detail-calc-val-col">
+                                    <strong class="detail-calc-main-val" style="font-size:13.5px;">${fmtRp(sf.cost_per_person * pkg.num_persons)}</strong>
+                                    <span class="detail-calc-sub-val">@ ${fmtRp(sf.cost_per_person)}/org</span>
+                                </div>
+                            </div>
+                        </div>
+                        `;
+                    }).join('');
+                }
+                
+                return html;
+            }).join('');
         }
 
         // Put everything together
@@ -5680,15 +5733,15 @@ document.addEventListener('DOMContentLoaded', () => {
                             
                             <div class="custom-card-meta-simple">
                                 <div class="meta-row">
-                                    <span>Tiket Wisata:</span>
+                                    <span>🌲 Tiket Wisata:</span>
                                     <span>${fmtRp(dayWisataCost)}</span>
                                 </div>
                                 <div class="meta-row">
-                                    <span>Kuliner (${numMeals}x):</span>
+                                    <span>🍜 Kuliner (${numMeals}x):</span>
                                     <span>${fmtRp(dayKulinerCost)}</span>
                                 </div>
                                 <div class="meta-row" title="${vehDesc}">
-                                    <span>Transportasi (${vehDesc.split(' ')[0]}):</span>
+                                    <span>🚗 Transportasi (${vehDesc.split(' ')[0]}):</span>
                                     <span>${fmtRp(dayTransportCost)}</span>
                                 </div>
                                 ${legsHTML}
@@ -6177,19 +6230,19 @@ document.addEventListener('DOMContentLoaded', () => {
                         <!-- Real-time Cost Calculation -->
                         <div style="font-size: 10.5px; color: var(--slate-500); display: flex; flex-direction: column; gap: 3.5px; padding-top: 4px;">
                             <div style="display: flex; justify-content: space-between;">
-                                <span>• Kamar Hotel (${hotelHarga > 0 ? `${activeOptionPackages[0].num_rooms} Kamar` : '0 Malam'})</span>
+                                <span>🏨 Kamar Hotel (${hotelHarga > 0 ? `${activeOptionPackages[0].num_rooms} Kamar` : '0 Malam'})</span>
                                 <span>${fmtRp(hotelCost)}</span>
                             </div>
                             <div style="display: flex; justify-content: space-between;">
-                                <span>• Tiket Wisata (${persons} Orang)</span>
+                                <span>🌲 Tiket Wisata (${persons} Orang)</span>
                                 <span>${fmtRp(wisataCost)}</span>
                             </div>
                             <div style="display: flex; justify-content: space-between;">
-                                <span>• Kuliner (${persons} Orang × ${numMeals}x Makan)</span>
+                                <span>🍜 Kuliner (${persons} Orang × ${numMeals}x Makan)</span>
                                 <span>${fmtRp(kulinerCost)}</span>
                             </div>
                             <div style="display: flex; justify-content: space-between;">
-                                <span>• Transportasi (${vehDesc.split(' ')[0]})</span>
+                                <span>🚗 Transportasi (${vehDesc.split(' ')[0]})</span>
                                 <span>${fmtRp(dayTransportCost)}</span>
                             </div>
                             ${legsHTML}
@@ -6203,19 +6256,19 @@ document.addEventListener('DOMContentLoaded', () => {
                         <!-- Real-time Cost Calculation -->
                         <div style="font-size: 10.5px; color: var(--slate-500); display: flex; flex-direction: column; gap: 3.5px; padding-top: 4px;">
                             <div style="display: flex; justify-content: space-between;">
-                                <span>• Kamar Hotel (${hotelHarga > 0 ? `${activeOptionPackages[0].num_rooms} Kamar` : '0 Malam'})</span>
+                                <span>🏨 Kamar Hotel (${hotelHarga > 0 ? `${activeOptionPackages[0].num_rooms} Kamar` : '0 Malam'})</span>
                                 <span>${fmtRp(hotelCost)}</span>
                             </div>
                             <div style="display: flex; justify-content: space-between;">
-                                <span>• Tiket Wisata (${persons} Orang)</span>
+                                <span>🌲 Tiket Wisata (${persons} Orang)</span>
                                 <span>${fmtRp(wisataCost)}</span>
                             </div>
                             <div style="display: flex; justify-content: space-between;">
-                                <span>• Kuliner (${persons} Orang × ${numMeals}x Makan)</span>
+                                <span>🍜 Kuliner (${persons} Orang × ${numMeals}x Makan)</span>
                                 <span>${fmtRp(kulinerCost)}</span>
                             </div>
                             <div style="display: flex; justify-content: space-between;">
-                                <span>• Transportasi (${vehDesc.split(' ')[0]})</span>
+                                <span>🚗 Transportasi (${vehDesc.split(' ')[0]})</span>
                                 <span>${fmtRp(dayTransportCost)}</span>
                             </div>
                             ${legsHTML}
@@ -6946,13 +6999,16 @@ async function openAddDestinationModal(pkg, card, pkgUid) {
     bodyEl.innerHTML = `<div class="add-dest-loading"><span class="material-symbols-outlined" style="font-size:32px;color:var(--teal-400);animation:spin 1s linear infinite;">progress_activity</span><p>Mencari destinasi terdekat...</p></div>`;
 
     try {
+        const daysRemaining = MAX_EXTRA - extraDests.length;
+        const budgetForThisSlot = Math.max(0, effectiveBudgetRemaining / daysRemaining);
+
         const resp = await fetch('/api/add-destination', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '' },
             body: JSON.stringify({
                 lat: searchLat,
                 lon: searchLon,
-                budget_remaining: effectiveBudgetRemaining,
+                budget_remaining: budgetForThisSlot,
                 persons: pkg.num_persons,
                 existing_ids: existingIds,
                 max_results: 12,
@@ -6973,10 +7029,13 @@ async function openAddDestinationModal(pkg, card, pkgUid) {
             const subEl = document.getElementById('add-dest-modal-sub');
             if (subEl) subEl.textContent = `Sisa budget: ${fmtRpGlobal(effectiveBudgetRemaining)} — slot Hari ${extraDests.length + 1} dari ${MAX_EXTRA}`;
 
-            bodyEl.innerHTML = candidates.map((c, ci) => `
-                <div class="add-dest-candidate" id="add-dest-cand-${ci}" data-idx="${ci}">
-                    <div class="add-dest-cand-info">
-                        <div class="add-dest-cand-name">${c.nama}</div>
+            bodyEl.innerHTML = candidates.map((c, ci) => {
+                const candImgHTML = getPlaceImageHTML(c.nama, `openOtaDetailByName('${c.nama.replace(/'/g, "\\'")}')`);
+                return `
+                <div class="add-dest-candidate" id="add-dest-cand-${ci}" data-idx="${ci}" style="display:flex; gap:12px; align-items:center;">
+                    ${candImgHTML}
+                    <div class="add-dest-cand-info" style="flex:1; min-width:0;">
+                        <div class="add-dest-cand-name" style="cursor:pointer;" onclick="openOtaDetailByName('${c.nama.replace(/'/g, "\\'")}')">${c.nama}</div>
                         <div class="add-dest-cand-meta">
                             <span class="add-dest-tag">${c.kategori}</span>
                             <span class="add-dest-dist"><span class="material-symbols-outlined" style="font-size:12px;">near_me</span>${c.distance_km} km</span>
@@ -6988,13 +7047,14 @@ async function openAddDestinationModal(pkg, card, pkgUid) {
                             ⚡ ${c.additional_cost_label}: estimasi Rp ${(c.additional_cost_min || 0).toLocaleString('id-ID')}–${(c.additional_cost_max || 0).toLocaleString('id-ID')}/org
                         </div>` : ''}
                     </div>
-                    <div class="add-dest-cand-price">
+                    <div class="add-dest-cand-price" style="flex-shrink:0;">
                         <div class="add-dest-cand-ticket">${fmtRpGlobal(c.harga_tiket)}/org</div>
                         <div class="add-dest-cand-total">Total: ${fmtRpGlobal(c.total_ticket_cost)}</div>
                         <button class="btn-pick-dest" data-ci="${ci}">Pilih</button>
                     </div>
                 </div>
-            `).join('');
+                `;
+            }).join('');
 
             // Pilih destinasi
             bodyEl.querySelectorAll('.btn-pick-dest').forEach(btn => {
@@ -7043,7 +7103,9 @@ async function openAddDestinationModal(pkg, card, pkgUid) {
                         
                         bodyEl.innerHTML = `
                             <div class="wahana-items-list" style="margin-top: 10px; padding: 0;">
-                                ${chosen.additional_facilities.map((fac, fi) => `
+                                ${chosen.additional_facilities.map((fac, fi) => {
+                                    const sfImgHTML = getPlaceImageHTML(fac.label, `event.preventDefault(); event.stopPropagation(); openOtaDetailByName('${fac.label.replace(/'/g, "\\'")}')`);
+                                    return `
                                 <label class="wahana-item ${fac.is_mandatory ? 'mandatory-item' : ''}" for="modal-wahana-${ci}-${fi}" style="${fac.is_mandatory ? 'opacity: 0.7; cursor: not-allowed;' : ''}">
                                     <input type="checkbox"
                                            class="modal-wahana-checkbox"
@@ -7052,12 +7114,14 @@ async function openAddDestinationModal(pkg, card, pkgUid) {
                                            data-label="${fac.label}"
                                            data-facility-id="${fac.id}"
                                            ${fac.is_mandatory ? 'checked disabled' : ''}>
+                                    ${sfImgHTML}
                                     <div class="wahana-item-info">
-                                        <span class="wahana-item-name">${fac.label} ${fac.is_mandatory ? '<span style="font-size:10px; padding:2px 4px; background:#e2e8f0; color:#475569; border-radius:4px; margin-left:4px; font-weight:600;">WAJIB</span>' : ''}</span>
+                                        <span class="wahana-item-name" style="cursor:pointer;" onclick="event.preventDefault(); event.stopPropagation(); openOtaDetailByName('${fac.label.replace(/'/g, "\\'")}')">${fac.label} ${fac.is_mandatory ? '<span style="font-size:10px; padding:2px 4px; background:#e2e8f0; color:#475569; border-radius:4px; margin-left:4px; font-weight:600;">WAJIB</span>' : ''}</span>
                                     </div>
                                     <span class="wahana-item-cost">+${fmtRpGlobal(fac.cost_per_person)}/org</span>
                                 </label>
-                                `).join('')}
+                                `;
+                                }).join('')}
                             </div>
                             <div style="margin-top: 15px; display: flex; justify-content: space-between; align-items: center;">
                                 <button id="btn-back-to-candidates" style="background:var(--slate-200); color:var(--slate-700); padding: 10px 16px; border:1px solid var(--slate-300); border-radius:8px; font-weight:600; cursor:pointer; font-size: 13px;">Kembali</button>
@@ -7107,17 +7171,28 @@ function _refreshExtraDestUI(pkg, card, pkgUid, MAX_EXTRA) {
     // 1. Render daftar extra-dest-added dengan tombol Hapus & Ganti
     const addedEl = document.getElementById(`extra-dest-added-${pkgUid}`);
     if (addedEl) {
-        addedEl.innerHTML = extraDests.length === 0 ? '' : extraDests.map((d, i) => `
-            <div class="extra-dest-item" data-extra-idx="${i}" style="display:flex;align-items:flex-start;gap:8px;padding:8px;background:rgba(13,148,136,0.04);border-radius:8px;margin-bottom:4px;">
-                <span class="material-symbols-outlined" style="font-size:14px;color:var(--teal-500);flex-shrink:0;margin-top:2px;">check_circle</span>
+        addedEl.innerHTML = extraDests.length === 0 ? '' : extraDests.map((d, i) => {
+            const extraImgHTML = getPlaceImageHTML(d.nama, `openOtaDetailByName('${d.nama.replace(/'/g, "\\'")}')`);
+            return `
+            <div class="extra-dest-item" data-extra-idx="${i}" style="display:flex;align-items:center;gap:12px;padding:8px;background:rgba(13,148,136,0.04);border-radius:8px;margin-bottom:4px;">
+                ${extraImgHTML}
                 <div style="flex:1;min-width:0;">
-                    <div style="font-weight:700;font-size:12.5px;color:var(--slate-800);">Hari ${d.dayNum}: <span style="color:var(--teal-700);">${d.nama}</span></div>
+                    <div style="font-weight:700;font-size:12.5px;color:var(--slate-800);">Hari ${d.dayNum}: <span style="color:var(--teal-700); cursor:pointer;" onclick="openOtaDetailByName('${d.nama.replace(/'/g, "\\'")}')">${d.nama}</span></div>
                     <div style="font-size:11px;color:var(--slate-400);margin-top:1px;">${d.distance_km} km dari wisata utama &bull; Tiket: ${fmtRpGlobal(d.total_ticket_cost)}</div>
                     ${d.has_additional_cost && d.additional_cost_label && (!d.selected_facilities || d.selected_facilities.length === 0) ? `<div style="font-size:11px;color:var(--amber-600);">⚡ ${d.additional_cost_label}: Rp ${(d.additional_cost_min || 0).toLocaleString('id-ID')}–${(d.additional_cost_max || 0).toLocaleString('id-ID')}/org</div>` : ''}
                     ${d.selected_facilities && d.selected_facilities.length > 0 ? `
                         <div style="margin-top: 5px; padding-left: 8px; border-left: 2px solid var(--teal-300);">
-                            <div style="font-size:10.5px; font-weight: 600; color:var(--teal-600); margin-bottom:2px;">Fasilitas Terpilih:</div>
-                            ${d.selected_facilities.map(sf => `<div style="font-size:11px; color:var(--slate-600); display: flex; justify-content: space-between;"><span>⚡ ${sf.label}</span> <span>+${fmtRpGlobal(sf.cost_per_person)}/org</span></div>`).join('')}
+                            <div style="font-size:10.5px; font-weight: 600; color:var(--teal-600); margin-bottom:4px;">Fasilitas Terpilih:</div>
+                            ${d.selected_facilities.map(sf => {
+                                const sfImgHTML = getPlaceImageHTML(sf.label, `openOtaDetailByName('${sf.label.replace(/'/g, "\\'")}')`);
+                                return `<div style="font-size:11px; color:var(--slate-600); display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+                                    <div style="display:flex; align-items:center; gap:6px;">
+                                        ${sfImgHTML.replace('width:40px; height:40px;', 'width:30px; height:30px;')}
+                                        <span style="cursor:pointer;" onclick="openOtaDetailByName('${sf.label.replace(/'/g, "\\'")}')">⚡ ${sf.label}</span>
+                                    </div>
+                                    <span>+${fmtRpGlobal(sf.cost_per_person)}/org</span>
+                                </div>`;
+                            }).join('')}
                         </div>
                     ` : ''}
                 </div>
@@ -7130,7 +7205,8 @@ function _refreshExtraDestUI(pkg, card, pkgUid, MAX_EXTRA) {
                     </button>
                 </div>
             </div>
-        `).join('');
+            `;
+        }).join('');
 
         // Event: Hapus
         addedEl.querySelectorAll('.btn-remove-extra-dest').forEach(rmBtn => {
@@ -7248,3 +7324,270 @@ function _buildExtraLegsRows(pkg, extraDests) {
 
     return rows;
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PREMIUM DETAIL MODAL ENGINE (PORTED FROM DIRECTORY PAGE)
+// ─────────────────────────────────────────────────────────────────────────────
+let activePlace = null;
+let modalImgIndex = 0;
+let modalSlideInterval = null;
+
+window.openOtaDetailByName = function (name) {
+    if (!window.searchIndex || !name) return;
+    const item = window.searchIndex.find(x => x.Nama_Tempat.toLowerCase().trim() === name.toLowerCase().trim());
+    if (item) {
+        window.openOtaDetail(item);
+    } else {
+        console.warn("Place not found in searchIndex: " + name);
+    }
+};
+
+window.openOtaDetail = function (item) {
+    activePlace = item;
+    modalImgIndex = 0;
+
+    const detailModal = document.getElementById('ota-detail-modal');
+    const titleEl = document.getElementById('modal-place-title');
+    const catEl = document.getElementById('modal-place-cat');
+    const subcatEl = document.getElementById('modal-place-subcat');
+    const ratingEl = document.getElementById('modal-place-rating');
+    const reviewsEl = document.getElementById('modal-place-reviews');
+
+    if (titleEl) titleEl.textContent = item.Nama_Tempat;
+    if (catEl) catEl.textContent = item.Kategori;
+    if (subcatEl) subcatEl.textContent = item.Sub_Kategori;
+    if (ratingEl) ratingEl.textContent = Number(item.Rating).toFixed(1);
+    if (reviewsEl) reviewsEl.textContent = item.Jumlah_Ulasan.toLocaleString('id-ID') + ' ulasan';
+
+    const priceLabel = document.getElementById('modal-price-label');
+    if (priceLabel) {
+        if (item.Kategori === 'Wisata') {
+            priceLabel.textContent = 'Tiket Masuk';
+        } else if (item.Kategori === 'Hotel') {
+            priceLabel.textContent = 'Per Malam';
+        } else {
+            priceLabel.textContent = 'Menu Porsi';
+        }
+    }
+
+    const priceValEl = document.getElementById('modal-place-price');
+    if (priceValEl) {
+        priceValEl.textContent = item.Estimasi_Harga > 0 ? fmtRp(item.Estimasi_Harga) : 'Gratis';
+    }
+
+    let desc = `Jelajahi keindahan ${item.Nama_Tempat} di Malang Raya. Destinasi spektakuler dengan kategori ${item.Kategori} (${item.Sub_Kategori}) ini dikurasi secara cerdas menggunakan algoritma Fuzzy C-Means Clustering untuk memastikan keharmonisan perjalanan Anda sesuai anggaran.`;
+    if (item.Kategori === 'Hotel') {
+        desc = `Temukan kenyamanan menginap premium di ${item.Nama_Tempat}. Akomodasi ideal di Malang Raya ini terpilih secara cerdas oleh kecerdasan FCM untuk menghadirkan kenyamanan beristirahat dengan harga yang paling proporsional untuk Anda.`;
+    } else if (item.Kategori === 'Kuliner') {
+        desc = `Nikmati cita rasa kuliner terbaik di ${item.Nama_Tempat}. Tempat makan favorit ini menyajikan menu lezat khas ${item.Sub_Kategori} yang melengkapi kepuasan perjalanan kuliner Anda selama menjelajahi wilayah Malang Raya.`;
+    }
+    const descEl = document.getElementById('modal-place-desc');
+    if (descEl) descEl.textContent = desc;
+
+    const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.Nama_Tempat + " Malang")}`;
+    const gmapsLinkEl = document.getElementById('modal-gmaps-link');
+    if (gmapsLinkEl) gmapsLinkEl.href = mapsUrl;
+
+    // Package button visibility and href
+    const packageBtn = document.getElementById('modal-package-btn');
+    if (packageBtn) {
+        if (item.Kategori === 'Wisata') {
+            packageBtn.style.display = 'inline-flex';
+            packageBtn.href = `/recommender?workflow=destination&dest_id=${item.Id_Tempat}&dest_name=${encodeURIComponent(item.Nama_Tempat)}`;
+        } else {
+            packageBtn.style.display = 'none';
+            packageBtn.href = '#';
+        }
+    }
+
+    // Check bookmark
+    const savedPlacesKey = typeof window.getSavedPlacesKey === 'function' ? window.getSavedPlacesKey() : 'saved_places';
+    const saved = JSON.parse(localStorage.getItem(savedPlacesKey) || '[]');
+    const uniqueId = `${item.Kategori}_${item.Id_Tempat}`;
+    const isSaved = saved.some(id => id === uniqueId || id === item.Id_Tempat);
+    const saveIcon = document.getElementById('modal-save-icon');
+    if (saveIcon) {
+        saveIcon.textContent = isSaved ? 'bookmark_added' : 'bookmark';
+        saveIcon.style.color = isSaved ? 'var(--color-primary)' : 'inherit';
+    }
+
+    renderModalSlideshow();
+    if (detailModal) detailModal.classList.add('show');
+};
+
+window.closeOtaDetail = function () {
+    const detailModal = document.getElementById('ota-detail-modal');
+    if (detailModal) detailModal.classList.remove('show');
+    clearInterval(modalSlideInterval);
+};
+
+function renderModalSlideshow() {
+    const modalTrack = document.getElementById('modal-gallery-track');
+    const modalIndicators = document.getElementById('modal-gallery-indicators');
+    const modalPrev = document.getElementById('modal-gallery-prev');
+    const modalNext = document.getElementById('modal-gallery-next');
+
+    if (!modalTrack || !modalIndicators) return;
+    modalTrack.innerHTML = '';
+    modalIndicators.innerHTML = '';
+
+    const imgs = activePlace.Gambar || [];
+
+    if (imgs.length === 0) {
+        modalTrack.innerHTML = `
+            <div class="ota-modal-gallery-slide">
+                <div class="ota-shimmer-placeholder">
+                    <span class="material-symbols-outlined ota-shimmer-icon">image_not_supported</span>
+                    <span class="ota-shimmer-text">Gambar Tidak Tersedia</span>
+                </div>
+            </div>
+        `;
+        if (modalPrev) modalPrev.style.display = 'none';
+        if (modalNext) modalNext.style.display = 'none';
+        return;
+    }
+
+    if (modalPrev) modalPrev.style.display = imgs.length > 1 ? 'flex' : 'none';
+    if (modalNext) modalNext.style.display = imgs.length > 1 ? 'flex' : 'none';
+
+    imgs.forEach((img, i) => {
+        modalTrack.innerHTML += `
+            <div class="ota-modal-gallery-slide">
+                <img src="${img}" alt="${activePlace.Nama_Tempat}" onerror="handleImgError(this)" />
+            </div>
+        `;
+        modalIndicators.innerHTML += `
+            <div class="ota-modal-gallery-indicator ${i === 0 ? 'active' : ''}" onclick="slideModalTo(${i})"></div>
+        `;
+    });
+
+    slideModalTo(0);
+
+    clearInterval(modalSlideInterval);
+    if (imgs.length > 1) {
+        modalSlideInterval = setInterval(() => {
+            slideModalNext();
+        }, 3500);
+    }
+}
+
+window.slideModalTo = function (index) {
+    const modalTrack = document.getElementById('modal-gallery-track');
+    const modalIndicators = document.getElementById('modal-gallery-indicators');
+    if (!modalTrack || !modalIndicators) return;
+    const count = activePlace.Gambar ? activePlace.Gambar.length : 0;
+    if (count <= 1) return;
+
+    modalImgIndex = index;
+    modalTrack.style.transform = `translateX(-${index * 100}%)`;
+
+    const indicators = modalIndicators.querySelectorAll('.ota-modal-gallery-indicator');
+    indicators.forEach((ind, i) => {
+        if (i === index) ind.classList.add('active');
+        else ind.classList.remove('active');
+    });
+};
+
+function slideModalNext() {
+    const count = activePlace.Gambar ? activePlace.Gambar.length : 0;
+    if (count <= 1) return;
+    const nextIdx = (modalImgIndex + 1) % count;
+    window.slideModalTo(nextIdx);
+}
+
+function slideModalPrev() {
+    const count = activePlace.Gambar ? activePlace.Gambar.length : 0;
+    if (count <= 1) return;
+    const prevIdx = (modalImgIndex - 1 + count) % count;
+    window.slideModalTo(prevIdx);
+}
+
+window.savePlaceToggle = function () {
+    if (!activePlace) return;
+    const savedPlacesKey = typeof window.getSavedPlacesKey === 'function' ? window.getSavedPlacesKey() : 'saved_places';
+    const saved = JSON.parse(localStorage.getItem(savedPlacesKey) || '[]');
+    const uniqueId = `${activePlace.Kategori}_${activePlace.Id_Tempat}`;
+    const index = saved.findIndex(id => id === uniqueId || id === activePlace.Id_Tempat);
+    const saveIcon = document.getElementById('modal-save-icon');
+
+    if (index > -1) {
+        saved.splice(index, 1);
+        if (saveIcon) {
+            saveIcon.textContent = 'bookmark';
+            saveIcon.style.color = 'inherit';
+        }
+    } else {
+        saved.push(uniqueId);
+        if (saveIcon) {
+            saveIcon.textContent = 'bookmark_added';
+            saveIcon.style.color = 'var(--color-primary)';
+        }
+    }
+    localStorage.setItem(savedPlacesKey, JSON.stringify(saved));
+    if (window.updateNavbarBookmarkBadge) window.updateNavbarBookmarkBadge();
+};
+
+window.handleImgError = function (el) {
+    if (el.dataset.fallbackTriggered) return;
+    el.dataset.fallbackTriggered = "true";
+    const parent = el.parentNode;
+    if (parent) {
+        parent.innerHTML = `
+            <div class="ota-shimmer-placeholder">
+                <span class="material-symbols-outlined ota-shimmer-icon">image_not_supported</span>
+                <span class="ota-shimmer-text">Gambar Tidak Tersedia</span>
+            </div>
+        `;
+    }
+};
+
+// Initialize event listener for closing modal on overlay click
+document.addEventListener('DOMContentLoaded', () => {
+    const detailModal = document.getElementById('ota-detail-modal');
+    if (detailModal) {
+        detailModal.addEventListener('click', (e) => {
+            if (e.target === detailModal) closeOtaDetail();
+        });
+    }
+    const modalPrev = document.getElementById('modal-gallery-prev');
+    const modalNext = document.getElementById('modal-gallery-next');
+    if (modalPrev) modalPrev.addEventListener('click', () => { slideModalPrev(); clearInterval(modalSlideInterval); });
+    if (modalNext) modalNext.addEventListener('click', () => { slideModalNext(); clearInterval(modalSlideInterval); });
+});
+
+// Helper to get place image HTML dynamically
+window.getPlaceImageHTML = function (name, onClickCallback = '') {
+    if (!name || name === 'N/A' || name === 'Checkout') return '';
+    const cleanName = name.toLowerCase().trim();
+    const item = (window.searchIndex || []).find(x => x.Nama_Tempat.toLowerCase().trim() === cleanName);
+    const imgUrl = (item && item.Gambar && item.Gambar.length > 0) ? item.Gambar[0] : null;
+    
+    const getFolder = n => {
+        const clean = n.includes(' & ') ? n.split(' & ')[0] : n;
+        return clean.trim().replace(/ /g, '_');
+    };
+    const folder = getFolder(name);
+    
+    let cat = 'wisata';
+    let errorIcon = 'landscape';
+    if (item) {
+        if (item.Kategori === 'Hotel') {
+            cat = 'hotel';
+            errorIcon = 'hotel';
+        } else if (item.Kategori === 'Kuliner') {
+            cat = 'makan';
+            errorIcon = 'restaurant';
+        }
+    }
+    
+    const fallbackPath = `/assets/GAMBAR/${cat}/${folder}/${folder}-1.jpg`;
+    const finalImgSrc = imgUrl || fallbackPath;
+    const clickAttr = onClickCallback ? `onclick="${onClickCallback}"` : '';
+
+    return `
+        <div class="pkg-item-icon" style="position:relative; overflow:hidden; width:40px; height:40px; border-radius:6px; flex-shrink:0; cursor:pointer;" ${clickAttr}>
+            <img src="${finalImgSrc}" alt="${name}" class="pkg-thumb-img" onerror="handleImgErrorRecom(this, '${errorIcon}')" style="width: 100%; height: 100%; object-fit: cover;" />
+            <div class="pkg-thumb-shimmer" style="display:none;"></div>
+        </div>
+    `;
+};
