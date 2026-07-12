@@ -3934,7 +3934,26 @@ def export_to_excel_recom(options_list, workflow, budget, persons, duration):
     import os
     import pandas as pd
     from config import OUTPUT_DIR
+    from typing import Any, cast
     
+    def get_fuzzy_score_from_lookup(name, category):
+        if LAST_CLUSTERED is None or not name or name == "N/A" or name == "Checkout" or name == "Tanpa Akomodasi (One Day Trip)":
+            return 0.0
+        df = LAST_CLUSTERED.get(category)
+        if df is None or df.empty or 'Fuzzy_Score' not in df.columns:
+            return 0.0
+            
+        names = [n.strip() for n in name.split(" & ")]
+        scores = []
+        for n in names:
+            matched = df[df['Nama_Tempat'] == n]
+            if not matched.empty:
+                scores.append(float(matched.iloc[0]['Fuzzy_Score']))
+                
+        if scores:
+            return sum(scores) / len(scores)
+        return 0.0
+
     # 1. Definisikan folder output
     out_folder = os.path.join(OUTPUT_DIR, "hasil-rekomendasi")
     os.makedirs(out_folder, exist_ok=True)
@@ -3998,13 +4017,61 @@ def export_to_excel_recom(options_list, workflow, budget, persons, duration):
                 "Kelas Paket": kelas
             }
             
+            # Calculate item fuzzy scores using lookup helper
+            h_fs = round(get_fuzzy_score_from_lookup(pkg.get("hotel_nama"), "hotel"), 4)
+            w_fs = round(get_fuzzy_score_from_lookup(pkg.get("wisata_nama"), "wisata"), 4)
+            kp_fs = round(get_fuzzy_score_from_lookup(pkg.get("kuliner_pagi_nama"), "kuliner"), 4)
+            ks_fs = round(get_fuzzy_score_from_lookup(pkg.get("kuliner_nama"), "kuliner"), 4)
+            km_fs = round(get_fuzzy_score_from_lookup(pkg.get("kuliner_malam_nama"), "kuliner"), 4)
+            
+            # Compute average package fuzzy score (using only included items)
+            fs_list = []
+            if duration > 1:
+                fs_list.append(h_fs)
+            if pkg.get("wisata_nama") and pkg.get("wisata_nama") != "N/A":
+                fs_list.append(w_fs)
+            if pkg.get("kuliner_pagi_nama") and pkg.get("kuliner_pagi_nama") != "N/A":
+                fs_list.append(kp_fs)
+            if pkg.get("kuliner_nama") and pkg.get("kuliner_nama") != "N/A":
+                fs_list.append(ks_fs)
+            if duration > 1 and pkg.get("kuliner_malam_nama") and pkg.get("kuliner_malam_nama") != "N/A":
+                fs_list.append(km_fs)
+                
+            paket_fs = round(sum(fs_list) / len(fs_list), 4) if fs_list else 0.0
+            
+            # Calculate item FPCs (which are their membership degrees in target cluster)
+            h_fpc = round(float(pkg.get("hotel_md") or 1.0), 4)
+            w_fpc = round(float(pkg.get("wisata_md") or 1.0), 4)
+            kp_fpc = round(float(pkg.get("kuliner_pagi_md") or 1.0), 4)
+            ks_fpc = round(float(pkg.get("kuliner_md") or 1.0), 4)
+            km_fpc = round(float(pkg.get("kuliner_malam_md") or 1.0), 4)
+            
+            # Compute average package FPC (using only included items)
+            fpc_list = []
+            if duration > 1:
+                fpc_list.append(h_fpc)
+            if pkg.get("wisata_nama") and pkg.get("wisata_nama") != "N/A":
+                fpc_list.append(w_fpc)
+            if pkg.get("kuliner_pagi_nama") and pkg.get("kuliner_pagi_nama") != "N/A":
+                fpc_list.append(kp_fpc)
+            if pkg.get("kuliner_nama") and pkg.get("kuliner_nama") != "N/A":
+                fpc_list.append(ks_fpc)
+            if duration > 1 and pkg.get("kuliner_malam_nama") and pkg.get("kuliner_malam_nama") != "N/A":
+                fpc_list.append(km_fpc)
+                
+            paket_fpc = round(sum(fpc_list) / len(fpc_list), 4) if fpc_list else 0.0
+            
             # Hotel
             row_h = base_row.copy()
             row_h.update({
                 "Tipe Item": "Hotel",
                 "Nama Tempat": pkg.get("hotel_nama", "N/A"),
                 "Estimasi Harga": pkg.get("hotel_harga", 0),
-                "Membership Degree": pkg.get("hotel_md", 1.0)
+                "Membership Degree": pkg.get("hotel_md", 1.0),
+                "Fuzzy Score Item": h_fs if duration > 1 else "",
+                "Fuzzy Score Paket": paket_fs,
+                "FPC Item": h_fpc if duration > 1 else "",
+                "FPC Paket": paket_fpc
             })
             item_rows.append(row_h)
             
@@ -4014,7 +4081,11 @@ def export_to_excel_recom(options_list, workflow, budget, persons, duration):
                 "Tipe Item": "Wisata",
                 "Nama Tempat": pkg.get("wisata_nama", "N/A"),
                 "Estimasi Harga": pkg.get("wisata_harga", 0),
-                "Membership Degree": pkg.get("wisata_md", 1.0)
+                "Membership Degree": pkg.get("wisata_md", 1.0),
+                "Fuzzy Score Item": w_fs,
+                "Fuzzy Score Paket": paket_fs,
+                "FPC Item": w_fpc,
+                "FPC Paket": paket_fpc
             })
             item_rows.append(row_w)
             
@@ -4024,7 +4095,11 @@ def export_to_excel_recom(options_list, workflow, budget, persons, duration):
                 "Tipe Item": "Makan Pagi",
                 "Nama Tempat": pkg.get("kuliner_pagi_nama", "N/A"),
                 "Estimasi Harga": pkg.get("kuliner_pagi_harga", 0),
-                "Membership Degree": pkg.get("kuliner_pagi_md", 1.0)
+                "Membership Degree": pkg.get("kuliner_pagi_md", 1.0),
+                "Fuzzy Score Item": kp_fs if pkg.get("kuliner_pagi_nama") != "N/A" else "",
+                "Fuzzy Score Paket": paket_fs,
+                "FPC Item": kp_fpc if pkg.get("kuliner_pagi_nama") != "N/A" else "",
+                "FPC Paket": paket_fpc
             })
             item_rows.append(row_kp)
             
@@ -4034,7 +4109,11 @@ def export_to_excel_recom(options_list, workflow, budget, persons, duration):
                 "Tipe Item": "Makan Siang",
                 "Nama Tempat": pkg.get("kuliner_nama", "N/A"),
                 "Estimasi Harga": pkg.get("kuliner_harga", 0),
-                "Membership Degree": pkg.get("kuliner_md", 1.0)
+                "Membership Degree": pkg.get("kuliner_md", 1.0),
+                "Fuzzy Score Item": ks_fs,
+                "Fuzzy Score Paket": paket_fs,
+                "FPC Item": ks_fpc,
+                "FPC Paket": paket_fpc
             })
             item_rows.append(row_ks)
             
@@ -4045,12 +4124,21 @@ def export_to_excel_recom(options_list, workflow, budget, persons, duration):
                     "Tipe Item": "Makan Malam",
                     "Nama Tempat": pkg.get("kuliner_malam_nama", "N/A"),
                     "Estimasi Harga": pkg.get("kuliner_malam_harga", 0),
-                    "Membership Degree": pkg.get("kuliner_malam_md", 1.0)
+                    "Membership Degree": pkg.get("kuliner_malam_md", 1.0),
+                    "Fuzzy Score Item": km_fs if pkg.get("kuliner_malam_nama") != "N/A" else "",
+                    "Fuzzy Score Paket": paket_fs,
+                    "FPC Item": km_fpc if pkg.get("kuliner_malam_nama") != "N/A" else "",
+                    "FPC Paket": paket_fpc
                 })
                 item_rows.append(row_km)
                 
             # Add an empty row for visual separation between packages
-            item_rows.append({"Opsi": "", "Kelas Paket": "", "Tipe Item": "", "Nama Tempat": "", "Estimasi Harga": "", "Membership Degree": ""})
+            item_rows.append({
+                "Opsi": "", "Kelas Paket": "", "Tipe Item": "", "Nama Tempat": "", 
+                "Estimasi Harga": "", "Membership Degree": "", 
+                "Fuzzy Score Item": "", "Fuzzy Score Paket": "",
+                "FPC Item": "", "FPC Paket": ""
+            })
 
     df_items = pd.DataFrame(item_rows)
     
@@ -4309,21 +4397,38 @@ def export_to_excel_recom(options_list, workflow, budget, persons, duration):
                         categories = pd.Series(0.0, index=df_cls.index)
                     df_cls["Normalisasi_Nilai_Numerik"] = (categories - categories.min()) / (categories.max() - categories.min() + 1e-10)
                     
-                    # 2. Reorder and rename columns (move 'Kategori' clustering output to far right as 'klaster', put 'Kategori_Asli' back in original 'Kategori' position)
+                    # 2. Rename columns first
                     cols = df_cls.columns.tolist()
                     if 'Kategori' in cols and 'Kategori_Asli' in cols:
-                        k_idx = cols.index('Kategori')
-                        cols.remove('Kategori_Asli')
-                        cols[k_idx] = 'Kategori_Asli'
-                        cols.append('Kategori')
-                        df_cls = df_cls[cols]
                         df_cls = df_cls.rename(columns={'Kategori': 'klaster', 'Kategori_Asli': 'Kategori'})
                     elif 'Kategori' in cols:
-                        cols.remove('Kategori')
-                        cols.append('Kategori')
-                        df_cls = df_cls[cols]
                         df_cls = df_cls.rename(columns={'Kategori': 'klaster'})
                         
+                    # 3. Enforce clean, structured column order
+                    preferred_order = [
+                        # 1. Identitas & Wilayah
+                        'Id_Tempat', 'Nama_Tempat', 'Kategori', 'Region',
+                        # 2. Spasial
+                        'Latitude', 'Longitude',
+                        # 3. Fitur Utama
+                        'Estimasi_Harga', 'Rating', 'Jumlah_Ulasan', 'Nilai_Numerik',
+                        # 4. Normalisasi
+                        'Normalisasi_Harga', 'Normalisasi_Rating', 'Normalisasi_Nilai_Numerik',
+                        # 5. Output Klastering
+                        'Cluster', 'Membership_Degree', 'Fuzzy_Score', 'klaster'
+                    ]
+                    
+                    ordered_cols = []
+                    for col in preferred_order:
+                        if col in df_cls.columns:
+                            ordered_cols.append(col)
+                            
+                    # Add any remaining columns (links, source metadata, etc.)
+                    for col in df_cls.columns:
+                        if col not in ordered_cols:
+                            ordered_cols.append(col)
+                            
+                    df_cls = df_cls[ordered_cols]
                     export_dfs[name] = df_cls
             
             df_hotel_export = export_dfs.get("hotel")
