@@ -1286,7 +1286,10 @@ def generate_packages(total_budget, num_persons, duration, datasets,
                     local_seed = (base_seed + hash(key) + i) % (2**32 - 1)
                     best_items = pool.sample(n=min(15, len(pool)), random_state=local_seed) if not pool.empty else pool
                 
-            candidates[key][i] = best_items.to_dict("records")
+            # Wrap in pd.DataFrame to resolve Pylance/Pyright type inference warnings
+            # since pd.concat and pool.sample can technically return a Series.
+            best_items_df = pd.DataFrame(best_items)
+            candidates[key][i] = best_items_df.to_dict("records")
 
     # --- Langkah 4 & 5: Combinatorial Search & Sensor Anggaran Ketat ---
     package_options = {i: [] for i in range(best_c)}
@@ -1795,6 +1798,7 @@ def generate_packages(total_budget, num_persons, duration, datasets,
 
             # Ekstrak info wahana utama (wisata hari pertama / wisata terpilih)
             _w_wahana = _extract_wahana_info(w_item)
+            w_id_val = w_item.get("Id_Tempat")
 
             pkg_formatted: dict[str, Any] = {
                 "hotel_nama": h_item["Nama_Tempat"] if duration > 1 else "Tanpa Akomodasi (One Day Trip)",
@@ -1803,7 +1807,7 @@ def generate_packages(total_budget, num_persons, duration, datasets,
                 "hotel_nama_real": h_item["Nama_Tempat"],
                 "hotel_lat": h_item.get("Latitude", 0),
                 "hotel_lon": h_item.get("Longitude", 0),
-                "wisata_id": int(float(w_item.get("Id_Tempat"))) if pd.notna(w_item.get("Id_Tempat")) else None,
+                "wisata_id": int(float(w_id_val)) if w_id_val is not None and pd.notna(w_id_val) else None,
                 "wisata_nama": w_item["Nama_Tempat"],
                 "wisata_md": w_item.get("Membership_Degree", 1.0),
                 "wisata_harga": w_item["Estimasi_Harga"],
@@ -1911,9 +1915,10 @@ def generate_packages(total_budget, num_persons, duration, datasets,
                         day_hotel_lat = 0.0
                         day_hotel_lon = 0.0
                         
+                    w_var_id = w_var.get("Id_Tempat") if w_var else None
                     itinerary.append({
                         "day": d,
-                        "wisata_id": int(float(w_var.get("Id_Tempat"))) if w_var and pd.notna(w_var.get("Id_Tempat")) else None,
+                        "wisata_id": int(float(w_var_id)) if w_var_id is not None and pd.notna(w_var_id) else None,
                         "wisata": w_var.get("Nama_Tempat", "N/A") if w_var else "N/A",
                         "wisata_harga": w_var.get("Estimasi_Harga", 0) if w_var else 0,
                         "wisata_lat": w_var.get("Latitude", 0.0) if w_var else 0.0,
@@ -2247,7 +2252,9 @@ def generate_flexible_exploration_packages(num_persons, duration, datasets,
                     local_seed = (base_seed + hash(key) + i) % (2**32 - 1)
                     best_items = pool.sample(n=min(15, len(pool)), random_state=local_seed) if not pool.empty else pool
                 
-            candidates[key][i] = best_items.to_dict("records")
+            # Wrap in pd.DataFrame to resolve type checker warnings
+            best_items_df = pd.DataFrame(best_items)
+            candidates[key][i] = best_items_df.to_dict("records")
 
     package_options = {i: [] for i in range(best_c)}
     max_options_to_show = {i: 15 for i in range(best_c)}
@@ -2646,6 +2653,7 @@ def generate_flexible_exploration_packages(num_persons, duration, datasets,
                 "source": "Gojek API Flat Rate (Skripsi)"
             }
             
+            w_id_val = w_item.get("Id_Tempat")
             pkg_formatted: dict[str, Any] = {
                 "hotel_nama": h_item.get("Nama_Tempat", "N/A") if duration > 1 else "Tanpa Akomodasi (1 Hari)",
                 "hotel_md": h_item.get("Membership_Degree", 1.0) if duration > 1 else 1.0,
@@ -2654,7 +2662,7 @@ def generate_flexible_exploration_packages(num_persons, duration, datasets,
                 "hotel_rating": h_item.get("Rating", 0.0) if duration > 1 else 0.0,
                 "hotel_lat": h_item.get("Latitude", 0.0) if duration > 1 else 0.0,
                 "hotel_lon": h_item.get("Longitude", 0.0) if duration > 1 else 0.0,
-                "wisata_id": int(float(w_item.get("Id_Tempat"))) if pd.notna(w_item.get("Id_Tempat")) else None,
+                "wisata_id": int(float(w_id_val)) if w_id_val is not None and pd.notna(w_id_val) else None,
                 "wisata_nama": w_item.get("Nama_Tempat", "N/A"),
                 "wisata_md": w_item.get("Membership_Degree", 1.0),
                 "wisata_harga": w_item.get("Estimasi_Harga", 0),
@@ -2755,9 +2763,10 @@ def generate_flexible_exploration_packages(num_persons, duration, datasets,
                         day_hotel_harga = 0
                         day_hotel_lat = 0.0
                         day_hotel_lon = 0.0
+                    w_var_id = w_var.get("Id_Tempat") if w_var else None
                     itinerary.append({
                         "day": d,
-                        "wisata_id": int(float(w_var.get("Id_Tempat"))) if w_var and pd.notna(w_var.get("Id_Tempat")) else None,
+                        "wisata_id": int(float(w_var_id)) if w_var_id is not None and pd.notna(w_var_id) else None,
                         "wisata": w_var.get("Nama_Tempat", "N/A") if w_var else "N/A",
                         "wisata_harga": w_var.get("Estimasi_Harga", 0) if w_var else 0,
                         "wisata_lat": w_var.get("Latitude", 0.0) if w_var else 0.0,
@@ -3122,7 +3131,9 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
                     local_seed = (base_seed + hash(key) + i) % (2**32 - 1)
                     best_items = pool.sample(n=min(15, len(pool)), random_state=local_seed) if not pool.empty else pool
                 
-            candidates[key][i] = best_items.to_dict("records")
+            # Wrap in pd.DataFrame to resolve type checker warnings
+            best_items_df = pd.DataFrame(best_items)
+            candidates[key][i] = best_items_df.to_dict("records")
 
     for i in range(best_c):
         wisatas_in_c = df_wisata[df_wisata["Cluster"] == i].copy()
@@ -3132,7 +3143,9 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
         else:
             sorted_items = wisatas_in_c.sort_values(by=["Membership_Degree", "Estimasi_Harga"], ascending=[False, True])
             best_items = sorted_items.head(15)
-        candidates["wisata"][i] = best_items.to_dict("records")
+        # Wrap in pd.DataFrame to resolve type checker warnings
+        best_items_df = pd.DataFrame(best_items)
+        candidates["wisata"][i] = best_items_df.to_dict("records")
 
     package_options = {i: [] for i in range(best_c)}
     max_options_to_show = {i: 15 for i in range(best_c)}
@@ -3641,6 +3654,7 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
                 "source": "Gojek API Flat Rate (Skripsi)"
             }
             
+            w_id_val = w_item.get("Id_Tempat")
             pkg_formatted: dict[str, Any] = {
                 "hotel_nama": h_item.get("Nama_Tempat", "N/A") if duration > 1 else "Tanpa Akomodasi (1 Hari)",
                 "hotel_md": h_item.get("Membership_Degree", 1.0) if duration > 1 else 1.0,
@@ -3649,7 +3663,7 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
                 "hotel_rating": h_item.get("Rating", 0.0) if duration > 1 else 0.0,
                 "hotel_lat": h_item.get("Latitude", 0.0) if duration > 1 else 0.0,
                 "hotel_lon": h_item.get("Longitude", 0.0) if duration > 1 else 0.0,
-                "wisata_id": int(float(w_item.get("Id_Tempat"))) if pd.notna(w_item.get("Id_Tempat")) else None,
+                "wisata_id": int(float(w_id_val)) if w_id_val is not None and pd.notna(w_id_val) else None,
                 "wisata_nama": w_item.get("Nama_Tempat", "N/A"),
                 "wisata_md": w_item.get("Membership_Degree", 1.0),
                 "wisata_harga": w_item.get("Estimasi_Harga", 0),
@@ -3701,7 +3715,8 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
                 itinerary = []
                 df_wis = df_wisata
                 wisatas_in_c = df_wis[df_wis["Cluster"] == i]
-                w_list = wisatas_in_c.to_dict("records") if not wisatas_in_c.empty else [best_wisata]
+                wisatas_in_c_df = pd.DataFrame(wisatas_in_c)
+                w_list = wisatas_in_c_df.to_dict("records") if not wisatas_in_c_df.empty else [best_wisata]
                 k_list = candidates["kuliner"][i]
                 hotel_list = candidates["hotel"][i]
                 
@@ -3761,9 +3776,10 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
                         day_hotel_lat = 0.0
                         day_hotel_lon = 0.0
                         
+                    w_var_id = w_var.get("Id_Tempat") if w_var else None
                     itinerary.append({
                         "day": d,
-                        "wisata_id": int(float(w_var.get("Id_Tempat"))) if w_var and pd.notna(w_var.get("Id_Tempat")) else None,
+                        "wisata_id": int(float(w_var_id)) if w_var_id is not None and pd.notna(w_var_id) else None,
                         "wisata": w_var.get("Nama_Tempat", "N/A") if w_var else "N/A",
                         "wisata_harga": w_var.get("Estimasi_Harga", 0) if w_var else 0,
                         "wisata_lat": w_var.get("Latitude", 0.0) if w_var else 0.0,

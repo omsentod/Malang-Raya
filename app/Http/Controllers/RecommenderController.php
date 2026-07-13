@@ -74,6 +74,11 @@ class RecommenderController extends Controller
         // Deterministic Seed basis
         $userId = auth()->id() ?? session()->getId();
 
+        $user = auth()->user();
+        $prefWisata = ($user && !empty($user->pref_wisata)) ? (is_array($user->pref_wisata) ? ($user->pref_wisata[0] ?? '') : $user->pref_wisata) : '';
+        $prefHotel = ($user && !empty($user->pref_hotel)) ? (is_array($user->pref_hotel) ? ($user->pref_hotel[0] ?? '') : $user->pref_hotel) : '';
+        $prefKuliner = ($user && !empty($user->pref_kuliner)) ? (is_array($user->pref_kuliner) ? ($user->pref_kuliner[0] ?? '') : $user->pref_kuliner) : '';
+
         $args = [
             $this->pythonBinary(),
             storage_path('app/python/recommender_api.py'),
@@ -85,6 +90,19 @@ class RecommenderController extends Controller
             '--pref_balanced', (string) $pref_balanced,
             '--pref_premium', (string) $pref_premium,
         ];
+
+        if (!empty($prefWisata)) {
+            $args[] = '--pref_wisata';
+            $args[] = (string) $prefWisata;
+        }
+        if (!empty($prefHotel)) {
+            $args[] = '--pref_hotel';
+            $args[] = (string) $prefHotel;
+        }
+        if (!empty($prefKuliner)) {
+            $args[] = '--pref_kuliner';
+            $args[] = (string) $prefKuliner;
+        }
 
         if (!empty($validated['budget'])) {
             $args[] = '--budget';
