@@ -131,7 +131,7 @@ def main():
     log(f"  TAHAP 3 — Pengelompokan Induk-Anak (< {FAMILY_THRESHOLD_M:.0f}m)")
     log(f"{'─'*70}")
 
-    df["destination_family_id"] = pd.NA   # Null = Induk / Mandiri
+    df["destination_family_id"] = pd.Series([pd.NA] * len(df), dtype="Int64")   # Null = Induk / Mandiri
     records_clean = df.to_dict("records")
     
     # Gunakan Disjoint Set Union (DSU) untuk mencari komponen terhubung
@@ -195,7 +195,7 @@ def main():
             log(f"       [{tid:3d}] {role} - {m['Nama_Tempat'][:50]:<50} Rp {m['Estimasi_Harga']:,}")
 
     # Konversi tipe kolom ke nullable integer agar tidak menjadi float (cth: 1.0)
-    df["destination_family_id"] = df["destination_family_id"].astype("Int64")
+    df["destination_family_id"] = pd.to_numeric(df["destination_family_id"], errors='coerce').astype("Int64")
 
     # ════════════════════════════════════════════════════════════════════
     # TAHAP 4 — Simpan ke Excel

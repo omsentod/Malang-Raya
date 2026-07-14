@@ -54,9 +54,9 @@ class RecommenderController extends Controller
         ]);
 
         // Implicit Profiling (Zero-Click Personalization)
-        $pref_hemat = 0.33;
-        $pref_balanced = 0.33;
-        $pref_premium = 0.34;
+        $pref_hemat = 0.10;
+        $pref_balanced = 0.80;
+        $pref_premium = 0.10;
         
         if (!empty($validated['budget'])) {
             $budgetPerPersonPerDay = $validated['budget'] / ($validated['persons'] * $validated['duration']);

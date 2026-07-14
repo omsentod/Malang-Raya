@@ -115,6 +115,9 @@ def main():
                     pref_balanced=args.pref_balanced,
                     pref_premium=args.pref_premium,
                     user_id=args.user_id,
+                    pref_wisata=args.pref_wisata,
+                    pref_hotel=args.pref_hotel,
+                    pref_kuliner=args.pref_kuliner,
                 )
 
             elif args.workflow == 'flexible':
@@ -128,6 +131,9 @@ def main():
                     pref_balanced=args.pref_balanced,
                     pref_premium=args.pref_premium,
                     user_id=args.user_id,
+                    pref_wisata=args.pref_wisata,
+                    pref_hotel=args.pref_hotel,
+                    pref_kuliner=args.pref_kuliner,
                 )
 
             elif args.workflow == 'destination':
@@ -157,7 +163,10 @@ def main():
                     workflow=args.workflow,
                     budget=args.budget,
                     persons=args.persons,
-                    duration=args.duration
+                    duration=args.duration,
+                    pref_wisata=args.pref_wisata,
+                    pref_hotel=args.pref_hotel,
+                    pref_kuliner=args.pref_kuliner
                 )
             except Exception as ex_err:
                 print(f"Warning Excel Export: {str(ex_err)}")

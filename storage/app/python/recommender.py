@@ -17,8 +17,131 @@ from config import (
 from fcm_clustering import run_budget_anchored_fcm, run_percentile_fcm, find_best_c_for_budget, find_best_c_offline, run_fcm
 from transport_api import calculate_route_cost, haversine_distance, get_osrm_route_distance
 
+import os
 import matplotlib
 import matplotlib.pyplot as plt
+
+def format_rupiah_ticks(x, pos):
+    if x >= 1_000_000:
+        val = x / 1_000_000
+        return f"{val:.1f} Jt" if val % 1 != 0 else f"{int(val)} Jt"
+    elif x >= 1_000:
+        val = x / 1_000
+        return f"{val:.1f} Rb" if val % 1 != 0 else f"{int(val)} Rb"
+    return str(int(x))
+
+def plot_clustering_before_after(df_clustered, kategori="Hotel"):
+    """
+    df_clustered : dataframe hasil klasterisasi (kolom Estimasi_Harga, Cluster, Kategori)
+    """
+    if df_clustered is None or df_clustered.empty:
+        return
+        
+    os.makedirs("output/before_after_clustering", exist_ok=True)
+    
+    fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+
+    # Sebelum: histogram harga polos, belum ada label klaster
+    axes[0].hist(df_clustered["Estimasi_Harga"], bins=30, color="gray")
+    axes[0].set_title(f"Distribusi Harga {kategori} — SEBELUM Klasterisasi\n(belum berlabel)")
+    axes[0].set_xlabel("Estimasi Harga (Rp)")
+
+    # Sesudah: histogram bertumpuk per label klaster
+    label_col = "Kategori" if "Kategori" in df_clustered.columns else ("klaster" if "klaster" in df_clustered.columns else None)
+    
+    if label_col:
+        for label in df_clustered[label_col].unique():
+            subset = df_clustered[df_clustered[label_col] == label]
+            axes[1].hist(subset["Estimasi_Harga"], bins=30, alpha=0.6, label=label)
+    else:
+        axes[1].hist(df_clustered["Estimasi_Harga"], bins=30, alpha=0.6, color="gray")
+        
+    axes[1].set_title(f"Distribusi Harga {kategori} — SESUDAH Klasterisasi\n(berlabel per klaster FCM)")
+    axes[1].set_xlabel("Estimasi Harga (Rp)")
+    axes[1].legend()
+
+    # Terapkan formatter rupiah agar sumbu-X tidak menggunakan notasi eksponen/saintifik
+    import matplotlib.ticker as ticker
+    formatter = ticker.FuncFormatter(format_rupiah_ticks)
+    axes[0].xaxis.set_major_formatter(formatter)
+    axes[1].xaxis.set_major_formatter(formatter)
+
+    plt.tight_layout()
+    plt.savefig(f"output/before_after_clustering/clustering_{kategori.lower()}_before_after.png", dpi=150)
+    plt.close(fig)
+
+def plot_target_shift_scatter(df, cluster_id, target_price, pools_by_region, kelas_label, kategori="Hotel"):
+    """
+    df             : dataframe seluruh kandidat kategori (df_clustered sebelum filter)
+    cluster_id     : indeks klaster yang sedang diproses (i)
+    target_price   : nilai target_price hasil shifting untuk klaster ini
+    pools_by_region: dict mapping region_name -> pool_df (25 kandidat teratas)
+    kelas_label    : label kelas, misal "Premium"
+    kategori       : kategori tempat, misal "Hotel"
+    """
+    if df is None or df.empty:
+        return
+        
+    os.makedirs("output/target_shift_scatter", exist_ok=True)
+    items_in_c = df[df["Cluster"] == cluster_id]
+    if items_in_c.empty:
+        return
+
+    # Warna-warna representatif untuk masing-masing wilayah
+    region_colors = {
+        "Kota Batu": {"pool": "#2ecc71", "bukan": "#a3e4d7", "label": "Batu"},
+        "Kota Malang": {"pool": "#3498db", "bukan": "#a9cce3", "label": "Mlg Kota"},
+        "Kabupaten Malang": {"pool": "#e67e22", "bukan": "#f5cba7", "label": "Mlg Kab"}
+    }
+    # Fallback default colors if region is not mapped
+    default_colors = {"pool": "#9b59b6", "bukan": "#d7bde2", "label": "Lainnya"}
+
+    fig, ax = plt.subplots(figsize=(11, 7))
+
+    for region in ["Kota Batu", "Kota Malang", "Kabupaten Malang"]:
+        items_in_reg = items_in_c[items_in_c["Region"] == region]
+        if items_in_reg.empty:
+            continue
+            
+        colors = region_colors.get(region, default_colors)
+        pool_df = pools_by_region.get(region, pd.DataFrame())
+        
+        if pool_df is not None and not pool_df.empty:
+            pool_ids = set(pool_df["Nama_Tempat"])
+            bukan_pool = items_in_reg[~items_in_reg["Nama_Tempat"].isin(pool_ids)]
+        else:
+            bukan_pool = items_in_reg
+            
+        # 1. Plot Kandidat Tidak Terpilih (Pudar, s=35)
+        if not bukan_pool.empty:
+            ax.scatter(bukan_pool["Estimasi_Harga"], bukan_pool["Membership_Degree"],
+                       c=colors["bukan"], s=35, alpha=0.5, edgecolors="white", linewidths=0.3,
+                       label=f"Kandidat ({colors['label']}) (n={len(bukan_pool)})")
+                       
+        # 2. Plot Pool Terpilih Top-25 (Solid, s=80, border hitam tebal)
+        if pool_df is not None and not pool_df.empty:
+            ax.scatter(pool_df["Estimasi_Harga"], pool_df["Membership_Degree"],
+                       c=colors["pool"], s=80, alpha=0.9, edgecolors="black", linewidths=0.8,
+                       label=f"Pool Top-25 ({colors['label']}) (n={len(pool_df)})")
+
+    # Garis vertikal target_price
+    ax.axvline(target_price, color="red", linestyle="--", linewidth=2.5,
+               label=f"Target Harga (Rp{target_price:,.0f})")
+
+    ax.set_xlabel("Estimasi Harga (Rp)")
+    ax.set_ylabel("Membership Degree (Derajat Keanggotaan Klaster)")
+    ax.set_title(f"Seleksi Kandidat {kategori} Klaster {kelas_label} (Gabungan Wilayah)\n"
+                 f"Berdasarkan Kedekatan Target Harga & Derajat Keanggotaan")
+    ax.legend(loc="best", framealpha=0.9)
+    ax.grid(True, linestyle=":", alpha=0.4)
+
+    # Terapkan formatter rupiah ke sumbu-X
+    import matplotlib.ticker as ticker
+    ax.xaxis.set_major_formatter(ticker.FuncFormatter(format_rupiah_ticks))
+
+    plt.tight_layout()
+    plt.savefig(f"output/target_shift_scatter/scatter_{kategori.lower()}_{kelas_label.lower()}_target_shift.png", dpi=150)
+    plt.close()
 
 def show_recommendation_scatter(clustered, options_list, workflow_name="Workflow"):
     """
@@ -33,6 +156,11 @@ def show_recommendation_scatter(clustered, options_list, workflow_name="Workflow
         import sys
         import numpy as np
         import matplotlib.pyplot as plt
+        
+        # Generate before-after clustering plots
+        for cat_name, cat_data in clustered.items():
+            if 'df' in cat_data and cat_data['df'] is not None and not cat_data['df'].empty:
+                plot_clustering_before_after(cat_data['df'], kategori=cat_name.capitalize())
         
         # Determine active clusters and selected places per category based on recommendation results
         active_clusters = {'hotel': set(), 'wisata': set(), 'kuliner': set()}
@@ -304,6 +432,208 @@ def show_recommendation_scatter(clustered, options_list, workflow_name="Workflow
             
     except Exception as e:
         print(f"Plotting error: {e}")
+
+
+
+def make_pkg_desc(combo, duration, wisata_list=None):
+    h_name = combo["hotel"]["Nama_Tempat"] if (duration > 1 and combo.get("hotel") and isinstance(combo["hotel"], dict)) else "Tanpa Akomodasi (ODT)"
+    
+    # Wisata names (collect for all days if list is provided)
+    wisata_names = []
+    w_item = combo.get("wisata")
+    if w_item and isinstance(w_item, dict):
+        w_name = w_item.get("Nama_Tempat", "N/A")
+        if w_name != "N/A":
+            wisata_names.append(w_name)
+            
+        if duration > 1 and wisata_list:
+            w_alts = [x for x in wisata_list if x.get("Nama_Tempat") != w_name]
+            if not w_alts:
+                w_alts = wisata_list
+            for d in range(2, duration + 1):
+                w_var = w_alts[(d - 2) % len(w_alts)]
+                w_var_name = w_var.get("Nama_Tempat", "N/A")
+                if w_var_name not in wisata_names and w_var_name != "N/A":
+                    wisata_names.append(w_var_name)
+    wisata_str = " & ".join(wisata_names) if wisata_names else "N/A"
+    
+    # Kuliner names
+    k_pagi = combo.get("kuliner_pagi", {})
+    k_siang = combo.get("kuliner", {})
+    k_malam = combo.get("kuliner_malam", {})
+    
+    kp_name = k_pagi.get("Nama_Tempat", "N/A") if k_pagi else "N/A"
+    ks_name = k_siang.get("Nama_Tempat", "N/A") if k_siang else "N/A"
+    km_name = k_malam.get("Nama_Tempat", "N/A") if k_malam else "N/A"
+    
+    meals = []
+    if kp_name and kp_name != "N/A": meals.append(kp_name)
+    if ks_name and ks_name != "N/A": meals.append(ks_name)
+    if km_name and km_name != "N/A": meals.append(km_name)
+    meals_str = " & ".join(meals)
+    
+    return f"{h_name} | {wisata_str} | {meals_str} (Rp {int(combo.get('total_cost', 0)):,})"
+
+
+def apply_diversity_filter(valid_list, limit):
+    diverse = []
+    selected_wisata = set()
+    selected_hotels = set()
+    
+    for combo in valid_list:
+        if not combo.get("wisata") or not combo.get("hotel"):
+            continue
+        w_name = combo["wisata"].get("Nama_Tempat")
+        if w_name not in selected_wisata:
+            diverse.append(combo)
+            selected_wisata.add(w_name)
+            selected_hotels.add(combo["hotel"].get("Nama_Tempat"))
+            if len(diverse) >= limit:
+                break
+                
+    if len(diverse) < limit:
+        for combo in valid_list:
+            if combo not in diverse:
+                diverse.append(combo)
+                if len(diverse) >= limit:
+                    break
+    return diverse
+
+
+def get_combo_fpc(x, duration):
+    fpc_list = []
+    
+    # Hotel FPC
+    if duration > 1 and x.get("hotel") and isinstance(x["hotel"], dict):
+        fpc_list.append(float(x["hotel"].get("Membership_Degree", 1.0)))
+        
+    # Wisata FPC
+    if x.get("wisata") and isinstance(x["wisata"], dict):
+        fpc_list.append(float(x["wisata"].get("Membership_Degree", 1.0)))
+        
+    # Kuliner pagi
+    if x.get("kuliner_pagi") and isinstance(x["kuliner_pagi"], dict):
+        fpc_list.append(float(x["kuliner_pagi"].get("Membership_Degree", 1.0)))
+        
+    # Kuliner siang
+    if x.get("kuliner") and isinstance(x["kuliner"], dict):
+        fpc_list.append(float(x["kuliner"].get("Membership_Degree", 1.0)))
+        
+    # Kuliner malam
+    if duration > 1 and x.get("kuliner_malam") and isinstance(x["kuliner_malam"], dict):
+        fpc_list.append(float(x["kuliner_malam"].get("Membership_Degree", 1.0)))
+        
+    return round(sum(fpc_list) / len(fpc_list), 4) if fpc_list else 1.0
+
+
+def build_ranking_comparison(valid_noboost, valid_boosted, get_comb_pref_score, limit, label, duration, wisata_list=None):
+    diverse_noboost = apply_diversity_filter(valid_noboost, limit)
+    diverse_boosted = apply_diversity_filter(valid_boosted, limit)
+    
+    rows_hotel = []
+    rows_wisata = []
+    rows_kuliner = []
+    
+    max_len = max(len(diverse_noboost), len(diverse_boosted))
+    for r in range(max_len):
+        c_no = diverse_noboost[r] if r < len(diverse_noboost) else None
+        c_bo = diverse_boosted[r] if r < len(diverse_boosted) else None
+        
+        for d in range(1, duration + 1):
+            h_row: dict[str, Any] = {"Kelas Paket": label, "Peringkat": r + 1, "Hari / Waktu": f"Hari {d}", 
+                     "SEBELUM Boost (murni harga)": "", "Membership_Degree (Sebelum)": "", "Skor Kategori (Sebelum)": "", 
+                     "SESUDAH Boost (skor kategori diprioritaskan)": "", "Membership_Degree (Sesudah)": "", "Skor Kategori (Sesudah)": ""}
+            w_row = dict(h_row)
+            
+            if c_no:
+                boost_no = get_comb_pref_score(c_no) if d == 1 else "" 
+                
+                h_name_no = c_no["hotel"].get("Nama_Tempat", "N/A") if c_no.get("hotel") and isinstance(c_no["hotel"], dict) else "Tanpa Akomodasi"
+                h_fpc_no = float(c_no["hotel"].get("Membership_Degree", 1.0)) if c_no.get("hotel") and isinstance(c_no["hotel"], dict) else ""
+                
+                h_row["SEBELUM Boost (murni harga)"] = h_name_no
+                h_row["Membership_Degree (Sebelum)"] = h_fpc_no
+                h_row["Skor Kategori (Sebelum)"] = boost_no
+                
+                w_item_no = c_no.get("wisata")
+                w_name_no = w_item_no.get("Nama_Tempat", "N/A") if w_item_no and isinstance(w_item_no, dict) else "N/A"
+                w_fpc_no = float(w_item_no.get("Membership_Degree", 1.0)) if w_item_no and isinstance(w_item_no, dict) else ""
+                
+                if d > 1 and wisata_list:
+                    w_alts = [x for x in wisata_list if x.get("Nama_Tempat") != w_name_no]
+                    if not w_alts: w_alts = wisata_list
+                    w_var = w_alts[(d - 2) % len(w_alts)]
+                    w_name_no = w_var.get("Nama_Tempat", "N/A")
+                    w_fpc_no = float(w_var.get("Membership_Degree", 1.0))
+                    
+                w_row["SEBELUM Boost (murni harga)"] = w_name_no
+                w_row["Membership_Degree (Sebelum)"] = w_fpc_no
+                w_row["Skor Kategori (Sebelum)"] = boost_no
+                
+            if c_bo:
+                boost_bo = get_comb_pref_score(c_bo) if d == 1 else ""
+                
+                h_name_bo = c_bo["hotel"].get("Nama_Tempat", "N/A") if c_bo.get("hotel") and isinstance(c_bo["hotel"], dict) else "Tanpa Akomodasi"
+                h_fpc_bo = float(c_bo["hotel"].get("Membership_Degree", 1.0)) if c_bo.get("hotel") and isinstance(c_bo["hotel"], dict) else ""
+                
+                h_row["SESUDAH Boost (skor kategori diprioritaskan)"] = h_name_bo
+                h_row["Membership_Degree (Sesudah)"] = h_fpc_bo
+                h_row["Skor Kategori (Sesudah)"] = boost_bo
+                
+                w_item_bo = c_bo.get("wisata")
+                w_name_bo = w_item_bo.get("Nama_Tempat", "N/A") if w_item_bo and isinstance(w_item_bo, dict) else "N/A"
+                w_fpc_bo = float(w_item_bo.get("Membership_Degree", 1.0)) if w_item_bo and isinstance(w_item_bo, dict) else ""
+                
+                if d > 1 and wisata_list:
+                    w_alts = [x for x in wisata_list if x.get("Nama_Tempat") != w_name_bo]
+                    if not w_alts: w_alts = wisata_list
+                    w_var = w_alts[(d - 2) % len(w_alts)]
+                    w_name_bo = w_var.get("Nama_Tempat", "N/A")
+                    w_fpc_bo = float(w_var.get("Membership_Degree", 1.0))
+                    
+                w_row["SESUDAH Boost (skor kategori diprioritaskan)"] = w_name_bo
+                w_row["Membership_Degree (Sesudah)"] = w_fpc_bo
+                w_row["Skor Kategori (Sesudah)"] = boost_bo
+                
+            rows_hotel.append(h_row)
+            rows_wisata.append(w_row)
+            
+            meals = [("Makan Pagi", "kuliner_pagi"), ("Makan Siang", "kuliner")]
+            if d < duration:
+                meals.append(("Makan Malam", "kuliner_malam"))
+                
+            for m_idx, (m_label, m_key) in enumerate(meals):
+                m_row: dict[str, Any] = {"Kelas Paket": label, "Peringkat": r + 1, "Hari / Waktu": f"Hari {d} - {m_label}", 
+                         "SEBELUM Boost (murni harga)": "", "Membership_Degree (Sebelum)": "", "Skor Kategori (Sebelum)": "", 
+                         "SESUDAH Boost (skor kategori diprioritaskan)": "", "Membership_Degree (Sesudah)": "", "Skor Kategori (Sesudah)": ""}
+                
+                if c_no:
+                    boost_no = get_comb_pref_score(c_no) if (d == 1 and m_idx == 0) else ""
+                    m_item_no = c_no.get(m_key, {})
+                    m_name_no = m_item_no.get("Nama_Tempat", "N/A") if m_item_no and isinstance(m_item_no, dict) else "N/A"
+                    m_fpc_no = float(m_item_no.get("Membership_Degree", 1.0)) if m_item_no and isinstance(m_item_no, dict) else ""
+                    
+                    m_row["SEBELUM Boost (murni harga)"] = m_name_no
+                    m_row["Membership_Degree (Sebelum)"] = m_fpc_no
+                    m_row["Skor Kategori (Sebelum)"] = boost_no
+                    
+                if c_bo:
+                    boost_bo = get_comb_pref_score(c_bo) if (d == 1 and m_idx == 0) else ""
+                    m_item_bo = c_bo.get(m_key, {})
+                    m_name_bo = m_item_bo.get("Nama_Tempat", "N/A") if m_item_bo and isinstance(m_item_bo, dict) else "N/A"
+                    m_fpc_bo = float(m_item_bo.get("Membership_Degree", 1.0)) if m_item_bo and isinstance(m_item_bo, dict) else ""
+                    
+                    m_row["SESUDAH Boost (skor kategori diprioritaskan)"] = m_name_bo
+                    m_row["Membership_Degree (Sesudah)"] = m_fpc_bo
+                    m_row["Skor Kategori (Sesudah)"] = boost_bo
+                    
+                rows_kuliner.append(m_row)
+        
+    return {
+        "Hotel": rows_hotel,
+        "Wisata": rows_wisata,
+        "Kuliner": rows_kuliner
+    }
 
 
 
@@ -1159,6 +1489,7 @@ def generate_packages(total_budget, num_persons, duration, datasets,
 
     cluster_labels = get_cluster_labels(best_c)
     ratios_for_c = get_ratio_scheme(best_c)
+    top25_data = {}
 
     if verbose:
         print(f"  Auto-c: best_c = {best_c} | Label: {list(cluster_labels.values())}")
@@ -1254,6 +1585,7 @@ def generate_packages(total_budget, num_persons, duration, datasets,
             
             best_items_list = []
             regions = ["Kota Batu", "Kota Malang", "Kabupaten Malang"]
+            pools_by_region = {}
             for region in regions:
                 items_in_region = items_in_c[items_in_c["Region"] == region] if not items_in_c.empty else df[df["Region"] == region]
                 if not items_in_region.empty:
@@ -1264,11 +1596,28 @@ def generate_packages(total_budget, num_persons, duration, datasets,
                         by=["distance_to_target", "Membership_Degree"],
                         ascending=[True, False]
                     )
+                    print(sorted_items.head(25)[["Nama_Tempat","Estimasi_Harga","distance_to_target","Membership_Degree"]])
+                    
+                    # Simpan data frame top 25 ke dictionary untuk diproses di akhir
+                    top25_df = sorted_items.head(25)[["Nama_Tempat","Estimasi_Harga","distance_to_target","Membership_Degree"]].copy()
+                    top25_data[(key, i, region)] = top25_df
+
                     pool = sorted_items.head(25) # Ambil top 25 sebagai pool
+                    pools_by_region[region] = pool
                     if not pool.empty:
                         sample_size = min(8, len(pool))
                         local_seed = (base_seed + hash(key) + i + hash(region)) % (2**32 - 1)
                         best_items_list.append(pool.sample(n=sample_size, random_state=local_seed))
+            
+            # Generate combined scatter plot across all regions for this cluster
+            plot_target_shift_scatter(
+                df,
+                cluster_id=i,
+                target_price=target_price,
+                pools_by_region=pools_by_region,
+                kelas_label=cluster_labels[i],
+                kategori=key.capitalize()
+            )
             
             if best_items_list:
                 best_items = pd.concat(best_items_list)
@@ -1294,6 +1643,7 @@ def generate_packages(total_budget, num_persons, duration, datasets,
     # --- Langkah 4 & 5: Combinatorial Search & Sensor Anggaran Ketat ---
     package_options = {i: [] for i in range(best_c)}
     max_options_to_show = {i: 15 for i in range(best_c)}
+    comparison_data: dict[str, list] = {"Hotel": [], "Wisata": [], "Kuliner": []}
 
     for i in range(best_c):
         hotel_list = candidates["hotel"][i]
@@ -1440,11 +1790,21 @@ def generate_packages(total_budget, num_persons, duration, datasets,
             # Jika budget None (mode destinasi tanpa budget), tetap pilih termurah.
             hemat_target = total_budget * ratios_for_c[0] if total_budget is not None else None
             hemat_key = (lambda x: x["total_cost"]) if hemat_target is None else (lambda x: abs(x["total_cost"] - hemat_target))
+            valid_combinations_noboost = sorted(valid_combinations, key=lambda x: (x.get("selisih", 0) < 0, hemat_key(x), x["total_dist"]))
             valid_combinations = sorted(valid_combinations, key=lambda x: (x.get("selisih", 0) < 0, -get_comb_pref_score(x), hemat_key(x), x["total_dist"]))
         elif i == best_c - 1:
             # Premium/kelas tertinggi: Personalisasi dengan target budget
             premium_target = total_budget * ratios_for_c[-1] if total_budget is not None else None
             premium_key = (lambda x: get_val(x["hotel"], "Estimasi_Harga") if pref_bias < -0.1 else -get_val(x["hotel"], "Estimasi_Harga")) if premium_target is None else (lambda x: abs(x["total_cost"] - premium_target))
+            valid_combinations_noboost = sorted(
+                valid_combinations,
+                key=lambda x: (
+                    x.get("selisih", 0) < 0, 
+                    premium_key(x),
+                    -get_val(x["wisata"], "Rating"), 
+                    x["total_dist"]
+                )
+            )
             valid_combinations = sorted(
                 valid_combinations,
                 key=lambda x: (
@@ -1459,6 +1819,15 @@ def generate_packages(total_budget, num_persons, duration, datasets,
             # Balanced: Hybrid rating + jarak dan target budget
             balanced_target = total_budget * ratios_for_c[i] if total_budget is not None else None
             balanced_key = (lambda x: -get_val(x["wisata"], "Rating") * 10 - get_val(x["kuliner"], "Rating") * 2 + x["total_dist"] / 10.0) if balanced_target is None else (lambda x: abs(x["total_cost"] - balanced_target))
+            valid_combinations_noboost = sorted(
+                valid_combinations,
+                key=lambda x: (
+                    x.get("selisih", 0) < 0, 
+                    balanced_key(x),
+                    -get_val(x["wisata"], "Rating"),
+                    x["total_dist"]
+                )
+            )
             valid_combinations = sorted(
                 valid_combinations,
                 key=lambda x: (
@@ -1469,6 +1838,8 @@ def generate_packages(total_budget, num_persons, duration, datasets,
                     x["total_dist"]
                 )
             )
+
+
 
 
         # Fallback jika kosong (diselaraskan eksak dengan uji_gabungan.py)
@@ -1579,6 +1950,21 @@ def generate_packages(total_budget, num_persons, duration, datasets,
                             }
             if min_cost_comb:
                 valid_combinations.append(min_cost_comb)
+                valid_combinations_noboost.append(min_cost_comb)
+
+        # Collect ranking comparison
+        comparison_rows = build_ranking_comparison(
+            valid_combinations_noboost,
+            valid_combinations,
+            get_comb_pref_score,
+            max_options_to_show[i],
+            cluster_labels[i],
+            duration,
+            wisata_list
+        )
+        comparison_data["Hotel"].extend(comparison_rows["Hotel"])
+        comparison_data["Wisata"].extend(comparison_rows["Wisata"])
+        comparison_data["Kuliner"].extend(comparison_rows["Kuliner"])
 
         # --- Seleksi Beragam (Diversity Filter) untuk Keberagaman Paket ---
         diverse_combinations = []
@@ -2057,6 +2443,9 @@ def generate_packages(total_budget, num_persons, duration, datasets,
     for idx, opt in enumerate(options_list):
         opt["option_index"] = idx + 1
 
+    if options_list:
+        options_list[0]["ranking_comparison"] = comparison_data
+
     # --- Tampilkan Hasil Opsi 1 Di Log Console ---
     if verbose and options_list:
         rep_packages = cast(list, options_list[0]["packages"])
@@ -2126,6 +2515,73 @@ def generate_packages(total_budget, num_persons, duration, datasets,
         "wisata_cntr": clustered.get("wisata", {}).get("cntr") if "wisata" in clustered else None,
         "kuliner_cntr": clustered.get("kuliner", {}).get("cntr") if "kuliner" in clustered else None,
     }
+
+    # ── Ekspor 25 kandidat teratas wilayah ke dalam Excel terpadu (dengan penanda pilihan rekomendasi) ──
+    if 'top25_data' in locals() and top25_data:
+        # 1. Kumpulkan semua nama tempat yang terpilih dalam options_list beserta nomor opsinya
+        place_options_map = {}
+        for opt in options_list:
+            opt_idx = opt.get("option_index")
+            for pkg in opt.get('packages', []):
+                for key_name in ['hotel_nama', 'hotel_nama_real', 'wisata_nama', 'kuliner_pagi_nama', 'kuliner_nama', 'kuliner_malam_nama']:
+                    name = pkg.get(key_name)
+                    if name and name != 'N/A':
+                        if ' & ' in name:
+                            for sub_name in name.split(' & '):
+                                n = sub_name.strip()
+                                if n not in place_options_map:
+                                    place_options_map[n] = set()
+                                place_options_map[n].add(opt_idx)
+                        else:
+                            n = name.strip()
+                            if n not in place_options_map:
+                                place_options_map[n] = set()
+                            place_options_map[n].add(opt_idx)
+                for itin in pkg.get('itinerary', []):
+                    for key_name in ['hotel_nama', 'hotel_nama_real', 'wisata_nama', 'kuliner_pagi_nama', 'kuliner_nama', 'kuliner_malam_nama']:
+                        name = itin.get(key_name)
+                        if name and name != 'N/A':
+                            if ' & ' in name:
+                                for sub_name in name.split(' & '):
+                                    n = sub_name.strip()
+                                    if n not in place_options_map:
+                                        place_options_map[n] = set()
+                                    place_options_map[n].add(opt_idx)
+                            else:
+                                n = name.strip()
+                                if n not in place_options_map:
+                                    place_options_map[n] = set()
+                                place_options_map[n].add(opt_idx)
+        
+        # 2. Tulis Excel file
+        excel_dir = "output/target_shift_scatter/excel"
+        os.makedirs(excel_dir, exist_ok=True)
+        
+        # Kelompokkan data per (kategori, cluster)
+        grouped_excel = {}
+        for (key_name, i, region), df_top25 in top25_data.items():
+            grp_key = (key_name, i)
+            if grp_key not in grouped_excel:
+                grouped_excel[grp_key] = {}
+            grouped_excel[grp_key][region] = df_top25
+            
+        for (key_name, i), regions_dict in grouped_excel.items():
+            excel_path = os.path.join(excel_dir, f"top25_{key_name.lower()}_{cluster_labels[i].lower()}.xlsx")
+            with pd.ExcelWriter(excel_path) as writer:
+                for region, r_df in regions_dict.items():
+                    # Tambahkan kolom penanda masuk opsi keberapa
+                    r_df = r_df.copy()
+                    
+                    def get_recommendation_status(name):
+                        name_str = str(name).strip()
+                        if name_str in place_options_map:
+                            opts = sorted(list(place_options_map[name_str]))
+                            return ", ".join([f"Opsi {o}" for o in opts])
+                        return "Tidak Terpilih"
+                        
+                    r_df["Terpilih_Rekomendasi"] = r_df["Nama_Tempat"].apply(get_recommendation_status)
+                    sheet_name = region.replace("Kota Batu", "Batu").replace("Kota Malang", "Malang Kota").replace("Kabupaten Malang", "Malang Kab")
+                    r_df.to_excel(writer, sheet_name=sheet_name, index=False)
 
     show_recommendation_scatter(clustered, options_list, 'Budget-First Workflow')
     return options_list
@@ -2258,6 +2714,7 @@ def generate_flexible_exploration_packages(num_persons, duration, datasets,
 
     package_options = {i: [] for i in range(best_c)}
     max_options_to_show = {i: 15 for i in range(best_c)}
+    comparison_data: dict[str, list] = {"Hotel": [], "Wisata": [], "Kuliner": []}
     num_rooms = math.ceil(num_persons / MAX_PERSONS_PER_ROOM)
     nights = duration - 1
 
@@ -2399,11 +2856,21 @@ def generate_flexible_exploration_packages(num_persons, duration, datasets,
             total_budget = None 
             hemat_target = None
             hemat_key = (lambda x: x["total_cost"]) if hemat_target is None else (lambda x: abs(x["total_cost"] - hemat_target))
+            valid_combinations_noboost = sorted(valid_combinations, key=lambda x: (x.get("selisih", 0) < 0, hemat_key(x), x["total_dist"]))
             valid_combinations = sorted(valid_combinations, key=lambda x: (x.get("selisih", 0) < 0, -get_comb_pref_score(x), hemat_key(x), x["total_dist"]))
         elif i == best_c - 1:
             # Premium/kelas tertinggi: Personalisasi dengan target budget
             premium_target = None
             premium_key = (lambda x: get_val(x["hotel"], "Estimasi_Harga") if pref_bias < -0.1 else -get_val(x["hotel"], "Estimasi_Harga")) if premium_target is None else (lambda x: abs(x["total_cost"] - premium_target))
+            valid_combinations_noboost = sorted(
+                valid_combinations,
+                key=lambda x: (
+                    x.get("selisih", 0) < 0, 
+                    premium_key(x),
+                    -get_val(x["wisata"], "Rating"), 
+                    x["total_dist"]
+                )
+            )
             valid_combinations = sorted(
                 valid_combinations,
                 key=lambda x: (
@@ -2418,6 +2885,15 @@ def generate_flexible_exploration_packages(num_persons, duration, datasets,
             # Balanced: Hybrid rating + jarak dan target budget
             balanced_target = None
             balanced_key = (lambda x: -get_val(x["wisata"], "Rating") * 10 - get_val(x["kuliner"], "Rating") * 2 + x["total_dist"] / 10.0) if balanced_target is None else (lambda x: abs(x["total_cost"] - balanced_target))
+            valid_combinations_noboost = sorted(
+                valid_combinations,
+                key=lambda x: (
+                    x.get("selisih", 0) < 0, 
+                    balanced_key(x),
+                    -get_val(x["wisata"], "Rating"),
+                    x["total_dist"]
+                )
+            )
             valid_combinations = sorted(
                 valid_combinations,
                 key=lambda x: (
@@ -2428,6 +2904,20 @@ def generate_flexible_exploration_packages(num_persons, duration, datasets,
                     x["total_dist"]
                 )
             )
+
+        # Collect ranking comparison
+        comparison_rows = build_ranking_comparison(
+            valid_combinations_noboost,
+            valid_combinations,
+            get_comb_pref_score,
+            max_options_to_show[i],
+            cluster_labels[i],
+            duration,
+            candidates["wisata"][i]
+        )
+        comparison_data["Hotel"].extend(comparison_rows["Hotel"])
+        comparison_data["Wisata"].extend(comparison_rows["Wisata"])
+        comparison_data["Kuliner"].extend(comparison_rows["Kuliner"])
 
 
         # --- Seleksi Beragam (Diversity Filter) untuk Keberagaman Paket ---
@@ -2893,6 +3383,9 @@ def generate_flexible_exploration_packages(num_persons, duration, datasets,
     for idx, opt in enumerate(options_list):
         opt["option_index"] = idx + 1
 
+    if options_list:
+        options_list[0]["ranking_comparison"] = comparison_data
+
     if verbose and options_list:
         rep_packages = cast(list, options_list[0]["packages"])
         print(f"\n  HASIL FLEXIBLE EXPLORATION OPSI 1:")
@@ -3149,6 +3642,7 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
 
     package_options = {i: [] for i in range(best_c)}
     max_options_to_show = {i: 15 for i in range(best_c)}
+    comparison_data: dict[str, list] = {"Hotel": [], "Wisata": [], "Kuliner": []}
     num_rooms = math.ceil(num_persons / MAX_PERSONS_PER_ROOM)
     nights = duration - 1
 
@@ -3293,18 +3787,28 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
             # Jika budget None (mode destinasi tanpa budget), tetap pilih termurah.
             hemat_target = total_budget * ratios_dest[0] if total_budget is not None else None
             hemat_key = (lambda x: x["total_cost"]) if hemat_target is None else (lambda x: abs(x["total_cost"] - hemat_target))
+            valid_combinations_noboost = sorted(valid_combinations, key=lambda x: (x.get("selisih", 0) < 0, hemat_key(x), x["total_dist"]))
             valid_combinations = sorted(valid_combinations, key=lambda x: (x.get("selisih", 0) < 0, -get_comb_pref_score(x), hemat_key(x), x["total_dist"]))
         elif i == best_c - 1:
             # Premium/kelas tertinggi: Personalisasi dengan target budget
             premium_target = total_budget * ratios_dest[-1] if total_budget is not None else None
             premium_key = (lambda x: get_val(x["hotel"], "Estimasi_Harga") if pref_bias < -0.1 else -get_val(x["hotel"], "Estimasi_Harga")) if premium_target is None else (lambda x: abs(x["total_cost"] - premium_target))
+            valid_combinations_noboost = sorted(
+                valid_combinations,
+                key=lambda x: (
+                    x.get("selisih", 0) < 0, 
+                    premium_key(x),
+                    -get_val(x["wisata"], "Rating"), 
+                    x["total_dist"]
+                )
+            )
             valid_combinations = sorted(
                 valid_combinations,
                 key=lambda x: (
-                    x.get("selisih", 0) < 0,
+                    x.get("selisih", 0) < 0, 
                     -get_comb_pref_score(x),
                     premium_key(x),
-                    -get_val(x["wisata"], "Rating"),
+                    -get_val(x["wisata"], "Rating"), 
                     x["total_dist"]
                 )
             )
@@ -3312,6 +3816,15 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
             # Balanced: Hybrid rating + jarak dan target budget
             balanced_target = total_budget * ratios_dest[i] if total_budget is not None else None
             balanced_key = (lambda x: -get_val(x["wisata"], "Rating") * 10 - get_val(x["kuliner"], "Rating") * 2 + x["total_dist"] / 10.0) if balanced_target is None else (lambda x: abs(x["total_cost"] - balanced_target))
+            valid_combinations_noboost = sorted(
+                valid_combinations,
+                key=lambda x: (
+                    x.get("selisih", 0) < 0, 
+                    balanced_key(x),
+                    -get_val(x["wisata"], "Rating"),
+                    x["total_dist"]
+                )
+            )
             valid_combinations = sorted(
                 valid_combinations,
                 key=lambda x: (
@@ -3322,6 +3835,8 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
                     x["total_dist"]
                 )
             )
+
+
 
 
         # Fallback jika kosong (diselaraskan eksak dengan uji_gabungan.py)
@@ -3431,6 +3946,21 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
                         }
             if min_cost_comb:
                 valid_combinations.append(min_cost_comb)
+                valid_combinations_noboost.append(min_cost_comb)
+
+        # Collect ranking comparison
+        comparison_rows = build_ranking_comparison(
+            valid_combinations_noboost,
+            valid_combinations,
+            get_comb_pref_score,
+            max_options_to_show[i],
+            cluster_labels[i],
+            duration,
+            candidates["wisata"][i]
+        )
+        comparison_data["Hotel"].extend(comparison_rows["Hotel"])
+        comparison_data["Wisata"].extend(comparison_rows["Wisata"])
+        comparison_data["Kuliner"].extend(comparison_rows["Kuliner"])
 
         # --- Seleksi Beragam (Diversity Filter) untuk Keberagaman Paket ---
         diverse_combinations = []
@@ -3913,6 +4443,9 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
     for idx, opt in enumerate(options_list):
         opt["option_index"] = idx + 1
 
+    if options_list:
+        options_list[0]["ranking_comparison"] = comparison_data
+
     if verbose and options_list:
         rep_packages = cast(list, options_list[0]["packages"])
         print(f"\n  HASIL DESTINATION-FIRST OPSI 1:")
@@ -3940,7 +4473,7 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
 # ============================================================
 # 6. EXPORT HASIL REKOMENDASI KE EXCEL
 # ============================================================
-def export_to_excel_recom(options_list, workflow, budget, persons, duration):
+def export_to_excel_recom(options_list, workflow, budget, persons, duration, pref_wisata="", pref_hotel="", pref_kuliner=""):
     """
     Mengekspor hasil kombinasi rute rekomendasi ke dalam berkas Excel (.xlsx).
     Sheet 1: Menampilkan item secara detail (Opsi, Item, Harga, Membership Degree) beserta info centroid.
@@ -3953,11 +4486,16 @@ def export_to_excel_recom(options_list, workflow, budget, persons, duration):
     from typing import Any, cast
     
     def get_fuzzy_score_from_lookup(name, category):
-        if LAST_CLUSTERED is None or not name or name == "N/A" or name == "Checkout" or name == "Tanpa Akomodasi (One Day Trip)":
+        if LAST_CLUSTERED is None or not name or name in ["N/A", "Checkout", "Tanpa Akomodasi", "Tanpa Akomodasi (One Day Trip)"]:
             return 0.0
         df = LAST_CLUSTERED.get(category)
         if df is None or df.empty or 'Fuzzy_Score' not in df.columns:
             return 0.0
+            
+        # Try exact match first to prevent breaking names containing " & "
+        matched = df[df['Nama_Tempat'] == name]
+        if not matched.empty:
+            return float(matched.iloc[0]['Fuzzy_Score'])
             
         names = [n.strip() for n in name.split(" & ")]
         scores = []
@@ -4016,13 +4554,41 @@ def export_to_excel_recom(options_list, workflow, budget, persons, duration):
         {"Informasi": "Input Budget", "Nilai": f"Rp {budget:,.0f}" if budget else "Tanpa Budget"},
         {"Informasi": "Input Peserta", "Nilai": f"{persons} Orang"},
         {"Informasi": "Input Durasi", "Nilai": f"{duration} Hari"},
+        {"Informasi": "Preferensi Wisata User", "Nilai": pref_wisata if pref_wisata else "Tidak diatur"},
+        {"Informasi": "Preferensi Hotel User", "Nilai": pref_hotel if pref_hotel else "Tidak diatur"},
+        {"Informasi": "Preferensi Kuliner User", "Nilai": pref_kuliner if pref_kuliner else "Tidak diatur"},
         {"Informasi": "Centroid Hotel", "Nilai": hotel_cntr_str},
         {"Informasi": "Centroid Wisata", "Nilai": wisata_cntr_str},
         {"Informasi": "Centroid Kuliner", "Nilai": kuliner_cntr_str},
     ]
     df_meta = pd.DataFrame(meta_rows)
     
+    def get_md_from_lookup(name, category):
+        if LAST_CLUSTERED is None or not name or name in ["N/A", "Checkout", "Tanpa Akomodasi", "Tanpa Akomodasi (One Day Trip)"]:
+            return 0.0
+        df = LAST_CLUSTERED.get(category)
+        if df is None or df.empty or 'Membership_Degree' not in df.columns:
+            return 0.0
+            
+        # Try exact match first to prevent breaking names containing " & "
+        matched = df[df['Nama_Tempat'] == name]
+        if not matched.empty:
+            return float(matched.iloc[0]['Membership_Degree'])
+            
+        names = [n.strip() for n in name.split(" & ")]
+        scores = []
+        for n in names:
+            matched = df[df['Nama_Tempat'] == n]
+            if not matched.empty:
+                scores.append(float(matched.iloc[0]['Membership_Degree']))
+        if scores:
+            return sum(scores) / len(scores)
+        return 0.0
+
     # 4. Sheet 1: Detail Item Per Package
+    def is_placeholder(name):
+        return not name or name in ["N/A", "Checkout", "Tanpa Akomodasi", "Tanpa Akomodasi (One Day Trip)"]
+
     item_rows = []
     for opt in options_list:
         opt_idx = opt["option_index"]
@@ -4033,127 +4599,145 @@ def export_to_excel_recom(options_list, workflow, budget, persons, duration):
                 "Kelas Paket": kelas
             }
             
-            # Calculate item fuzzy scores using lookup helper
-            h_fs = round(get_fuzzy_score_from_lookup(pkg.get("hotel_nama"), "hotel"), 4)
-            w_fs = round(get_fuzzy_score_from_lookup(pkg.get("wisata_nama"), "wisata"), 4)
-            kp_fs = round(get_fuzzy_score_from_lookup(pkg.get("kuliner_pagi_nama"), "kuliner"), 4)
-            ks_fs = round(get_fuzzy_score_from_lookup(pkg.get("kuliner_nama"), "kuliner"), 4)
-            km_fs = round(get_fuzzy_score_from_lookup(pkg.get("kuliner_malam_nama"), "kuliner"), 4)
+            itin = pkg.get("itinerary", [])
             
-            # Compute average package fuzzy score (using only included items)
-            fs_list = []
-            if duration > 1:
-                fs_list.append(h_fs)
-            if pkg.get("wisata_nama") and pkg.get("wisata_nama") != "N/A":
-                fs_list.append(w_fs)
-            if pkg.get("kuliner_pagi_nama") and pkg.get("kuliner_pagi_nama") != "N/A":
-                fs_list.append(kp_fs)
-            if pkg.get("kuliner_nama") and pkg.get("kuliner_nama") != "N/A":
-                fs_list.append(ks_fs)
-            if duration > 1 and pkg.get("kuliner_malam_nama") and pkg.get("kuliner_malam_nama") != "N/A":
-                fs_list.append(km_fs)
+            # Compute average package FPC (Membership Degree) using all actual items in the itinerary
+            package_mds = []
+            package_fss = []
+            for day in itin:
+                h_n = day.get("hotel")
+                if h_n and h_n not in ["Checkout", "Tanpa Akomodasi (One Day Trip)", "Tanpa Akomodasi"]:
+                    package_mds.append(get_md_from_lookup(h_n, "hotel"))
+                    package_fss.append(get_fuzzy_score_from_lookup(h_n, "hotel"))
                 
-            paket_fs = round(sum(fs_list) / len(fs_list), 4) if fs_list else 0.0
+                w_n = day.get("wisata")
+                if w_n and w_n != "N/A":
+                    package_mds.append(get_md_from_lookup(w_n, "wisata"))
+                    package_fss.append(get_fuzzy_score_from_lookup(w_n, "wisata"))
+                    
+                kp_n = day.get("kuliner_pagi")
+                if kp_n and kp_n != "N/A":
+                    package_mds.append(get_md_from_lookup(kp_n, "kuliner"))
+                    package_fss.append(get_fuzzy_score_from_lookup(kp_n, "kuliner"))
+                    
+                ks_n = day.get("kuliner")
+                if ks_n and ks_n != "N/A":
+                    package_mds.append(get_md_from_lookup(ks_n, "kuliner"))
+                    package_fss.append(get_fuzzy_score_from_lookup(ks_n, "kuliner"))
+                    
+                km_n = day.get("kuliner_malam")
+                if km_n and km_n != "N/A":
+                    package_mds.append(get_md_from_lookup(km_n, "kuliner"))
+                    package_fss.append(get_fuzzy_score_from_lookup(km_n, "kuliner"))
+                    
+            paket_fpc = round(sum(package_mds) / len(package_mds), 4) if package_mds else 0.0
+            paket_fs = round(sum(package_fss) / len(package_fss), 4) if package_fss else 0.0
             
-            # Calculate item FPCs (which are their membership degrees in target cluster)
-            h_fpc = round(float(pkg.get("hotel_md") or 1.0), 4)
-            w_fpc = round(float(pkg.get("wisata_md") or 1.0), 4)
-            kp_fpc = round(float(pkg.get("kuliner_pagi_md") or 1.0), 4)
-            ks_fpc = round(float(pkg.get("kuliner_md") or 1.0), 4)
-            km_fpc = round(float(pkg.get("kuliner_malam_md") or 1.0), 4)
-            
-            # Compute average package FPC (using only included items)
-            fpc_list = []
-            if duration > 1:
-                fpc_list.append(h_fpc)
-            if pkg.get("wisata_nama") and pkg.get("wisata_nama") != "N/A":
-                fpc_list.append(w_fpc)
-            if pkg.get("kuliner_pagi_nama") and pkg.get("kuliner_pagi_nama") != "N/A":
-                fpc_list.append(kp_fpc)
-            if pkg.get("kuliner_nama") and pkg.get("kuliner_nama") != "N/A":
-                fpc_list.append(ks_fpc)
-            if duration > 1 and pkg.get("kuliner_malam_nama") and pkg.get("kuliner_malam_nama") != "N/A":
-                fpc_list.append(km_fpc)
+            for d_num in range(1, duration + 1):
+                day_dict = {}
+                if d_num - 1 < len(itin):
+                    day_dict = itin[d_num - 1]
+                    
+                h_name = day_dict.get("hotel", "Checkout")
+                h_harga = day_dict.get("hotel_harga", 0)
+                h_fs = round(get_fuzzy_score_from_lookup(h_name, "hotel"), 4)
+                h_fpc = round(get_md_from_lookup(h_name, "hotel"), 4)
                 
-            paket_fpc = round(sum(fpc_list) / len(fpc_list), 4) if fpc_list else 0.0
-            
-            # Hotel
-            row_h = base_row.copy()
-            row_h.update({
-                "Tipe Item": "Hotel",
-                "Nama Tempat": pkg.get("hotel_nama", "N/A"),
-                "Estimasi Harga": pkg.get("hotel_harga", 0),
-                "Membership Degree": pkg.get("hotel_md", 1.0),
-                "Fuzzy Score Item": h_fs if duration > 1 else "",
-                "Fuzzy Score Paket": paket_fs,
-                "FPC Item": h_fpc if duration > 1 else "",
-                "FPC Paket": paket_fpc
-            })
-            item_rows.append(row_h)
-            
-            # Wisata
-            row_w = base_row.copy()
-            row_w.update({
-                "Tipe Item": "Wisata",
-                "Nama Tempat": pkg.get("wisata_nama", "N/A"),
-                "Estimasi Harga": pkg.get("wisata_harga", 0),
-                "Membership Degree": pkg.get("wisata_md", 1.0),
-                "Fuzzy Score Item": w_fs,
-                "Fuzzy Score Paket": paket_fs,
-                "FPC Item": w_fpc,
-                "FPC Paket": paket_fpc
-            })
-            item_rows.append(row_w)
-            
-            # Kuliner Pagi
-            row_kp = base_row.copy()
-            row_kp.update({
-                "Tipe Item": "Makan Pagi",
-                "Nama Tempat": pkg.get("kuliner_pagi_nama", "N/A"),
-                "Estimasi Harga": pkg.get("kuliner_pagi_harga", 0),
-                "Membership Degree": pkg.get("kuliner_pagi_md", 1.0),
-                "Fuzzy Score Item": kp_fs if pkg.get("kuliner_pagi_nama") != "N/A" else "",
-                "Fuzzy Score Paket": paket_fs,
-                "FPC Item": kp_fpc if pkg.get("kuliner_pagi_nama") != "N/A" else "",
-                "FPC Paket": paket_fpc
-            })
-            item_rows.append(row_kp)
-            
-            # Kuliner Siang
-            row_ks = base_row.copy()
-            row_ks.update({
-                "Tipe Item": "Makan Siang",
-                "Nama Tempat": pkg.get("kuliner_nama", "N/A"),
-                "Estimasi Harga": pkg.get("kuliner_harga", 0),
-                "Membership Degree": pkg.get("kuliner_md", 1.0),
-                "Fuzzy Score Item": ks_fs,
-                "Fuzzy Score Paket": paket_fs,
-                "FPC Item": ks_fpc,
-                "FPC Paket": paket_fpc
-            })
-            item_rows.append(row_ks)
-            
-            # Kuliner Malam
-            if duration > 1:
-                row_km = base_row.copy()
-                row_km.update({
-                    "Tipe Item": "Makan Malam",
-                    "Nama Tempat": pkg.get("kuliner_malam_nama", "N/A"),
-                    "Estimasi Harga": pkg.get("kuliner_malam_harga", 0),
-                    "Membership Degree": pkg.get("kuliner_malam_md", 1.0),
-                    "Fuzzy Score Item": km_fs if pkg.get("kuliner_malam_nama") != "N/A" else "",
+                w_name = day_dict.get("wisata", "N/A")
+                w_harga = day_dict.get("wisata_harga", 0)
+                w_fs = round(get_fuzzy_score_from_lookup(w_name, "wisata"), 4)
+                w_fpc = round(get_md_from_lookup(w_name, "wisata"), 4)
+                
+                kp_name = day_dict.get("kuliner_pagi", "N/A")
+                kp_harga = day_dict.get("kuliner_pagi_harga", 0)
+                kp_fs = round(get_fuzzy_score_from_lookup(kp_name, "kuliner"), 4)
+                kp_fpc = round(get_md_from_lookup(kp_name, "kuliner"), 4)
+                
+                ks_name = day_dict.get("kuliner", "N/A")
+                ks_harga = day_dict.get("kuliner_harga", 0)
+                ks_fs = round(get_fuzzy_score_from_lookup(ks_name, "kuliner"), 4)
+                ks_fpc = round(get_md_from_lookup(ks_name, "kuliner"), 4)
+                
+                km_name = day_dict.get("kuliner_malam", "N/A")
+                km_harga = day_dict.get("kuliner_malam_harga", 0)
+                km_fs = round(get_fuzzy_score_from_lookup(km_name, "kuliner"), 4)
+                km_fpc = round(get_md_from_lookup(km_name, "kuliner"), 4)
+                
+                # Hotel
+                row_h = base_row.copy()
+                row_h.update({
+                    "Hari / Waktu": f"Hari {d_num}",
+                    "Tipe Item": "Hotel",
+                    "Nama Tempat": h_name,
+                    "Estimasi Harga": h_harga,
+                    "Fuzzy Score Item": h_fs if not is_placeholder(h_name) else "",
                     "Fuzzy Score Paket": paket_fs,
-                    "FPC Item": km_fpc if pkg.get("kuliner_malam_nama") != "N/A" else "",
+                    "Membership_Degree": h_fpc if not is_placeholder(h_name) else "",
                     "FPC Paket": paket_fpc
                 })
-                item_rows.append(row_km)
+                item_rows.append(row_h)
                 
+                # Wisata
+                row_w = base_row.copy()
+                row_w.update({
+                    "Hari / Waktu": f"Hari {d_num}",
+                    "Tipe Item": "Wisata",
+                    "Nama Tempat": w_name,
+                    "Estimasi Harga": w_harga,
+                    "Fuzzy Score Item": w_fs if not is_placeholder(w_name) else "",
+                    "Fuzzy Score Paket": paket_fs,
+                    "Membership_Degree": w_fpc if not is_placeholder(w_name) else "",
+                    "FPC Paket": paket_fpc
+                })
+                item_rows.append(row_w)
+                
+                # Kuliner Pagi
+                row_kp = base_row.copy()
+                row_kp.update({
+                    "Hari / Waktu": f"Hari {d_num} - Pagi",
+                    "Tipe Item": "Makan Pagi",
+                    "Nama Tempat": kp_name,
+                    "Estimasi Harga": kp_harga,
+                    "Fuzzy Score Item": kp_fs if not is_placeholder(kp_name) else "",
+                    "Fuzzy Score Paket": paket_fs,
+                    "Membership_Degree": kp_fpc if not is_placeholder(kp_name) else "",
+                    "FPC Paket": paket_fpc
+                })
+                item_rows.append(row_kp)
+                
+                # Kuliner Siang
+                row_ks = base_row.copy()
+                row_ks.update({
+                    "Hari / Waktu": f"Hari {d_num} - Siang",
+                    "Tipe Item": "Makan Siang",
+                    "Nama Tempat": ks_name,
+                    "Estimasi Harga": ks_harga,
+                    "Fuzzy Score Item": ks_fs if not is_placeholder(ks_name) else "",
+                    "Fuzzy Score Paket": paket_fs,
+                    "Membership_Degree": ks_fpc if not is_placeholder(ks_name) else "",
+                    "FPC Paket": paket_fpc
+                })
+                item_rows.append(row_ks)
+                
+                # Kuliner Malam
+                if d_num < duration or duration == 1:
+                    row_km = base_row.copy()
+                    row_km.update({
+                        "Hari / Waktu": f"Hari {d_num} - Malam",
+                        "Tipe Item": "Makan Malam",
+                        "Nama Tempat": km_name,
+                        "Estimasi Harga": km_harga,
+                        "Fuzzy Score Item": km_fs if not is_placeholder(km_name) else "",
+                        "Fuzzy Score Paket": paket_fs,
+                        "Membership_Degree": km_fpc if not is_placeholder(km_name) else "",
+                        "FPC Paket": paket_fpc
+                    })
+                    item_rows.append(row_km)
+                    
             # Add an empty row for visual separation between packages
             item_rows.append({
-                "Opsi": "", "Kelas Paket": "", "Tipe Item": "", "Nama Tempat": "", 
-                "Estimasi Harga": "", "Membership Degree": "", 
-                "Fuzzy Score Item": "", "Fuzzy Score Paket": "",
-                "FPC Item": "", "FPC Paket": ""
+                "Opsi": "", "Kelas Paket": "", "Hari / Waktu": "", "Tipe Item": "", "Nama Tempat": "", 
+                "Estimasi Harga": "", "Fuzzy Score Item": "", "Fuzzy Score Paket": "", "Membership_Degree": "", "FPC Paket": ""
             })
 
     df_items = pd.DataFrame(item_rows)
@@ -4385,6 +4969,19 @@ def export_to_excel_recom(options_list, workflow, budget, persons, duration):
         df_meta.to_excel(writer, sheet_name="Rekomendasi Paket", index=False, startrow=0)
         df_items.to_excel(writer, sheet_name="Rekomendasi Paket", index=False, startrow=len(df_meta) + 2)
         df_detail.to_excel(writer, sheet_name="Detail Itinerary & Biaya", index=False)
+        
+        comparison_data = None
+        if options_list:
+            comparison_data = options_list[0].get("ranking_comparison")
+            
+        if comparison_data:
+            if isinstance(comparison_data, dict) and "Hotel" in comparison_data:
+                pd.DataFrame(comparison_data["Hotel"]).to_excel(writer, sheet_name="Ranking Hotel", index=False)
+                pd.DataFrame(comparison_data["Wisata"]).to_excel(writer, sheet_name="Ranking Wisata", index=False)
+                pd.DataFrame(comparison_data["Kuliner"]).to_excel(writer, sheet_name="Ranking Makan", index=False)
+            else:
+                df_comp = pd.DataFrame(comparison_data)
+                df_comp.to_excel(writer, sheet_name="Perbandingan Boost Ranking", index=False)
         
         if LAST_CLUSTERED is not None:
             import numpy as np
