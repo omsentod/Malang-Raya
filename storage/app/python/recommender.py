@@ -11,15 +11,15 @@ import hashlib
 from config import (
     GOOGLE_MAPS_API_KEY, CLUSTER_LABELS,
     MAX_PACKAGES_DISPLAY, MEALS_PER_DAY, MAX_PERSONS_PER_ROOM,
-    DEFAULT_RATIO_SCHEME, RATIO_SCHEMES,
+    DEFAULT_RATIO_SCHEME,
     get_cluster_labels, get_ratio_scheme,
 )
-from fcm_clustering import run_budget_anchored_fcm, run_percentile_fcm, find_best_c_for_budget, find_best_c_offline, run_fcm
-from transport_api import calculate_route_cost, haversine_distance, get_osrm_route_distance
+from fcm_clustering import find_best_c_for_budget, find_best_c_offline, run_fcm
+from transport_api import haversine_distance, get_osrm_route_distance
 
 import os
-import matplotlib
 import matplotlib.pyplot as plt
+
 
 def format_rupiah_ticks(x, pos):
     if x >= 1_000_000:
@@ -50,9 +50,26 @@ def plot_clustering_before_after(df_clustered, kategori="Hotel"):
     label_col = "Kategori" if "Kategori" in df_clustered.columns else ("klaster" if "klaster" in df_clustered.columns else None)
     
     if label_col:
-        for label in df_clustered[label_col].unique():
+        # Pemetakan warna statis agar warna klaster konsisten di semua plot kategori
+        color_map = {
+            "Hemat": "#1f77b4",     # Biru
+            "Balanced": "#2ca02c",  # Hijau
+            "Premium": "#ff7f0e",   # Oranye
+            "Luxury": "#d62728",    # Merah
+            "Elite": "#9467bd"      # Ungu
+        }
+        
+        # Urutkan label secara logis: Hemat -> Balanced -> Premium -> Luxury -> Elite
+        logical_order = ["Hemat", "Balanced", "Premium", "Luxury", "Elite"]
+        labels_to_plot = [l for l in logical_order if l in df_clustered[label_col].unique()]
+        for l in df_clustered[label_col].unique():
+            if l not in labels_to_plot:
+                labels_to_plot.append(l)
+                
+        for label in labels_to_plot:
             subset = df_clustered[df_clustered[label_col] == label]
-            axes[1].hist(subset["Estimasi_Harga"], bins=30, alpha=0.6, label=label)
+            color = color_map.get(label, None)
+            axes[1].hist(subset["Estimasi_Harga"], bins=30, alpha=0.6, label=label, color=color)
     else:
         axes[1].hist(df_clustered["Estimasi_Harga"], bins=30, alpha=0.6, color="gray")
         
@@ -154,7 +171,6 @@ def show_recommendation_scatter(clustered, options_list, workflow_name="Workflow
         
     try:
         import sys
-        import numpy as np
         import matplotlib.pyplot as plt
         
         # Generate before-after clustering plots
@@ -1255,7 +1271,6 @@ def _get_pure_wisata_price(wisata_identifier, df_wisata: pd.DataFrame) -> float:
         return 0.0
     
     # Cari baris di df_wisata
-    import numpy as np
     w_row = pd.Series()
     if isinstance(wisata_identifier, dict):
         tid = wisata_identifier.get("wisata_id") or wisata_identifier.get("Id_Tempat")
@@ -1499,13 +1514,13 @@ def generate_packages(total_budget, num_persons, duration, datasets,
 
     if verbose:
         print(f"\n{'='*60}")
-        print(f"  BUDGET-FIRST RECOMMENDATION (COMBINATORIAL OPTIMIZED)")
+        print("  BUDGET-FIRST RECOMMENDATION (COMBINATORIAL OPTIMIZED)")
         print(f"{'='*60}")
         print(f"  Total Budget  : Rp {total_budget:,.0f}")
         print(f"  Peserta       : {num_persons} orang")
         print(f"  Durasi        : {duration} hari")
         print(f"  Skema Ratio   : {ratio_scheme}")
-        print(f"\n  Alokasi Budget:")
+        print("\n  Alokasi Budget:")
         for key, val in budget_alloc.items():
             print(f"    • {key.capitalize():15}: Rp {val:>12,.0f}")
         print()
@@ -1790,8 +1805,12 @@ def generate_packages(total_budget, num_persons, duration, datasets,
             # Jika budget None (mode destinasi tanpa budget), tetap pilih termurah.
             hemat_target = total_budget * ratios_for_c[0] if total_budget is not None else None
             hemat_key = (lambda x: x["total_cost"]) if hemat_target is None else (lambda x: abs(x["total_cost"] - hemat_target))
-            valid_combinations_noboost = sorted(valid_combinations, key=lambda x: (x.get("selisih", 0) < 0, hemat_key(x), x["total_dist"]))
-            valid_combinations = sorted(valid_combinations, key=lambda x: (x.get("selisih", 0) < 0, -get_comb_pref_score(x), hemat_key(x), x["total_dist"]))
+            if pref_bias < -0.1:
+                valid_combinations_noboost = sorted(valid_combinations, key=lambda x: (x.get("selisih", 0) < 0, x["total_dist"], hemat_key(x)))
+                valid_combinations = sorted(valid_combinations, key=lambda x: (x.get("selisih", 0) < 0, x["total_dist"], -get_comb_pref_score(x), hemat_key(x)))
+            else:
+                valid_combinations_noboost = sorted(valid_combinations, key=lambda x: (x.get("selisih", 0) < 0, hemat_key(x), x["total_dist"]))
+                valid_combinations = sorted(valid_combinations, key=lambda x: (x.get("selisih", 0) < 0, -get_comb_pref_score(x), hemat_key(x), x["total_dist"]))
         elif i == best_c - 1:
             # Premium/kelas tertinggi: Personalisasi dengan target budget
             premium_target = total_budget * ratios_for_c[-1] if total_budget is not None else None
@@ -2462,7 +2481,7 @@ def generate_packages(total_budget, num_persons, duration, datasets,
                       f"{pkg['nights']} malam × {pkg['num_rooms']} kamar"
                       f" = Rp {pkg['cost_akomodasi']:,.0f}")
             else:
-                print(f"  🏨 Akomodasi: Tanpa Akomodasi (One Day Trip)")
+                print("  🏨 Akomodasi: Tanpa Akomodasi (One Day Trip)")
             print(f"  🎯 Wisata  : {pkg['wisata_nama']}")
             print(f"               Rp {pkg['wisata_harga']:,.0f}/orang × {pkg['num_persons']} orang = Rp {pkg['cost_wisata']:,.0f}")
             print(f"  🍜 Kuliner : {pkg['kuliner_nama']} & {pkg['kuliner_malam_nama']}")
@@ -2471,7 +2490,7 @@ def generate_packages(total_budget, num_persons, duration, datasets,
             
             # Print transparent daily subtotals if multi-day
             if pkg["duration"] > 1 and pkg.get("itinerary"):
-                print(f"  🗂️  Rincian Harian Transparan:")
+                print("  🗂️  Rincian Harian Transparan:")
                 for day in pkg["itinerary"]:
                     d = day["day"]
                     prev_day_hotel = pkg["itinerary"][d - 2].get("hotel") if d > 1 else (pkg.get("hotel_nama_real") or pkg.get("hotel_nama"))
@@ -2618,12 +2637,12 @@ def generate_flexible_exploration_packages(num_persons, duration, datasets,
 
     if verbose:
         print(f"\n{'='*60}")
-        print(f"  FLEXIBLE EXPLORATION WORKFLOW")
+        print("  FLEXIBLE EXPLORATION WORKFLOW")
         print(f"{'='*60}")
         print(f"  Peserta       : {num_persons} orang")
         print(f"  Durasi        : {duration} hari")
         print(f"  Auto-c        : best_c = {best_c} | Label: {list(cluster_labels.values())}")
-        print(f"  Skema         : Centroid Persentil (Offline)\n")
+        print("  Skema         : Centroid Persentil (Offline)\n")
 
     clustered = {}
     for cat_name in ["hotel", "wisata", "kuliner"]:
@@ -2853,11 +2872,14 @@ def generate_flexible_exploration_packages(num_persons, duration, datasets,
         if i == 0:
             # Hemat: paket termurah yang MENGIKUTI skala budget bila budget diisi.
             # Pada mode flexible, budget selalu None (tanpa budget).
-            total_budget = None 
             hemat_target = None
             hemat_key = (lambda x: x["total_cost"]) if hemat_target is None else (lambda x: abs(x["total_cost"] - hemat_target))
-            valid_combinations_noboost = sorted(valid_combinations, key=lambda x: (x.get("selisih", 0) < 0, hemat_key(x), x["total_dist"]))
-            valid_combinations = sorted(valid_combinations, key=lambda x: (x.get("selisih", 0) < 0, -get_comb_pref_score(x), hemat_key(x), x["total_dist"]))
+            if pref_bias < -0.1:
+                valid_combinations_noboost = sorted(valid_combinations, key=lambda x: (x.get("selisih", 0) < 0, x["total_dist"], hemat_key(x)))
+                valid_combinations = sorted(valid_combinations, key=lambda x: (x.get("selisih", 0) < 0, x["total_dist"], -get_comb_pref_score(x), hemat_key(x)))
+            else:
+                valid_combinations_noboost = sorted(valid_combinations, key=lambda x: (x.get("selisih", 0) < 0, hemat_key(x), x["total_dist"]))
+                valid_combinations = sorted(valid_combinations, key=lambda x: (x.get("selisih", 0) < 0, -get_comb_pref_score(x), hemat_key(x), x["total_dist"]))
         elif i == best_c - 1:
             # Premium/kelas tertinggi: Personalisasi dengan target budget
             premium_target = None
@@ -3388,7 +3410,7 @@ def generate_flexible_exploration_packages(num_persons, duration, datasets,
 
     if verbose and options_list:
         rep_packages = cast(list, options_list[0]["packages"])
-        print(f"\n  HASIL FLEXIBLE EXPLORATION OPSI 1:")
+        print("\n  HASIL FLEXIBLE EXPLORATION OPSI 1:")
         for pkg in rep_packages:
             print(f"    • {pkg['kategori'].upper():10}: Rp {pkg['total_cost']:,.0f}")
             print(f"      H: {pkg['hotel_nama']} | W: {pkg['wisata_nama']} | K: {pkg['kuliner_nama']}")
@@ -3450,7 +3472,7 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
         df_wisata["Fuzzy_Score"] = [sum(w_list[k] * u_matrix[k, j] for k in range(3)) for j in range(len(df_wisata))]
         
         df_wisata["Kategori"] = df_wisata["Cluster"].map(CLUSTER_LABELS)
-    except Exception as e:
+    except Exception:
         df_wisata["Cluster"] = 0
         df_wisata["Membership_Degree"] = 1.0
         df_wisata["Fuzzy_Score"] = 1.0
@@ -3487,7 +3509,7 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
 
     if verbose:
         print(f"\n{'='*60}")
-        print(f"  DESTINATION-FIRST WORKFLOW")
+        print("  DESTINATION-FIRST WORKFLOW")
         print(f"{'='*60}")
         print(f"  Destinasi Kunci: {best_wisata['Nama_Tempat']}")
         print(f"  Harga Tiket    : Rp {harga_tiket:,.0f} × {num_persons} orang = Rp {tiket_total:,.0f}")
@@ -3497,7 +3519,7 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
         if total_budget:
             print(f"  Total Budget  : Rp {total_budget:,.0f}")
         else:
-            print(f"  Total Budget  : Tanpa Batasan (Kondisi A)")
+            print("  Total Budget  : Tanpa Batasan (Kondisi A)")
         print()
 
     clustered = {}
@@ -3787,8 +3809,12 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
             # Jika budget None (mode destinasi tanpa budget), tetap pilih termurah.
             hemat_target = total_budget * ratios_dest[0] if total_budget is not None else None
             hemat_key = (lambda x: x["total_cost"]) if hemat_target is None else (lambda x: abs(x["total_cost"] - hemat_target))
-            valid_combinations_noboost = sorted(valid_combinations, key=lambda x: (x.get("selisih", 0) < 0, hemat_key(x), x["total_dist"]))
-            valid_combinations = sorted(valid_combinations, key=lambda x: (x.get("selisih", 0) < 0, -get_comb_pref_score(x), hemat_key(x), x["total_dist"]))
+            if pref_bias < -0.1:
+                valid_combinations_noboost = sorted(valid_combinations, key=lambda x: (x.get("selisih", 0) < 0, x["total_dist"], hemat_key(x)))
+                valid_combinations = sorted(valid_combinations, key=lambda x: (x.get("selisih", 0) < 0, x["total_dist"], -get_comb_pref_score(x), hemat_key(x)))
+            else:
+                valid_combinations_noboost = sorted(valid_combinations, key=lambda x: (x.get("selisih", 0) < 0, hemat_key(x), x["total_dist"]))
+                valid_combinations = sorted(valid_combinations, key=lambda x: (x.get("selisih", 0) < 0, -get_comb_pref_score(x), hemat_key(x), x["total_dist"]))
         elif i == best_c - 1:
             # Premium/kelas tertinggi: Personalisasi dengan target budget
             premium_target = total_budget * ratios_dest[-1] if total_budget is not None else None
@@ -4448,7 +4474,7 @@ def generate_destination_first_packages(locked_wisata_id, num_persons, duration,
 
     if verbose and options_list:
         rep_packages = cast(list, options_list[0]["packages"])
-        print(f"\n  HASIL DESTINATION-FIRST OPSI 1:")
+        print("\n  HASIL DESTINATION-FIRST OPSI 1:")
         for pkg in rep_packages:
             status = ""
             if total_budget:
@@ -4522,7 +4548,6 @@ def export_to_excel_recom(options_list, workflow, budget, persons, duration, pre
     def format_cntr(cntr):
         if cntr is None or len(cntr) == 0: return "N/A"
         try:
-            import numpy as np
             flat_cntr = np.ravel(cntr)
             
             c = len(flat_cntr)
@@ -4544,7 +4569,6 @@ def export_to_excel_recom(options_list, workflow, budget, persons, duration, pre
         except Exception:
             return str(cntr)
             
-    global LAST_CLUSTERED
     hotel_cntr_str = format_cntr(LAST_CLUSTERED.get("hotel_cntr", [])) if LAST_CLUSTERED else "N/A"
     wisata_cntr_str = format_cntr(LAST_CLUSTERED.get("wisata_cntr", [])) if LAST_CLUSTERED else "N/A"
     kuliner_cntr_str = format_cntr(LAST_CLUSTERED.get("kuliner_cntr", [])) if LAST_CLUSTERED else "N/A"
@@ -4791,7 +4815,7 @@ def export_to_excel_recom(options_list, workflow, budget, persons, duration, pre
                     "Item / Aktivitas": "Hotel",
                     "Detail / Nama Tempat": h_name,
                     "Biaya (Rp)": h_harga,
-                    "Keterangan": "/malam (Status: Checkout)" if h_name == "Checkout" else f"/malam (Status: Menginap)"
+                    "Keterangan": "/malam (Status: Checkout)" if h_name == "Checkout" else "/malam (Status: Menginap)"
                 })
                 
                 w_name = day_dict.get("wisata", "N/A")
@@ -4843,7 +4867,7 @@ def export_to_excel_recom(options_list, workflow, budget, persons, duration, pre
                 detail_rows.append({
                     "Opsi & Kelas": opt_label,
                     "Hari": day_label,
-                    "Item / Aktivitas": f"• Kamar Hotel ({nights if h_name != 'Checkout' else 0} Malam)" if h_name == "Checkout" else f"• Kamar Hotel (1 Malam)",
+                    "Item / Aktivitas": f"• Kamar Hotel ({nights if h_name != 'Checkout' else 0} Malam)" if h_name == "Checkout" else "• Kamar Hotel (1 Malam)",
                     "Detail / Nama Tempat": "",
                     "Biaya (Rp)": h_cost_day,
                     "Keterangan": ""
@@ -4965,6 +4989,277 @@ def export_to_excel_recom(options_list, workflow, budget, persons, duration, pre
             
     df_detail = pd.DataFrame(detail_rows)
     
+    # ── PRA-KOMPUTASI DOKUMENTASI FCM (sebelum ExcelWriter dibuka) ──
+    _doc_sheets = {}  # dict: sheet_name -> DataFrame
+    if LAST_CLUSTERED is not None:
+        try:
+            from fcm_clustering import run_percentile_fcm as _run_pct_fcm
+            _run_fcm_ma = run_multi_attribute_fcm
+            _get_labels = get_cluster_labels
+
+            _cats = {
+                "hotel":   ("Akomodasi (Hotel)",      LAST_CLUSTERED.get("hotel")),
+                "wisata":  ("Destinasi Wisata",        LAST_CLUSTERED.get("wisata")),
+                "kuliner": ("Kuliner (Tempat Makan)",  LAST_CLUSTERED.get("kuliner")),
+            }
+            best_c_detected = 2
+            for _, df_tmp in _cats.values():
+                if df_tmp is not None and "Cluster" in df_tmp.columns:
+                    best_c_detected = int(df_tmp["Cluster"].max()) + 1
+                    break
+            labels_map = _get_labels(best_c_detected)
+
+            # --- TABEL 1: Konvergensi FCM ---
+            iterasi_rows = []
+            for key, (label, df_cat) in _cats.items():
+                if df_cat is None or df_cat.empty:
+                    continue
+                res_tmp = _run_fcm_ma(df_cat, n_clusters=best_c_detected, workflow="flexible")
+                iterasi_rows.append({
+                    "Kategori": label,
+                    "Jumlah Iterasi (Berhenti saat ‖ΔU‖ < ε)": res_tmp.get("n_iter", "-"),
+                    "FPC (Fuzzy Partition Coefficient)": round(res_tmp.get("fpc", 0.0), 6),
+                    "XBI (Xie-Beni Index)": round(res_tmp.get("xb", 0.0), 6),
+                })
+            if iterasi_rows:
+                _doc_sheets["FCM Konvergensi"] = pd.DataFrame(iterasi_rows)
+
+            # --- TABEL 2: Centroid Final ---
+            centroid_rows = []
+            for key, (label, df_cat) in _cats.items():
+                if df_cat is None or df_cat.empty:
+                    continue
+                res_tmp = _run_fcm_ma(df_cat, n_clusters=best_c_detected, workflow="flexible")
+                cntr_full = res_tmp.get("cntr_full")
+                row = {"Kategori": label}
+                if cntr_full is not None:
+                    for ci in range(best_c_detected):
+                        kelas = labels_map.get(ci, f"Klaster {ci}")
+                        row[f"Centroid {kelas} — Harga (Rp)"] = round(float(cntr_full[ci, 0]))
+                        row[f"Centroid {kelas} — Rating"] = round(float(cntr_full[ci, 1]), 4)
+                        row[f"Centroid {kelas} — Nilai Kategori"] = round(float(cntr_full[ci, 2]), 4)
+                centroid_rows.append(row)
+            if centroid_rows:
+                _doc_sheets["FCM Centroid Final"] = pd.DataFrame(centroid_rows)
+
+            # --- TABEL 3: Sampel Matriks U ---
+            for key, (label, df_cat) in _cats.items():
+                if df_cat is None or df_cat.empty:
+                    continue
+                res_tmp = _run_fcm_ma(df_cat, n_clusters=best_c_detected, workflow="flexible")
+                u_matrix = res_tmp.get("u")
+                sorted_labels_u = res_tmp.get("labels")
+                df_u = df_cat.copy().reset_index(drop=True)
+                for ci in range(best_c_detected):
+                    kelas = labels_map.get(ci, f"Klaster {ci}")
+                    df_u[f"U_{kelas}"] = u_matrix[ci, :]
+                df_u["Label Klaster"] = [labels_map.get(int(l), str(l)) for l in sorted_labels_u]
+                sample_rows_u = []
+                if "U_Hemat" in df_u.columns and "Label Klaster" in df_u.columns:
+                    hemat_strong = df_u[df_u["Label Klaster"] == "Hemat"].nlargest(2, "U_Hemat")
+                    sample_rows_u.append(hemat_strong)
+                prem_label = labels_map.get(best_c_detected - 1, "Premium")
+                prem_col = f"U_{prem_label}"
+                if prem_col in df_u.columns:
+                    prem_strong = df_u[df_u["Label Klaster"] == prem_label].nlargest(2, prem_col)
+                    sample_rows_u.append(prem_strong)
+                if "U_Hemat" in df_u.columns:
+                    df_u["_borderline"] = (df_u["U_Hemat"] - 0.5).abs()
+                    sample_rows_u.append(df_u.nsmallest(1, "_borderline"))
+                if sample_rows_u:
+                    df_sample = pd.concat(sample_rows_u).drop_duplicates().head(5)
+                    cols_to_show = (["Nama_Tempat", "Estimasi_Harga", "Rating", "Nilai_Numerik"] +
+                                    [f"U_{labels_map.get(ci, str(ci))}" for ci in range(best_c_detected)] +
+                                    ["Label Klaster"])
+                    cols_to_show = [c for c in cols_to_show if c in df_sample.columns]
+                    sheet_u = f"Matriks U — {label[:20]}"
+                    _doc_sheets[sheet_u] = df_sample[cols_to_show]
+
+            # --- TABEL 4: Normalisasi Detail ---
+            def _pick3(df_src, harga_col):
+                if len(df_src) == 0:
+                    return df_src
+                hemat = df_src.nsmallest(1, harga_col)
+                premium = df_src.nlargest(1, harga_col)
+                mid_idx = df_src[harga_col].sub(df_src[harga_col].median()).abs().idxmin()
+                return pd.concat([hemat, df_src.loc[[mid_idx]], premium]).drop_duplicates().head(3)
+
+            for key, (label, df_cat) in _cats.items():
+                if df_cat is None or df_cat.empty:
+                    continue
+                df_n = df_cat.copy()
+                prices_n = pd.to_numeric(df_n["Estimasi_Harga"], errors="coerce").fillna(0)
+                ratings_n = pd.to_numeric(df_n["Rating"], errors="coerce").fillna(4.0) if "Rating" in df_n.columns else pd.Series(4.0, index=df_n.index)
+                cats_n = pd.to_numeric(df_n["Nilai_Numerik"], errors="coerce").fillna(0) if "Nilai_Numerik" in df_n.columns else pd.Series(0.0, index=df_n.index)
+                p_min, p_max = prices_n.min(), prices_n.max()
+                r_min, r_max = ratings_n.min(), ratings_n.max()
+                c_min, c_max = cats_n.min(), cats_n.max()
+                W_p, W_r, W_c = 0.8, 0.1, 0.1
+                norm_h = (prices_n - p_min) / (p_max - p_min + 1e-10)
+                norm_r = (ratings_n - r_min) / (r_max - r_min + 1e-10)
+                norm_c = (cats_n - c_min) / (c_max - c_min + 1e-10)
+                df_n["Harga Asli (Rp)"] = prices_n
+                df_n["Rating Asli"] = ratings_n
+                df_n["Kategori Asli (Nilai Numerik)"] = cats_n
+                df_n["Norm Harga"] = norm_h.round(6)
+                df_n["Norm Rating"] = norm_r.round(6)
+                df_n["Norm Kategori"] = norm_c.round(6)
+                df_n[f"×Wp ({W_p})"] = (norm_h * W_p).round(6)
+                df_n[f"×Wr ({W_r})"] = (norm_r * W_r).round(6)
+                df_n[f"×Wc ({W_c})"] = (norm_c * W_c).round(6)
+                stats_rows = [
+                    {"Statistik Normalisasi": f"Harga — Min: Rp{int(p_min):,} | Max: Rp{int(p_max):,}"},
+                    {"Statistik Normalisasi": f"Rating — Min: {r_min:.2f} | Max: {r_max:.2f}"},
+                    {"Statistik Normalisasi": f"Kategori (Nilai Numerik) — Min: {c_min} | Max: {c_max}"},
+                    {"Statistik Normalisasi": f"Bobot — Harga: {W_p} | Rating: {W_r} | Kategori: {W_c}"},
+                ]
+                cols_norm = (["Nama_Tempat", "Harga Asli (Rp)", "Rating Asli", "Kategori Asli (Nilai Numerik)",
+                              "Norm Harga", "Norm Rating", "Norm Kategori",
+                              f"×Wp ({W_p})", f"×Wr ({W_r})", f"×Wc ({W_c})"])
+                cols_norm = [c for c in cols_norm if c in df_n.columns]
+                df_norm_sample = _pick3(df_n, "Harga Asli (Rp)")[cols_norm]
+                sheet_norm = f"Norm Detail — {label[:18]}"
+                _doc_sheets[sheet_norm] = (pd.DataFrame(stats_rows), df_norm_sample)  # tuple: (stats, data)
+
+            # --- TABEL 5: XBI & FPC multi-atribut c=2..5 ---
+            xb_rows = []
+            for c_val in [2, 3, 4, 5]:
+                row_xb = {"c": c_val}
+                xb_vals_5 = []
+                for key, (label, df_cat) in _cats.items():
+                    cat_name = "Wisata" if key == "wisata" else ("Hotel" if key == "hotel" else "Kuliner")
+                    if df_cat is None or df_cat.empty:
+                        row_xb[f"XBI {cat_name}"] = "-"
+                        row_xb[f"FPC {cat_name}"] = "-"
+                        continue
+                    res_c = _run_fcm_ma(df_cat, n_clusters=c_val, workflow="flexible")
+                    xb_v = res_c.get("xb", float("inf"))
+                    fpc_v = res_c.get("fpc", 0.0)
+                    row_xb[f"XBI {cat_name}"] = round(xb_v, 6) if xb_v != float("inf") else "∞"
+                    row_xb[f"FPC {cat_name}"] = round(fpc_v, 6)
+                    if xb_v != float("inf"):
+                        xb_vals_5.append(xb_v)
+                
+                # Enforce column order: c | XBI Wisata | XBI Hotel | XBI Kuliner | FPC Wisata | FPC Hotel | FPC Kuliner | Rata-rata XBI
+                ordered_row_xb = {"c": c_val}
+                for c_name in ["Wisata", "Hotel", "Kuliner"]:
+                    ordered_row_xb[f"XBI {c_name}"] = row_xb.get(f"XBI {c_name}", "-")
+                for c_name in ["Wisata", "Hotel", "Kuliner"]:
+                    ordered_row_xb[f"FPC {c_name}"] = row_xb.get(f"FPC {c_name}", "-")
+                ordered_row_xb["Rata-rata XBI"] = round(sum(xb_vals_5) / len(xb_vals_5), 6) if xb_vals_5 else "∞"
+                xb_rows.append(ordered_row_xb)
+            if xb_rows:
+                _doc_sheets["XBI & FPC (c=2 sampai 5)"] = pd.DataFrame(xb_rows)
+
+            # --- TABEL 5b: XBI Skripsi (3D Multi-Atribut) ---
+            xb_skripsi_rows = []
+            for c_val in [2, 3, 4, 5]:
+                row_sk2 = {"c": c_val}
+                xb_vals_sk2 = []
+                for key, (label, df_cat) in _cats.items():
+                    if df_cat is None or df_cat.empty:
+                        row_sk2[f"XBI {label.split('(')[0].strip()}"] = "-"
+                        continue
+                    res_ma = _run_fcm_ma(df_cat, n_clusters=c_val, workflow="flexible")
+                    xb_v2 = res_ma.get("xb", float("inf"))
+                    col_name = f"XBI {label.split('(')[0].strip()}"
+                    if xb_v2 == float("inf"):
+                        row_sk2[col_name] = "∞"
+                    else:
+                        row_sk2[col_name] = round(xb_v2, 6)
+                        xb_vals_sk2.append(xb_v2)
+                row_sk2["Rata-rata XBI"] = round(sum(xb_vals_sk2) / len(xb_vals_sk2), 6) if xb_vals_sk2 else "∞"
+                xb_skripsi_rows.append(row_sk2)
+            if xb_skripsi_rows:
+                _doc_sheets["XBI per Kategori (Skripsi)"] = pd.DataFrame(xb_skripsi_rows)
+
+            # --- TABEL 6: Breakdown XBI untuk best_c ---
+            breakdown_rows = []
+            for key, (label, df_cat) in _cats.items():
+                if df_cat is None or df_cat.empty:
+                    continue
+                prices_bd = pd.to_numeric(df_cat["Estimasi_Harga"], errors="coerce").fillna(0).values.astype(float)
+                ratings_bd = pd.to_numeric(df_cat["Rating"], errors="coerce").fillna(4.0).values.astype(float) if "Rating" in df_cat.columns else np.full(len(df_cat), 4.0)
+                cats_bd = pd.to_numeric(df_cat["Nilai_Numerik"], errors="coerce").fillna(0).values.astype(float) if "Nilai_Numerik" in df_cat.columns else np.zeros(len(df_cat))
+                p_min_bd, p_max_bd = prices_bd.min(), prices_bd.max()
+                r_min_bd, r_max_bd = ratings_bd.min(), ratings_bd.max()
+                c_min_bd, c_max_bd = cats_bd.min(), cats_bd.max()
+                W_p2, W_r2, W_c2 = 0.8, 0.1, 0.1
+                p_sc = ((prices_bd - p_min_bd) / (p_max_bd - p_min_bd + 1e-10)) * W_p2
+                r_sc = ((ratings_bd - r_min_bd) / (r_max_bd - r_min_bd + 1e-10)) * W_r2
+                c_sc = ((cats_bd - c_min_bd) / (c_max_bd - c_min_bd + 1e-10)) * W_c2
+                X_bd = np.column_stack([p_sc, r_sc, c_sc])
+                res_bd = _run_fcm_ma(df_cat, n_clusters=best_c_detected, workflow="flexible")
+                u_bd = res_bd["u"]
+                cntr_full_bd = res_bd.get("cntr_full")
+                if cntr_full_bd is None:
+                    continue
+                cntr_sc = np.column_stack([
+                    ((cntr_full_bd[:, 0] - p_min_bd) / (p_max_bd - p_min_bd + 1e-10)) * W_p2,
+                    ((cntr_full_bd[:, 1] - r_min_bd) / (r_max_bd - r_min_bd + 1e-10)) * W_r2,
+                    ((cntr_full_bd[:, 2] - c_min_bd) / (c_max_bd - c_min_bd + 1e-10)) * W_c2,
+                ])
+                sigma_bd = 0.0
+                for ki in range(best_c_detected):
+                    diff_bd = X_bd - cntr_sc[ki]
+                    dist_sq_bd = np.sum(diff_bd ** 2, axis=1)
+                    sigma_bd += float(np.sum((u_bd[ki, :] ** 2) * dist_sq_bd))
+                sep_bd = float("inf")
+                for ki in range(best_c_detected):
+                    for ji in range(ki + 1, best_c_detected):
+                        d2 = float(np.sum((cntr_sc[ki] - cntr_sc[ji]) ** 2))
+                        if d2 < sep_bd:
+                            sep_bd = d2
+                N_bd = len(X_bd)
+                xb_bd = sigma_bd / (N_bd * sep_bd) if sep_bd > 0 else float("inf")
+                breakdown_rows.append({
+                    "Kategori": label,
+                    "N (jumlah data)": N_bd,
+                    "Total Variansi (σ)": round(sigma_bd, 6),
+                    "Separasi Min (sep)": round(sep_bd, 6),
+                    "XBI": round(xb_bd, 6) if xb_bd != float("inf") else "∞",
+                    "FPC": round(res_bd.get("fpc", 0.0), 6),
+                })
+            if breakdown_rows:
+                _doc_sheets[f"XBI Breakdown c={best_c_detected}"] = pd.DataFrame(breakdown_rows)
+
+            # --- TABEL 7: Perbandingan 4 Skema Rasio ---
+            skema_defs = {"A": [0.8, 1.2], "B": [0.7, 1.3], "C": [0.6, 1.4], "D": [0.5, 1.5]}
+            skema_rows = []
+            for skema_name, rasio_list in skema_defs.items():
+                rasio_label = " — ".join([f"{r}×" for r in rasio_list])
+                row_sk = {"Skema": skema_name, "Rasio": rasio_label}
+                xb_vals_sk = []
+                for key, (label, df_cat) in _cats.items():
+                    cat_name = "Wisata" if key == "wisata" else ("Hotel" if key == "hotel" else "Kuliner")
+                    if df_cat is None or df_cat.empty:
+                        row_sk[f"XBI {cat_name}"] = "-"
+                        row_sk[f"FPC {cat_name}"] = "-"
+                        continue
+                    prices_sk = pd.to_numeric(df_cat["Estimasi_Harga"], errors="coerce").fillna(0).values.astype(float)
+                    anchor_sk = float(np.median(prices_sk))
+                    res_sk = _run_fcm_ma(df_cat, budget_anchor=anchor_sk * rasio_list[0], n_clusters=best_c_detected, workflow="budget")
+                    xb_v_sk = res_sk.get("xb", float("inf"))
+                    fpc_v_sk = res_sk.get("fpc", 0.0)
+                    row_sk[f"XBI {cat_name}"] = round(xb_v_sk, 6) if xb_v_sk != float("inf") else "∞"
+                    row_sk[f"FPC {cat_name}"] = round(fpc_v_sk, 6)
+                    if xb_v_sk != float("inf"):
+                        xb_vals_sk.append(xb_v_sk)
+                
+                # Enforce column order: Skema | Rasio | XBI Wisata | XBI Hotel | XBI Kuliner | FPC Wisata | FPC Hotel | FPC Kuliner | Rata-rata XBI
+                ordered_row_sk = {"Skema": skema_name, "Rasio": rasio_label}
+                for c_name in ["Wisata", "Hotel", "Kuliner"]:
+                    ordered_row_sk[f"XBI {c_name}"] = row_sk.get(f"XBI {c_name}", "-")
+                for c_name in ["Wisata", "Hotel", "Kuliner"]:
+                    ordered_row_sk[f"FPC {c_name}"] = row_sk.get(f"FPC {c_name}", "-")
+                ordered_row_sk["Rata-rata XBI"] = round(sum(xb_vals_sk) / len(xb_vals_sk), 6) if xb_vals_sk else "∞"
+                skema_rows.append(ordered_row_sk)
+            if skema_rows:
+                _doc_sheets["Skema Rasio Perbandingan"] = pd.DataFrame(skema_rows)
+
+        except Exception as _e_doc:
+            print(f"   ⚠ Gagal pra-komputasi dokumentasi FCM: {_e_doc}")
+
     with pd.ExcelWriter(filepath, engine='openpyxl') as writer:
         df_meta.to_excel(writer, sheet_name="Rekomendasi Paket", index=False, startrow=0)
         df_items.to_excel(writer, sheet_name="Rekomendasi Paket", index=False, startrow=len(df_meta) + 2)
@@ -4984,7 +5279,6 @@ def export_to_excel_recom(options_list, workflow, budget, persons, duration, pre
                 df_comp.to_excel(writer, sheet_name="Perbandingan Boost Ranking", index=False)
         
         if LAST_CLUSTERED is not None:
-            import numpy as np
             export_dfs = {}
             for name in ["hotel", "wisata", "kuliner"]:
                 df_cls = LAST_CLUSTERED.get(name)
@@ -5055,5 +5349,18 @@ def export_to_excel_recom(options_list, workflow, budget, persons, duration, pre
             df_kuliner_export = export_dfs.get("kuliner")
             if df_kuliner_export is not None and not df_kuliner_export.empty:
                 df_kuliner_export.to_excel(writer, sheet_name="Klaster Kuliner (Kustom)", index=False)
-                
+
+        # ── TULIS SHEET DOKUMENTASI FCM (dalam ExcelWriter yang sama) ──
+        for _sheet_name, _sheet_data in _doc_sheets.items():
+            try:
+                if isinstance(_sheet_data, tuple):
+                    # Sheet dengan stats header + data table (Tabel 4 Normalisasi)
+                    _df_stats, _df_data = _sheet_data
+                    _df_stats.to_excel(writer, sheet_name=_sheet_name, index=False, startrow=0)
+                    _df_data.to_excel(writer, sheet_name=_sheet_name, index=False, startrow=len(_df_stats) + 2)
+                else:
+                    _sheet_data.to_excel(writer, sheet_name=_sheet_name, index=False)
+            except Exception as _e_sheet:
+                print(f"   ⚠ Gagal menulis sheet '{_sheet_name}': {_e_sheet}")
+
     print(f"   [Excel Exported with Cluster Sheets] -> {filepath}")

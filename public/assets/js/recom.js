@@ -166,41 +166,84 @@ document.addEventListener('DOMContentLoaded', () => {
     // Helper: Rebuild card transport legs list dynamically with extra destinations
     function rebuildCardLegsHTML(pkg, extraDests = []) {
         const originalLegs = pkg.transport_detail?.legs || [];
+        // Build planLegs: for each extra dest on day N, split "Makan Siang (Hari N) → Hotel (Hari N)"
+        // into Makan Siang → Extra → Hotel.  For last/ODT day, append Makan Siang → Extra at end.
         const planLegs = [];
 
+        // Collect the set of day numbers that are "checkout" or ODT (their last leg is Wisata → Makan Siang, no Hotel after)
+        // We detect this by checking if ANY leg for that day goes from Makan Siang to Hotel.
+        const sianToHotelDays = new Set();
         originalLegs.forEach(l => {
-            planLegs.push({
-                from: resolveRealName(l.from, pkg),
-                to: resolveRealName(l.to, pkg),
-                distance_km: l.distance_km,
-                cost: l.cost
-            });
+            if ((l.from || '').startsWith('Makan Siang') && (l.to || '').startsWith('Hotel')) {
+                const m = l.from.match(/Hari (\d+)/);
+                if (m) sianToHotelDays.add(parseInt(m[1], 10));
+            }
+        });
 
-            if (l.from?.startsWith("Wisata")) {
-                const match = l.from.match(/Hari (\d+)/);
-                const dayNum = match ? parseInt(match[1], 10) : 1;
-                const ed = extraDests[dayNum - 1];
-                if (ed) {
-                    const prevLeg = planLegs[planLegs.length - 1];
-                    if (prevLeg) {
-                        prevLeg.to = ed.nama;
-                        prevLeg.distance_km = ed.distance_km;
-                        prevLeg.cost = Math.round(ed.distance_km * 500);
+        originalLegs.forEach(l => {
+            const fromRaw = l.from || '';
+            const toRaw   = l.to   || '';
+
+            // Detect "Makan Siang (Hari N) → Hotel (Hari N)" — middle-day leg to split
+            const isSiangToHotel = fromRaw.startsWith('Makan Siang') && toRaw.startsWith('Hotel');
+            const dayMatchS = fromRaw.match(/Hari (\d+)/);
+            const dayNumS   = dayMatchS ? parseInt(dayMatchS[1], 10) : null;
+            const edMiddle  = (isSiangToHotel && dayNumS) ? (extraDests.find(d => d.dayNum === dayNumS) || null) : null;
+
+            if (edMiddle) {
+                // Makan Siang → Extra
+                planLegs.push({
+                    from: resolveRealName(fromRaw, pkg),
+                    to: edMiddle.nama,
+                    distance_km: edMiddle.distance_km,
+                    cost: Math.round(edMiddle.distance_km * (l.cost / (l.distance_km || 1))),
+                    isExtra: true
+                });
+                // Extra → Hotel
+                planLegs.push({
+                    from: edMiddle.nama,
+                    to: resolveRealName(toRaw, pkg),
+                    distance_km: l.distance_km,
+                    cost: l.cost,
+                    isExtra: true
+                });
+            } else {
+                planLegs.push({
+                    from: resolveRealName(fromRaw, pkg),
+                    to: resolveRealName(toRaw, pkg),
+                    distance_km: l.distance_km,
+                    cost: l.cost
+                });
+
+                // For last/ODT day: append Extra AFTER the "Wisata → Makan Siang" leg
+                // (only when that day has no Makan Siang → Hotel leg, i.e. checkout/ODT)
+                const isWisataToSiang = fromRaw.startsWith('Wisata') && toRaw.startsWith('Makan Siang');
+                if (isWisataToSiang) {
+                    const dayMatchW = fromRaw.match(/Hari (\d+)/);
+                    const dayNumW   = dayMatchW ? parseInt(dayMatchW[1], 10) : 0;
+                    // dayNumW === 0 means ODT (no "Hari N" tag)
+                    const isCheckoutOrODT = (dayNumW === 0) || !sianToHotelDays.has(dayNumW);
+                    if (isCheckoutOrODT) {
+                        const ed = (dayNumW === 0)
+                            ? (extraDests[0] || null)
+                            : (extraDests.find(d => d.dayNum === dayNumW) || null);
+                        if (ed) {
+                            planLegs.push({
+                                from: resolveRealName(toRaw, pkg), // Makan Siang
+                                to: ed.nama,
+                                distance_km: ed.distance_km,
+                                cost: Math.round(ed.distance_km * 500),
+                                isExtra: true
+                            });
+                        }
                     }
-
-                    planLegs.push({
-                        from: ed.nama,
-                        to: resolveRealName(l.to, pkg),
-                        distance_km: 2.0,
-                        cost: 1000
-                    });
                 }
             }
         });
 
         return planLegs.map(l => `
             <div class="transport-leg-row" style="align-items:flex-start; gap:4px;">
-                <span style="flex:1; min-width:0; word-break:break-word; line-height:1.3;">${l.from} → ${l.to} (${l.distance_km?.toFixed(1)} km)</span>
+                <span style="flex:1; min-width:0; word-break:break-word; line-height:1.3; ${l.isExtra ? 'color:var(--teal-600); font-weight:600;' : ''}">${l.from} → ${l.to} (${l.distance_km?.toFixed(1)} km)</span>
                 <span style="flex-shrink:0;">${fmtRp(l.cost)}</span>
             </div>
         `).join('');
@@ -211,14 +254,15 @@ document.addEventListener('DOMContentLoaded', () => {
         function getOptionGraphic(val, text) {
             const textLower = text.toLowerCase();
             const valLower = String(val).toLowerCase();
+            const uid = Math.random().toString(36).substring(2, 9);
             // Same Hotel
             if (valLower === 'same' || textLower.includes('sama') || textLower.includes('stay') || textLower.includes('same')) {
                 return `
 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;">
-  <rect width="24" height="24" rx="6" fill="url(#hotel-same-grad)" />
+  <rect width="24" height="24" rx="6" fill="url(#hotel-same-grad-${uid})" />
   <path d="M7 13H9V15H7V13ZM7 9H9V11H7V9ZM7 5H9V7H7V5ZM11 13H13V15H11V13ZM11 9H13V11H11V9ZM11 5H13V7H11V5ZM15 13H17V15H15V13ZM15 9H17V11H15V9ZM15 5H17V7H15V5ZM19 3H5C3.9 3 3 3.9 3 5V19C3 19.55 3.45 20 4 20H20C20.55 20 21 19.55 21 19V5C21 3.9 20.1 3 19 3ZM19 18H5V5H19V18Z" fill="white"/>
   <defs>
-    <linearGradient id="hotel-same-grad" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+    <linearGradient id="hotel-same-grad-${uid}" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
       <stop stop-color="#06b6d4"/>
       <stop offset="1" stop-color="#0891b2"/>
     </linearGradient>
@@ -229,10 +273,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (valLower === 'split' || textLower.includes('pindah') || textLower.includes('split')) {
                 return `
 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;">
-  <rect width="24" height="24" rx="6" fill="url(#hotel-split-grad)" />
+  <rect width="24" height="24" rx="6" fill="url(#hotel-split-grad-${uid})" />
   <path d="M19 8l-4 4h3c0 3.31-2.69 6-6 6-1.01 0-1.97-.25-2.8-.7l-1.46 1.46C8.97 19.54 10.43 20 12 20c4.42 0 8-3.58 8-8h3l-4-4zM6 12c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.7l1.46-1.46C15.03 4.46 13.57 4 12 4c-4.42 0-8 3.58-8 8H1l4 4 4-4H6z" fill="white"/>
   <defs>
-    <linearGradient id="hotel-split-grad" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+    <linearGradient id="hotel-split-grad-${uid}" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
       <stop stop-color="#ec4899"/>
       <stop offset="1" stop-color="#db2777"/>
     </linearGradient>
@@ -469,6 +513,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!searchInput || !searchDropdown) return;
 
         searchInput.addEventListener('input', (e) => {
+            hideError();
             const query = e.target.value;
             renderDestinationSuggestions(query);
         });
@@ -599,6 +644,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (searchInput && hiddenId) {
             searchInput.value = name;
             hiddenId.value = id;
+            hideError();
         }
 
         if (searchDropdown) {
@@ -1648,9 +1694,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (curVal > dMax) curVal = dMax;
             dSlider.value = curVal;
 
-            const isNoBudget = curVal < dMin;
             const valEl = document.getElementById('d-budget-val');
-            if (valEl) valEl.textContent = isNoBudget ? "Tanpa Batasan Anggaran " : fmtRp(curVal);
+            if (valEl) valEl.textContent = fmtRp(curVal);
 
             const minLbl = document.getElementById('d-budget-min-label');
             if (minLbl) minLbl.textContent = "Min: Rp 0";
@@ -1661,7 +1706,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const manualInp = document.getElementById('d-budget-manual');
             if (manualInp) {
                 if (document.activeElement !== manualInp) {
-                    manualInp.value = isNoBudget ? "" : curVal;
+                    manualInp.value = curVal;
                 }
                 manualInp.min = 0;
                 manualInp.max = dMax;
@@ -1714,15 +1759,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const valEl = document.getElementById('d-budget-val');
         if (valEl) {
-            if (val < dMin) {
-                valEl.textContent = "Tanpa Batasan Anggaran ";
-            } else {
-                valEl.textContent = fmtRp(val);
-            }
+            valEl.textContent = fmtRp(val);
         }
 
         const manualInp = document.getElementById('d-budget-manual');
-        if (manualInp) manualInp.value = val < dMin ? "" : val;
+        if (manualInp) manualInp.value = val;
 
         onBudgetChange();
     });
@@ -1811,27 +1852,15 @@ document.addEventListener('DOMContentLoaded', () => {
             const sliderMax = parseInt(slider.max);
 
             if (val <= 0) {
-                // Empty means No Budget
-                slider.value = 0;
-                e.target.value = "";
-                const valEl = document.getElementById('d-budget-val');
-                if (valEl) valEl.textContent = "Tanpa Batasan Anggaran ";
-            } else {
-                if (val > sliderMax) {
-                    val = sliderMax;
-                }
-                slider.value = val;
-                e.target.value = val;
-                const valEl = document.getElementById('d-budget-val');
-
-                const dPersons = +document.getElementById('d-persons')?.value || 1;
-                const dDuration = +document.getElementById('d-duration')?.value || 1;
-                const dHotelMode = document.getElementById('d-hotel-mode')?.value || 'same';
-                const dTransport = document.getElementById('d-transport')?.value || '';
-                let targetDMin = calculateScaledMinBudget(dPersons, dDuration, dHotelMode, dTransport);
-                if (slider && slider.dataset.aiMin) targetDMin = parseInt(slider.dataset.aiMin);
-                if (valEl) valEl.textContent = (val < targetDMin) ? "Tanpa Batasan Anggaran " : fmtRp(val);
+                val = 0;
             }
+            if (val > sliderMax) {
+                val = sliderMax;
+            }
+            slider.value = val;
+            e.target.value = val;
+            const valEl = document.getElementById('d-budget-val');
+            if (valEl) valEl.textContent = fmtRp(val);
             onBudgetChange();
         });
     }
@@ -2053,9 +2082,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     let newVal = Math.max(0, Math.min(safeMax, oldVal));
                     dSlider.value = newVal;
 
-                    const isNoBudget = newVal < dRange.min_budget;
                     const dValEl = document.getElementById('d-budget-val');
-                    if (dValEl) dValEl.textContent = isNoBudget ? "Tanpa Batasan Anggaran " : fmtRp(newVal);
+                    if (dValEl) dValEl.textContent = fmtRp(newVal);
 
                     document.getElementById('d-budget-min-label') &&
                         (document.getElementById('d-budget-min-label').textContent = "Min: Rp 0");
@@ -2064,7 +2092,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     const dManual = document.getElementById('d-budget-manual');
                     if (dManual && document.activeElement !== dManual) {
-                        dManual.value = isNoBudget ? "" : newVal;
+                        dManual.value = newVal;
                         dManual.min = dRange.min_budget;
                         dManual.max = dRange.max_budget;
                     }
@@ -2228,7 +2256,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <img class="opt-tab-thumb" src="${imgUrl}" alt="${escapeHtmlAttr(wName)}" onerror="handleImgErrorRecom(this, 'landscape')" />
                         </div>
                         <div class="opt-tab-text-col">
-                            <span class="opt-tab-title">Opsi Alternatif ${opt.option_index}</span>
+                            <span class="opt-tab-title">Opsi ${opt.option_index}</span>
                             <span class="opt-tab-subtitle">📍 ${wName || 'Wisata'}</span>
                         </div>
                     </button>
@@ -2451,7 +2479,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const legs = pkg.transport_detail?.legs || [];
         const legHTML = legs.length > 0
-            ? `<div class="transport-legs" id="transport-legs-${pkgUid}">
+            ? `<div style="text-align: right; margin-top: 4px; margin-bottom: 2px;">
+                 <span id="toggle-legs-${pkgUid}" style="font-size:11px; color:var(--teal-600); cursor:pointer; font-weight:600; display:inline-flex; align-items:center; gap:2px; user-select: none;">Lihat Detail Rute <span class="material-symbols-outlined" style="font-size:14px; transition: transform 0.2s;" id="toggle-legs-icon-${pkgUid}">expand_more</span></span>
+               </div>
+               <div class="transport-legs" id="transport-legs-${pkgUid}" style="display: none; margin-top: 4px;">
                 ${legs.map(l => `<div class="transport-leg-row" style="align-items:flex-start; gap:4px;"><span style="flex:1; min-width:0; word-break:break-word; line-height:1.3;">${l.from} → ${l.to} (${l.distance_km?.toFixed(1)} km)</span><span style="flex-shrink:0;">${fmtRp(l.cost)}</span></div>`).join('')}
                </div>` : '';
 
@@ -2814,6 +2845,21 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
+        const toggleLegsBtn = card.querySelector(`#toggle-legs-${pkgUid}`);
+        if (toggleLegsBtn) {
+            toggleLegsBtn.addEventListener('click', () => {
+                const legsDiv = card.querySelector(`#transport-legs-${pkgUid}`);
+                const icon = card.querySelector(`#toggle-legs-icon-${pkgUid}`);
+                if (legsDiv.style.display === 'none') {
+                    legsDiv.style.display = 'block';
+                    icon.style.transform = 'rotate(180deg)';
+                } else {
+                    legsDiv.style.display = 'none';
+                    icon.style.transform = 'rotate(0deg)';
+                }
+            });
+        }
+
         const saveBtn = card.querySelector('.pkg-btn-save');
         if (saveBtn) {
             saveBtn.addEventListener('click', () => {
@@ -2864,34 +2910,40 @@ document.addEventListener('DOMContentLoaded', () => {
                         const extraDests = card._extraDestinations || [];
 
                         originalLegs.forEach(l => {
-                            planLegs.push({
-                                from: resolveRealName(l.from, pkg),
-                                to: resolveRealName(l.to, pkg),
-                                from_coords: resolveCoords(l.from, pkg),
-                                to_coords: resolveCoords(l.to, pkg),
-                                distance: l.distance_km
-                            });
+                            const fromRaw = l.from || '';
+                            const toRaw   = l.to   || '';
 
-                            if (l.from?.startsWith("Wisata")) {
-                                const match = l.from.match(/Hari (\d+)/);
-                                const dayNum = match ? parseInt(match[1], 10) : 1;
-                                const ed = extraDests[dayNum - 1];
-                                if (ed) {
-                                    const prevLeg = planLegs[planLegs.length - 1];
-                                    if (prevLeg) {
-                                        prevLeg.to = ed.nama;
-                                        prevLeg.to_coords = `${ed.lat},${ed.lon}`;
-                                        prevLeg.distance = ed.distance_km;
-                                    }
+                            // Intercept Wisata → Makan Siang leg and insert extra dest in between
+                            const isWisataToSiang = fromRaw.startsWith('Wisata') && toRaw.startsWith('Makan Siang');
+                            const dayMatch = fromRaw.match(/Hari (\d+)/);
+                            const dayNum   = dayMatch ? parseInt(dayMatch[1], 10) : 1;
+                            const ed       = isWisataToSiang ? (extraDests[dayNum - 1] || null) : null;
 
-                                    planLegs.push({
-                                        from: ed.nama,
-                                        to: resolveRealName(l.to, pkg),
-                                        from_coords: `${ed.lat},${ed.lon}`,
-                                        to_coords: resolveCoords(l.to, pkg),
-                                        distance: 2.0
-                                    });
-                                }
+                            if (ed) {
+                                // Wisata → Extra Dest
+                                planLegs.push({
+                                    from: resolveRealName(fromRaw, pkg),
+                                    to: ed.nama,
+                                    from_coords: resolveCoords(fromRaw, pkg),
+                                    to_coords: `${ed.lat},${ed.lon}`,
+                                    distance: ed.distance_km
+                                });
+                                // Extra Dest → Makan Siang
+                                planLegs.push({
+                                    from: ed.nama,
+                                    to: resolveRealName(toRaw, pkg),
+                                    from_coords: `${ed.lat},${ed.lon}`,
+                                    to_coords: resolveCoords(toRaw, pkg),
+                                    distance: l.distance_km
+                                });
+                            } else {
+                                planLegs.push({
+                                    from: resolveRealName(fromRaw, pkg),
+                                    to: resolveRealName(toRaw, pkg),
+                                    from_coords: resolveCoords(fromRaw, pkg),
+                                    to_coords: resolveCoords(toRaw, pkg),
+                                    distance: l.distance_km
+                                });
                             }
                         });
                         return planLegs;
@@ -2935,29 +2987,25 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!last || last.name !== clean) routeWaypoints.push({ name: clean, coord, type, label });
         };
 
-        if (legs.length > 0) {
-            const typeMap = { 'Hotel': 'hotel', 'Wisata': 'wisata', 'Makan Pagi': 'kuliner-pagi', 'Makan Siang': 'kuliner-siang', 'Makan Malam': 'kuliner-malam', 'Kuliner': 'kuliner-siang' };
-            legs.forEach(leg => {
-                const n = resolveRealName(leg.from, pkg);
-                const c = resolveCoords(leg.from, pkg);
-                const t = typeMap[leg.from?.split('(')[0]?.trim()] || 'place';
-                pushWp(n, c, t, leg.from);
+        const planLegs = _computePlanLegs(pkg, extraDests);
 
-                // Sisipkan destinasi tambahan Hari N setelah Wisata (Hari N)
-                if (leg.from?.startsWith("Wisata")) {
-                    const match = leg.from.match(/Hari (\d+)/);
-                    const dayNum = match ? parseInt(match[1], 10) : 1;
-                    const ed = extraDests[dayNum - 1];
-                    if (ed) {
-                        pushWp(ed.nama, `${ed.lat},${ed.lon}`, 'wisata', `Wisata Tambahan (Hari ${dayNum})`);
+        if (planLegs.length > 0) {
+            const typeMap = { 'Hotel': 'hotel', 'Wisata': 'wisata', 'Makan Pagi': 'kuliner-pagi', 'Makan Siang': 'kuliner-siang', 'Makan Malam': 'kuliner-malam', 'Kuliner': 'kuliner-siang' };
+            planLegs.forEach(leg => {
+                const processNode = (nodeName) => {
+                    if (leg.rawExtraDest && nodeName === leg.rawExtraDest.nama) {
+                        const ed = leg.rawExtraDest;
+                        pushWp(ed.nama, `${ed.lat},${ed.lon}`, 'wisata', `Wisata Tambahan (Hari ${ed.dayNum || 1})`);
+                    } else {
+                        const n = resolveRealName(nodeName, pkg);
+                        const c = resolveCoords(nodeName, pkg);
+                        const t = typeMap[nodeName?.split('(')[0]?.trim()] || 'place';
+                        pushWp(n, c, t, nodeName);
                     }
-                }
+                };
+                processNode(leg.from);
+                processNode(leg.to);
             });
-            const lastLeg = legs[legs.length - 1];
-            const ln = resolveRealName(lastLeg.to, pkg);
-            const lc = resolveCoords(lastLeg.to, pkg);
-            const lt = typeMap[lastLeg.to?.split('(')[0]?.trim()] || 'place';
-            pushWp(ln, lc, lt, lastLeg.to);
         } else {
             if (pkg.duration > 1 && pkg.hotel_nama && pkg.hotel_nama !== 'Tanpa Akomodasi (One Day Trip)') {
                 pushWp(pkg.hotel_nama_real || pkg.hotel_nama, `${pkg.hotel_lat || 0},${pkg.hotel_lon || 0}`, 'hotel', 'Hotel');
@@ -2966,7 +3014,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 pushWp(day.kuliner_pagi, `${day.kuliner_pagi_lat || 0},${day.kuliner_pagi_lon || 0}`, 'kuliner-pagi', 'Makan Pagi');
                 pushWp(day.wisata, `${day.wisata_lat || 0},${day.wisata_lon || 0}`, 'wisata', 'Wisata');
 
-                const ed = extraDests[day.day - 1];
+                const ed = extraDests.find(d => d.dayNum === day.day);
                 if (ed) {
                     pushWp(ed.nama, `${ed.lat},${ed.lon}`, 'wisata', `Wisata Tambahan (Hari ${day.day})`);
                 }
@@ -3715,12 +3763,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (latLngs.length === 0) return;
 
         // Tambahkan marker dulu (langsung, tidak tunggu OSRM)
+        let markerIndex = 1;
         waypoints.forEach((wp, idx) => {
             const [lat, lon] = wp.coord.split(',').map(Number);
             if (lat === 0 && lon === 0) return;
             const s = WAYPOINT_STYLE[wp.type] || WAYPOINT_STYLE.place;
             const gmapsUrl = `https://www.google.com/maps/search/${encodeURIComponent(wp.name)}/@${lat},${lon},17z`;
-            L.marker([lat, lon], { icon: makeLeafletIcon(wp.type, idx + 1) })
+            L.marker([lat, lon], { icon: makeLeafletIcon(wp.type, markerIndex++) })
                 .addTo(map)
                 .bindPopup(`
                     <div style="min-width:190px;font-family:system-ui,sans-serif;">
@@ -6949,6 +6998,14 @@ async function openAddDestinationModal(pkg, card, pkgUid) {
     if (extraDests.length >= MAX_EXTRA) return;
 
     // Buat atau ambil modal overlay
+    let nextDayNum = 1;
+    for (let i = 1; i <= MAX_EXTRA; i++) {
+        if (!extraDests.find(d => d.dayNum === i)) {
+            nextDayNum = i;
+            break;
+        }
+    }
+
     let modal = document.getElementById('add-dest-modal');
     if (!modal) {
         modal = document.createElement('div');
@@ -6960,7 +7017,7 @@ async function openAddDestinationModal(pkg, card, pkgUid) {
                     <div>
                         <div class="add-dest-modal-title">
                             <span class="material-symbols-outlined" style="font-size:18px;color:var(--teal-500);">add_location_alt</span>
-                            Tambah Wisata Hari ${extraDests.length + 1}
+                            Tambah Wisata Hari ${nextDayNum}
                         </div>
                         <div class="add-dest-modal-sub" id="add-dest-modal-sub"></div>
                     </div>
@@ -6977,19 +7034,19 @@ async function openAddDestinationModal(pkg, card, pkgUid) {
     } else {
         // Update judul jika modal sudah ada
         const titleEl = modal.querySelector('.add-dest-modal-title');
-        if (titleEl) titleEl.innerHTML = `<span class="material-symbols-outlined" style="font-size:18px;color:var(--teal-500);">add_location_alt</span> Tambah Wisata Hari ${extraDests.length + 1}`;
+        if (titleEl) titleEl.innerHTML = `<span class="material-symbols-outlined" style="font-size:18px;color:var(--teal-500);">add_location_alt</span> Tambah Wisata Hari ${nextDayNum}`;
     }
 
     // Show modal
     modal.style.display = 'flex';
     const subEl = document.getElementById('add-dest-modal-sub');
-    if (subEl) subEl.textContent = `Sisa budget: ${fmtRpGlobal(effectiveBudgetRemaining)} — slot Hari ${extraDests.length + 1} dari ${MAX_EXTRA}`;
+    if (subEl) subEl.textContent = `Sisa budget: ${fmtRpGlobal(effectiveBudgetRemaining)} — slot Hari ${nextDayNum} dari ${MAX_EXTRA}`;
 
     document.getElementById('add-dest-modal-close').onclick = () => { modal.style.display = 'none'; };
     modal.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
 
     // Koordinat jangkar: wisata utama hari yang sedang ditambah
-    const activeDayIdx = extraDests.length;
+    const activeDayIdx = nextDayNum - 1;
     const activeDay = pkg.itinerary && pkg.itinerary[activeDayIdx] ? pkg.itinerary[activeDayIdx] : null;
     const searchLat = activeDay ? (activeDay.wisata_lat || pkg.wisata_lat) : (pkg.wisata_lat || 0);
     const searchLon = activeDay ? (activeDay.wisata_lon || pkg.wisata_lon) : (pkg.wisata_lon || 0);
@@ -7025,9 +7082,9 @@ async function openAddDestinationModal(pkg, card, pkgUid) {
         const renderCandidates = (candidates) => {
             // Restore modal title and subtitle
             const titleEl = modal.querySelector('.add-dest-modal-title');
-            if (titleEl) titleEl.innerHTML = `<span class="material-symbols-outlined" style="font-size:18px;color:var(--teal-500);">add_location_alt</span> Tambah Wisata Hari ${extraDests.length + 1}`;
+            if (titleEl) titleEl.innerHTML = `<span class="material-symbols-outlined" style="font-size:18px;color:var(--teal-500);">add_location_alt</span> Tambah Wisata Hari ${nextDayNum}`;
             const subEl = document.getElementById('add-dest-modal-sub');
-            if (subEl) subEl.textContent = `Sisa budget: ${fmtRpGlobal(effectiveBudgetRemaining)} — slot Hari ${extraDests.length + 1} dari ${MAX_EXTRA}`;
+            if (subEl) subEl.textContent = `Sisa budget: ${fmtRpGlobal(effectiveBudgetRemaining)} — slot Hari ${nextDayNum} dari ${MAX_EXTRA}`;
 
             bodyEl.innerHTML = candidates.map((c, ci) => {
                 const candImgHTML = getPlaceImageHTML(c.nama, `openOtaDetailByName('${c.nama.replace(/'/g, "\\'")}')`);
@@ -7123,6 +7180,10 @@ async function openAddDestinationModal(pkg, card, pkgUid) {
                                 `;
                                 }).join('')}
                             </div>
+                            <div id="fac-budget-bar" style="margin-top:12px; padding:10px 14px; background:rgba(13,148,136,0.07); border-radius:8px; border:1px solid var(--teal-200); display:flex; justify-content:space-between; align-items:center;">
+                                <span style="font-size:12px; color:var(--slate-600); font-weight:600;">Sisa budget setelah dipilih:</span>
+                                <span id="fac-budget-remaining-val" style="font-size:13px; font-weight:800; color:var(--teal-700);">${fmtRpGlobal(effectiveBudgetRemaining - chosen.total_ticket_cost)}</span>
+                            </div>
                             <div style="margin-top: 15px; display: flex; justify-content: space-between; align-items: center;">
                                 <button id="btn-back-to-candidates" style="background:var(--slate-200); color:var(--slate-700); padding: 10px 16px; border:1px solid var(--slate-300); border-radius:8px; font-weight:600; cursor:pointer; font-size: 13px;">Kembali</button>
                                 <button id="btn-confirm-add-dest-${ci}" style="background:var(--teal-600); color:white; padding: 10px 16px; border:none; border-radius:8px; font-weight:600; cursor:pointer; font-size: 13px;">Tambahkan ke Itinerary</button>
@@ -7132,6 +7193,27 @@ async function openAddDestinationModal(pkg, card, pkgUid) {
                         document.getElementById('btn-back-to-candidates').addEventListener('click', () => {
                             renderCandidates(candidates);
                         });
+
+                        // Live budget update setiap kali user mencentang/uncentang fasilitas
+                        const budgetValEl = document.getElementById('fac-budget-remaining-val');
+                        const baseBudgetForFac = effectiveBudgetRemaining - chosen.total_ticket_cost;
+                        const updateFacBudget = () => {
+                            let facCostSoFar = 0;
+                            bodyEl.querySelectorAll('.modal-wahana-checkbox').forEach(chk => {
+                                if (chk.checked) {
+                                    facCostSoFar += parseInt(chk.dataset.cost || '0', 10) * pkg.num_persons;
+                                }
+                            });
+                            const remaining = baseBudgetForFac - facCostSoFar;
+                            if (budgetValEl) {
+                                budgetValEl.textContent = fmtRpGlobal(remaining);
+                                budgetValEl.style.color = remaining < 0 ? '#dc2626' : 'var(--teal-700)';
+                            }
+                        };
+                        bodyEl.querySelectorAll('.modal-wahana-checkbox').forEach(chk => {
+                            chk.addEventListener('change', updateFacBudget);
+                        });
+                        updateFacBudget(); // Render nilai awal
 
                         document.getElementById(`btn-confirm-add-dest-${ci}`).addEventListener('click', () => {
                             const selectedFacs = [];
@@ -7284,11 +7366,18 @@ function _refreshExtraDestUI(pkg, card, pkgUid, MAX_EXTRA) {
         if (addBtn) addBtn.style.display = 'none';
         if (infoEl) infoEl.textContent = `Batas maksimal ${MAX_EXTRA} wisata tambahan (1 per hari) tercapai.`;
     } else if (effectiveRem >= 5000) {
+        let nextDayNum = 1;
+        for (let i = 1; i <= MAX_EXTRA; i++) {
+            if (!extraDests.find(d => d.dayNum === i)) {
+                nextDayNum = i;
+                break;
+            }
+        }
         if (addBtn) {
             addBtn.style.display = '';
-            addBtn.innerHTML = `<span class="material-symbols-outlined" style="font-size:15px;">add</span> Tambah Wisata Hari ${extraDests.length + 1}`;
+            addBtn.innerHTML = `<span class="material-symbols-outlined" style="font-size:15px;">add</span> Tambah Wisata Hari ${nextDayNum}`;
         }
-        if (infoEl) infoEl.textContent = `Sisa ${fmtRpGlobal(effectiveRem)} — tambah wisata untuk Hari ${extraDests.length + 1}!`;
+        if (infoEl) infoEl.textContent = `Sisa ${fmtRpGlobal(effectiveRem)} — tambah wisata untuk Hari ${nextDayNum}!`;
     } else {
         if (addBtn) addBtn.style.display = 'none';
         if (infoEl) infoEl.textContent = 'Budget tidak mencukupi untuk menambah wisata lagi.';
@@ -7297,32 +7386,71 @@ function _refreshExtraDestUI(pkg, card, pkgUid, MAX_EXTRA) {
 
 /* ─────────────────────────────────────────────────────────────────────────────
    Helper: Bangun inner HTML untuk #transport-legs-{uid}
-   Memuat semua original legs dari backend + baris tambahan untuk setiap extra wisata
+   Extra wisata disisipkan SETELAH Makan Siang:
+   - Hari tengah  : Makan Siang → Extra → Hotel
+   - Hari terakhir/ODT : (Makan Siang adalah leg terakhir hari itu) → Makan Siang → Extra
    ───────────────────────────────────────────────────────────────────────────── */
-function _buildExtraLegsRows(pkg, extraDests) {
+function _computePlanLegs(pkg, extraDests) {
     const legs = pkg.transport_detail?.legs || [];
-    // Baris asli dari backend
-    let rows = legs.map(l =>
-        `<div class="transport-leg-row" style="align-items:flex-start;gap:4px;">
-            <span style="flex:1;min-width:0;word-break:break-word;line-height:1.3;">${l.from} → ${l.to} (${l.distance_km?.toFixed(1)} km)</span>
-            <span style="flex-shrink:0;">${fmtRpGlobal(l.cost)}</span>
-         </div>`
-    ).join('');
 
-    // Baris tambahan untuk setiap extra wisata (pulang-pergi dari wisata utama hari itu)
-    extraDests.forEach(d => {
-        const legCost = Math.round(d.distance_km * 500 * 2);
-        rows += `
-            <div class="transport-leg-row" style="align-items:flex-start;gap:4px;background:rgba(13,148,136,0.05);border-radius:6px;padding:3px 6px;margin-top:2px;">
-                <span style="flex:1;min-width:0;word-break:break-word;line-height:1.4;color:var(--teal-700);">
-                    <span class="material-symbols-outlined" style="font-size:11px;vertical-align:middle;">add_location_alt</span>
-                    Wisata Utama → ${d.nama} → Wisata Utama (Hari ${d.dayNum}, PP ~${(d.distance_km * 2).toFixed(1)} km)
-                </span>
-                <span style="flex-shrink:0;color:var(--teal-700);">${fmtRpGlobal(legCost)}</span>
-            </div>`;
+    // Pre-pass: cari hari mana saja yang punya leg Makan Siang → Hotel (hari tengah/hari 1 stay)
+    const siangToHotelDays = new Set();
+    legs.forEach(l => {
+        if ((l.from || '').startsWith('Makan Siang') && (l.to || '').startsWith('Hotel')) {
+            const m = l.from.match(/Hari (\d+)/);
+            if (m) siangToHotelDays.add(parseInt(m[1], 10));
+        }
     });
 
-    return rows;
+    const planLegs = [];
+    legs.forEach(l => {
+        const fromRaw = l.from || '';
+        const toRaw   = l.to   || '';
+
+        // Hari tengah: pecah leg "Makan Siang (Hari N) → Hotel (Hari N)"
+        const isSiangToHotel = fromRaw.startsWith('Makan Siang') && toRaw.startsWith('Hotel');
+        const dayMatchS = fromRaw.match(/Hari (\d+)/);
+        const dayNumS   = dayMatchS ? parseInt(dayMatchS[1], 10) : null;
+        const edMiddle  = (isSiangToHotel && dayNumS) ? (extraDests.find(d => d.dayNum === dayNumS) || null) : null;
+
+        if (edMiddle) {
+            planLegs.push({ from: fromRaw, to: edMiddle.nama,  distance_km: edMiddle.distance_km, cost: Math.round(edMiddle.distance_km * (l.cost / (l.distance_km || 1))), isExtra: true, rawExtraDest: edMiddle });
+            planLegs.push({ from: edMiddle.nama, to: toRaw,    distance_km: l.distance_km,        cost: l.cost, isExtra: true, rawExtraDest: edMiddle });
+        } else {
+            planLegs.push({ from: fromRaw, to: toRaw, distance_km: l.distance_km, cost: l.cost });
+
+            // Hari terakhir/ODT: tambah leg "Makan Siang → Extra" setelah leg terakhir hari itu
+            const isWisataToSiang = fromRaw.startsWith('Wisata') && toRaw.startsWith('Makan Siang');
+            if (isWisataToSiang) {
+                const dayMatchW = fromRaw.match(/Hari (\d+)/);
+                const dayNumW   = dayMatchW ? parseInt(dayMatchW[1], 10) : 0;
+                const isCheckoutOrODT = (dayNumW === 0) || !siangToHotelDays.has(dayNumW);
+                if (isCheckoutOrODT) {
+                    const ed = (dayNumW === 0)
+                        ? (extraDests[0] || null)
+                        : (extraDests.find(d => d.dayNum === dayNumW) || null);
+                    if (ed) {
+                        planLegs.push({ from: toRaw, to: ed.nama, distance_km: ed.distance_km, cost: Math.round(ed.distance_km * 500), isExtra: true, rawExtraDest: ed });
+                    }
+                }
+            }
+        }
+    });
+
+    return planLegs;
+}
+
+function _buildExtraLegsRows(pkg, extraDests) {
+    const planLegs = _computePlanLegs(pkg, extraDests);
+
+    return planLegs.map(l => `
+        <div class="transport-leg-row" style="align-items:flex-start;gap:4px;${l.isExtra ? 'background:rgba(13,148,136,0.06);border-radius:6px;padding:3px 6px;margin-top:2px;' : ''}">
+            <span style="flex:1;min-width:0;word-break:break-word;line-height:1.3;${l.isExtra ? 'color:var(--teal-700);font-weight:600;' : ''}">
+                ${l.isExtra ? '<span class="material-symbols-outlined" style="font-size:11px;vertical-align:middle;">add_location_alt</span> ' : ''}${l.from} → ${l.to} (${l.distance_km?.toFixed(1)} km)
+            </span>
+            <span style="flex-shrink:0;${l.isExtra ? 'color:var(--teal-700);' : ''}">${fmtRpGlobal(l.cost)}</span>
+        </div>`
+    ).join('');
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -500,7 +500,7 @@
                     <div class="options-tabs-container" id="options-tabs-container" style="display: none;">
                         <div class="options-tabs-label">
                             <span class="material-symbols-outlined" style="font-size:16px;color:var(--teal-500);">auto_awesome</span>
-                            Pilihan Alternatif Paket Wisata:
+                            Pilihan Paket Wisata:
                         </div>
                         <div class="options-tabs" id="options-tabs">
                             <!-- Injected dynamically via recom.js -->

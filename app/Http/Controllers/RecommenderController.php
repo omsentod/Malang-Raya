@@ -60,11 +60,11 @@ class RecommenderController extends Controller
         
         if (!empty($validated['budget'])) {
             $budgetPerPersonPerDay = $validated['budget'] / ($validated['persons'] * $validated['duration']);
-            if ($budgetPerPersonPerDay < 200000) { // Backpacker
+            if ($budgetPerPersonPerDay < 300000) { // Backpacker
                 $pref_hemat = 0.80;
                 $pref_balanced = 0.20;
                 $pref_premium = 0.00;
-            } elseif ($budgetPerPersonPerDay > 500000) { // Luxury
+            } elseif ($budgetPerPersonPerDay > 700000) { // Luxury
                 $pref_hemat = 0.00;
                 $pref_balanced = 0.30;
                 $pref_premium = 0.70;
